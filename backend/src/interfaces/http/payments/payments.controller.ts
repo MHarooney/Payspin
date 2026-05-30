@@ -5,8 +5,11 @@ import { GetPaymentStatusUseCase } from '../../../application/use-cases/payments
 import { GetPublicPaymentViewUseCase } from '../../../application/use-cases/payments/get-public-payment-view.use-case';
 import { InitiatePayerPaymentUseCase } from '../../../application/use-cases/payments/initiate-payer-payment.use-case';
 
+// Per-IP limit on public payer routes. Tight by default; tunable for ops/tests.
+const PAY_THROTTLE_LIMIT = Number(process.env.PAY_THROTTLE_LIMIT ?? 10);
+
 @Controller('pay/:code')
-@Throttle({ default: { limit: 10, ttl: 60000 } })
+@Throttle({ default: { limit: PAY_THROTTLE_LIMIT, ttl: 60000 } })
 export class PaymentsController {
   constructor(
     private readonly getPublicView: GetPublicPaymentViewUseCase,
@@ -21,15 +24,12 @@ export class PaymentsController {
   }
 
   @Post('initiate')
-  start(@Param('code') code: string, @Body() body: { amountCents?: number }) {
-    return this.initiate.execute(code, body?.amountCents);
+  start(@Param('code') code: string, @Body() body: unknown) {
+    return this.initiate.execute(code, body);
   }
 
   @Post('complete')
-  finish(
-    @Param('code') code: string,
-    @Body() body: { paymentId: string; consentToken?: string },
-  ) {
+  finish(@Param('code') code: string, @Body() body: unknown) {
     return this.complete.execute(code, body);
   }
 

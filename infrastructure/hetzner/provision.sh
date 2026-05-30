@@ -69,6 +69,22 @@ else
   echo "    (exists)"
 fi
 
+# cloud-init: SSH hardening (key-only auth) + fail2ban on first boot.
+CLOUD_INIT="$(mktemp)"
+trap 'rm -f "$CLOUD_INIT"' EXIT
+cat >"$CLOUD_INIT" <<'EOF'
+#cloud-config
+package_update: true
+packages:
+  - fail2ban
+ssh_pwauth: false
+runcmd:
+  - sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin prohibit-password/' /etc/ssh/sshd_config
+  - systemctl restart ssh 2>/dev/null || systemctl restart sshd 2>/dev/null || true
+  - systemctl enable --now fail2ban
+EOF
+
 create_server() {
   local st="$1"
   echo "==> Server: $SERVER_NAME (type=$st, location=$LOCATION, image=$IMAGE)"
@@ -78,7 +94,8 @@ create_server() {
     --location "$LOCATION" \
     --image "$IMAGE" \
     --ssh-key "$SSH_KEY_NAME" \
-    --firewall "$FIREWALL_NAME"
+    --firewall "$FIREWALL_NAME" \
+    --user-data-from-file "$CLOUD_INIT"
 }
 
 if hcloud server describe "$SERVER_NAME" >/dev/null 2>&1; then

@@ -89,7 +89,7 @@ class _SendNamePageState extends State<SendNamePage> {
               child: PayspinUnderlineField(
                 controller: _label,
                 hintText: 'E.g. Dinner',
-                maxLength: 35,
+                maxLength: 140,
                 autofocus: true,
                 onChanged: (_) => setState(() {}),
               ),

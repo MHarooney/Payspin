@@ -1,8 +1,30 @@
+# Production reverse proxy.
+#
+# Set SITE_ADDRESS to a domain (e.g. pay.payspin.app) and Caddy will obtain and
+# renew a Let's Encrypt certificate automatically. Leave it as ":80" for an
+# IP-only / pre-DNS deploy (no TLS).
 {
-	email payspin.app@gmail.com
+	email {$ACME_EMAIL:payspin.app@gmail.com}
 }
 
-# HTTP on server IP (no domain yet). Replace with api.payspin.app when DNS is ready.
-:80 {
-	reverse_proxy api:3001
+{$SITE_ADDRESS::80} {
+	encode gzip
+
+	# Security headers (HSTS only meaningful once served over HTTPS).
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# API under /v1, payer web everywhere else.
+	handle /v1/* {
+		reverse_proxy api:3001
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
 }

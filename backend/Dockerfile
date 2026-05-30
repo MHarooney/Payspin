@@ -38,6 +38,8 @@ COPY --from=build /app ./
 WORKDIR /app/backend
 COPY backend/docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+# Drop root: run the API as the unprivileged node user.
+USER node
 EXPOSE 3001
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["node", "dist/main.js"]

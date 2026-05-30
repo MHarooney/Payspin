@@ -1,5 +1,6 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Prisma } from '@prisma/client';
 import { AuthResponse } from '@payspin/shared-types';
 import { registerSchema } from '@payspin/validators';
 import * as bcrypt from 'bcrypt';
@@ -25,15 +26,26 @@ export class RegisterUserUseCase {
     }
 
     const passwordHash = await bcrypt.hash(parsed.password, RegisterUserUseCase.BCRYPT_ROUNDS);
-    const user = await this.prisma.user.create({
-      data: {
-        email: parsed.email.toLowerCase(),
-        passwordHash,
-        displayName: parsed.displayName ?? null,
-      },
-    });
-
-    return this.buildAuthResponse(user);
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          email: parsed.email.toLowerCase(),
+          passwordHash,
+          displayName: parsed.displayName ?? null,
+        },
+      });
+      return this.buildAuthResponse(user);
+    } catch (error) {
+      // Two concurrent registrations can both pass the pre-check; the unique
+      // constraint is the real guard. Map it to a clean 409.
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Email already registered');
+      }
+      throw error;
+    }
   }
 
   private buildAuthResponse(user: {

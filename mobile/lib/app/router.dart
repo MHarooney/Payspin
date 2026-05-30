@@ -9,6 +9,7 @@ import '../domain/repositories/onboarding_repository.dart';
 import '../presentation/auth/login_page.dart';
 import '../presentation/links/link_detail_page.dart';
 import '../presentation/onboarding/onboarding_cubit.dart';
+import '../presentation/onboarding/pages/step_connect_bank_page.dart';
 import '../presentation/onboarding/pages/step_credentials_page.dart';
 import '../presentation/onboarding/pages/step_full_name_page.dart';
 import '../presentation/onboarding/pages/step_iban_page.dart';
@@ -42,6 +43,7 @@ GoRouter createRouter() {
           GoRoute(path: '/onboarding/phone', builder: (_, __) => const StepPhonePage()),
           GoRoute(path: '/onboarding/otp', builder: (_, __) => const StepOtpPage()),
           GoRoute(path: '/onboarding/credentials', builder: (_, __) => const StepCredentialsPage()),
+          GoRoute(path: '/onboarding/connect', builder: (_, __) => const StepConnectBankPage()),
           GoRoute(path: '/onboarding/iban', builder: (_, __) => const StepIbanPage()),
           GoRoute(path: '/onboarding/full-name', builder: (_, __) => const StepFullNamePage()),
           GoRoute(path: '/onboarding/success', builder: (_, __) => const SuccessPage()),
@@ -89,7 +91,7 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
 
   if (loc.startsWith('/home')) {
     final accounts = await sl<BankAccountRepository>().listAccounts();
-    if (accounts.isEmpty) return '/onboarding/iban?existing=1';
+    if (accounts.isEmpty) return '/onboarding/connect?existing=1';
     return null;
   }
 

@@ -104,6 +104,7 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 24),
               PayspinSettingsGroup(
                 rows: [
+                  PayspinSettingsRow(icon: Icons.account_balance_outlined, label: 'Connect a bank', onTap: () => context.go('/onboarding/connect?existing=1')),
                   PayspinSettingsRow(icon: Icons.credit_card_outlined, label: 'Linked IBAN', detail: _account?.ibanLast4 != null ? '•••• ${_account!.ibanLast4}' : null, onTap: () => context.go('/onboarding/iban?existing=1')),
                   PayspinSettingsRow(icon: Icons.notifications_outlined, label: 'Push notifications', detail: 'On', onTap: () {}),
                   PayspinSettingsRow(icon: Icons.language, label: 'Language', detail: 'English', onTap: () {}),

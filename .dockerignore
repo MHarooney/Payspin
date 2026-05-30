@@ -1,3 +1,7 @@
+# Shared build-context ignore for both backend/Dockerfile and frontend/Dockerfile
+# (both build from the monorepo root). Do NOT exclude frontend/ here: the web
+# image does `COPY frontend frontend`. The backend image only copies backend/
+# and packages/, so leaving frontend/ in its context is harmless.
 **/node_modules
 **/.git
 **/.turbo
@@ -6,7 +10,6 @@
 **/build
 **/.dart_tool
 mobile/
-frontend/
 resources/
 scripts/
 *.md

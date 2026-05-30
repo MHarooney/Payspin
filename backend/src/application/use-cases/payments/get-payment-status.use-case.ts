@@ -11,7 +11,7 @@ export class GetPaymentStatusUseCase {
   ) {}
 
   async execute(shortCode: string, paymentId: string): Promise<PaymentPublicStatus> {
-    const link = await this.getLink.execute(shortCode);
+    const link = await this.getLink.findOrThrow(shortCode);
     const payment = await this.prisma.payment.findFirst({
       where: {
         paymentLinkId: link.id,

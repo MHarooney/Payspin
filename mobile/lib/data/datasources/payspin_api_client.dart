@@ -37,7 +37,15 @@ class PayspinApiClient {
   }
 
   void _ensureOk(http.Response res) {
-    if (res.statusCode >= 400) throw ApiException(res.statusCode, res.body);
+    if (res.statusCode >= 400) {
+      // A 401 means the stored JWT is invalid/expired. Drop it so the router's
+      // session guard sends the user back to /welcome on the next navigation
+      // instead of leaving them in a half-authenticated, error-looping state.
+      if (res.statusCode == 401) {
+        unawaited(_storage.delete());
+      }
+      throw ApiException(res.statusCode, res.body);
+    }
   }
 
   Future<Map<String, dynamic>> register({
@@ -141,6 +149,44 @@ class PayspinApiClient {
         'iban': iban,
         'accountHolder': accountHolder,
         if (bankName != null) 'bankName': bankName,
+      }),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<List<dynamic>> listInstitutions({String? country}) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/open-banking/institutions')
+        .replace(queryParameters: country != null ? {'country': country} : null);
+    final res = await _send(_client.get(uri, headers: await _headers()));
+    _ensureOk(res);
+    return jsonDecode(res.body) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> connectBank({String? institutionId}) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/bank-accounts/connect'),
+      headers: await _headers(),
+      body: jsonEncode({
+        if (institutionId != null) 'institutionId': institutionId,
+      }),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> completeBankConnection({
+    required String connectionId,
+    required String consentToken,
+    String? expectedIban,
+  }) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/bank-accounts/connect/complete'),
+      headers: await _headers(),
+      body: jsonEncode({
+        'connectionId': connectionId,
+        'consentToken': consentToken,
+        if (expectedIban != null) 'expectedIban': expectedIban,
       }),
     ));
     _ensureOk(res);

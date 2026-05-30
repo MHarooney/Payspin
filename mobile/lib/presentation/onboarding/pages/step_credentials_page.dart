@@ -39,7 +39,7 @@ class _StepCredentialsPageState extends State<StepCredentialsPage> {
           ? () {
               cubit.updateEmail(_email.text);
               cubit.updatePassword(_password.text);
-              context.go('/onboarding/iban');
+              context.go('/onboarding/connect');
             }
           : null,
       child: Column(
@@ -48,14 +48,20 @@ class _StepCredentialsPageState extends State<StepCredentialsPage> {
             controller: _email,
             hintText: 'Email',
             keyboardType: TextInputType.emailAddress,
-            onChanged: cubit.updateEmail,
+            onChanged: (v) {
+              cubit.updateEmail(v);
+              setState(() {});
+            },
           ),
           const SizedBox(height: 24),
           PayspinUnderlineField(
             controller: _password,
             hintText: 'Password (8+ chars)',
             obscureText: true,
-            onChanged: cubit.updatePassword,
+            onChanged: (v) {
+              cubit.updatePassword(v);
+              setState(() {});
+            },
           ),
           const SizedBox(height: 12),
           Text(

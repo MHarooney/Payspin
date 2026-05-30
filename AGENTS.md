@@ -81,4 +81,4 @@ See [docs/README.md](docs/README.md) for full documentation map.
 ## Accounts (production)
 
 - Hetzner / Docker Hub: **payspin.app@gmail.com** only — not work emails.
-- GitHub: `git@github.com:7arooney9t2/Payspin-Backend.git`
+- GitHub: `git@github.com:MHarooney/Payspin.git`

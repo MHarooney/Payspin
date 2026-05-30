@@ -29,8 +29,10 @@ export const updateUserSchema = z.object({
   displayName: z.string().min(1).max(100).optional(),
 });
 
+export const MAX_AMOUNT_CENTS = 999_999_999;
+
 export const createPaymentLinkSchema = z.object({
-  amountCents: z.number().int().positive().max(999_999_999).optional(),
+  amountCents: z.number().int().positive().max(MAX_AMOUNT_CENTS).optional(),
   currency: z.string().length(3).default('EUR'),
   description: z.string().max(140).optional(),
   linkType: z.enum(['SINGLE', 'MULTI']).default('SINGLE'),
@@ -38,8 +40,38 @@ export const createPaymentLinkSchema = z.object({
   expiresInDays: z.number().int().min(1).max(365).optional(),
 });
 
+export const initiatePaymentSchema = z.object({
+  amountCents: z.number().int().positive().max(MAX_AMOUNT_CENTS).optional(),
+});
+
+export const completePaymentSchema = z.object({
+  paymentId: z.string().min(1).max(64),
+  consentToken: z.string().min(1).max(4096).optional(),
+});
+
+export const connectBankAccountSchema = z.object({
+  institutionId: z.string().min(1).max(120).optional(),
+});
+
+export const completeBankConnectionSchema = z.object({
+  connectionId: z.string().min(1).max(120),
+  consentToken: z.string().min(1).max(4096),
+  expectedIban: z.string().min(15).max(34).optional(),
+});
+
+export const listInstitutionsSchema = z.object({
+  country: z
+    .string()
+    .regex(/^[A-Za-z]{2}$/, 'country must be a 2-letter ISO code')
+    .optional(),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CreateBankAccountInput = z.infer<typeof createBankAccountSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type CreatePaymentLinkInput = z.infer<typeof createPaymentLinkSchema>;
+export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;
+export type CompletePaymentInput = z.infer<typeof completePaymentSchema>;
+export type ConnectBankAccountInput = z.infer<typeof connectBankAccountSchema>;
+export type CompleteBankConnectionInput = z.infer<typeof completeBankConnectionSchema>;

@@ -1,7 +1,8 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
-import { PaymentLinkStatus, PaymentStatus } from '@prisma/client';
+import { PaymentStatus } from '@prisma/client';
 import { Job } from 'bullmq';
+import { nextStatusAfterPayment } from '../../domain/utils/payment-link-state';
 import { PrismaService } from '../persistence/prisma.module';
 
 export const YAPILY_WEBHOOK_QUEUE = 'yapily-webhooks';
@@ -41,40 +42,52 @@ export class YapilyWebhookProcessor extends WorkerHost {
         },
         include: { paymentLink: true },
       });
-      if (!payment) return;
 
-      const statusRaw = String(
-        (payload.status as string | undefined) ??
-          (payload.data as { status?: string } | undefined)?.status ??
-          'COMPLETED',
-      ).toUpperCase();
+      if (payment) {
+        // Default to UNKNOWN — a missing/garbled status must never be treated
+        // as a successful payment.
+        const statusRaw = String(
+          (payload.status as string | undefined) ??
+            (payload.data as { status?: string } | undefined)?.status ??
+            'UNKNOWN',
+        ).toUpperCase();
 
-      const isCompleted =
-        statusRaw.includes('COMPLETED') || statusRaw.includes('ACCEPTED');
-      const isFailed = statusRaw.includes('FAILED') || statusRaw.includes('REJECTED');
+        const isCompleted =
+          statusRaw.includes('COMPLETED') || statusRaw.includes('ACCEPTED');
+        const isFailed =
+          statusRaw.includes('FAILED') || statusRaw.includes('REJECTED');
 
-      if (!isCompleted && !isFailed) return;
+        if (isCompleted || isFailed) {
+          // Only transition payments that are still in flight, so a webhook
+          // that races the payer callback cannot double-count link usage.
+          const transition = await tx.payment.updateMany({
+            where: {
+              id: payment.id,
+              status: {
+                in: [
+                  PaymentStatus.AWAITING_AUTHORIZATION,
+                  PaymentStatus.PENDING,
+                  PaymentStatus.PROCESSING,
+                ],
+              },
+            },
+            data: {
+              status: isCompleted ? PaymentStatus.COMPLETED : PaymentStatus.FAILED,
+              completedAt: isCompleted ? new Date() : null,
+              webhookRaw: payload as object,
+            },
+          });
 
-      await tx.payment.update({
-        where: { id: payment.id },
-        data: {
-          status: isCompleted ? PaymentStatus.COMPLETED : PaymentStatus.FAILED,
-          completedAt: isCompleted ? new Date() : null,
-          webhookRaw: payload as object,
-        },
-      });
-
-      if (isCompleted) {
-        await tx.paymentLink.update({
-          where: { id: payment.paymentLinkId },
-          data: {
-            useCount: { increment: 1 },
-            status:
-              payment.paymentLink.linkType === 'SINGLE'
-                ? PaymentLinkStatus.SETTLED
-                : PaymentLinkStatus.COLLECTING,
-          },
-        });
+          if (transition.count === 1 && isCompleted) {
+            await tx.paymentLink.update({
+              where: { id: payment.paymentLinkId },
+              data: {
+                useCount: { increment: 1 },
+                status: nextStatusAfterPayment(payment.paymentLink),
+              },
+            });
+          }
+        }
       }
 
       await tx.webhookEvent.update({

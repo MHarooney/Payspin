@@ -24,3 +24,28 @@ export function buildPaymentRequest(input: BuildPaymentRequestInput): PaymentReq
     },
   };
 }
+
+function maskIban(iban: string): string {
+  const normalized = iban.replace(/\s+/g, '');
+  return normalized.length <= 4 ? '****' : `****${normalized.slice(-4)}`;
+}
+
+/**
+ * Produces a copy of the request safe to persist: account identifications are
+ * masked so full IBANs are never stored in `payment_request_snapshot`.
+ */
+export function redactPaymentRequest(
+  request: PaymentRequestPayload,
+): PaymentRequestPayload {
+  return {
+    ...request,
+    payee: {
+      ...request.payee,
+      accountIdentifications: request.payee.accountIdentifications.map((id) => ({
+        type: id.type,
+        identification:
+          id.type === 'IBAN' ? maskIban(id.identification) : id.identification,
+      })),
+    },
+  };
+}

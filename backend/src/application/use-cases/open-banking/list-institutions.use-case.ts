@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AIS_GATEWAY, AisGateway, InstitutionSummary } from '@payspin/pisp-provider';
+import { listInstitutionsSchema } from '@payspin/validators';
 
 @Injectable()
 export class ListInstitutionsUseCase {
@@ -10,8 +11,11 @@ export class ListInstitutionsUseCase {
   ) {}
 
   async execute(country?: string): Promise<InstitutionSummary[]> {
+    const parsed = listInstitutionsSchema.parse({ country });
     const resolved =
-      country ?? this.config.get<string>('YAPILY_DEFAULT_COUNTRY') ?? 'NL';
+      parsed.country?.toUpperCase() ??
+      this.config.get<string>('YAPILY_DEFAULT_COUNTRY') ??
+      'NL';
     return this.aisGateway.listInstitutions(resolved);
   }
 }

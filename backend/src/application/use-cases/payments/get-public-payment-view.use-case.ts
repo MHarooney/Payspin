@@ -7,13 +7,13 @@ export class GetPublicPaymentViewUseCase {
   constructor(private readonly getLink: GetPaymentLinkByShortCodeUseCase) {}
 
   async execute(shortCode: string): Promise<PublicPaymentLinkView> {
-    const link = await this.getLink.execute(shortCode);
+    const link = await this.getLink.findOrThrow(shortCode);
     return {
       shortCode: link.shortCode,
       amountCents: link.amountCents,
       currency: link.currency,
       description: link.description,
-      payeeDisplayName: link.payeeUser.displayName ?? link.payeeUser.email,
+      payeeDisplayName: link.payeeUser.displayName ?? 'Payspin user',
       status: link.status as PublicPaymentLinkView['status'],
       expiresAt: link.expiresAt?.toISOString() ?? null,
     };

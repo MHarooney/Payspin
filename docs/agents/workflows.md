@@ -71,11 +71,38 @@ See `infrastructure/hetzner/README.md`.
 
 Creates test user, manual IBAN, payment link. Does not complete live iDEAL redirect.
 
-## 7. Before opening a PR
+## 7. Automated tests
+
+```bash
+pnpm test                              # turbo: builds packages, runs all suites
+pnpm --filter @payspin/backend test    # backend only (node:test + tsx)
+pnpm --filter @payspin/validators test # shared validators
+cd mobile && flutter test              # mobile unit
+```
+
+CI runs install -> prisma generate -> build -> typecheck -> lint -> test on every
+PR (`.github/workflows/ci.yml`).
+
+Use `backend/test/helpers/fake-prisma.ts` (in-memory Prisma double) for use-case
+unit tests instead of a live database.
+
+### Covered edge cases (backend)
+
+| Area | Cases |
+|------|-------|
+| Payment-link state | SINGLE settles once + blocks parallel; MULTI up to `maxUses` then settles; expired/cancelled blocked; status poll after settle |
+| Idempotency | Double completion no-ops; webhook vs callback race never double-counts `useCount` |
+| Webhooks | Missing/garbled status never marks paid; failed != completed; missing paymentId still acks |
+| Payments | Open-amount requires amount; snapshot never stores a plaintext IBAN |
+| Auth | Duplicate email (pre-check + P2002 race) -> 409; wrong password / unknown user -> generic message |
+| Encryption | AES-256-GCM round-trip; fresh IV per call; tampered ciphertext rejected; bad key length rejected |
+| Validators | IBAN checksum/country/length; amount bounds; payer + open-banking schemas; country code |
+
+## 8. Before opening a PR
 
 ```
 - [ ] pnpm typecheck (or turbo typecheck)
-- [ ] Backend tests if touched: cd backend && pnpm test
+- [ ] pnpm test (all suites green)
 - [ ] No .env or secrets in diff
 - [ ] AGENTS.md / docs updated if architecture or workflows changed
 ```

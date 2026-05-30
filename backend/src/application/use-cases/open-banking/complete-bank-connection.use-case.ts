@@ -1,6 +1,13 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { BankAccountSummary } from '@payspin/shared-types';
 import { AIS_GATEWAY, AisGateway } from '@payspin/pisp-provider';
+import { completeBankConnectionSchema } from '@payspin/validators';
 import { extractIbanFromAccount, ibanLast4 } from '../../../domain/utils/short-code';
 import { EncryptionService } from '../../../infrastructure/encryption/encryption.service';
 import { PrismaService } from '../../../infrastructure/persistence/prisma.module';
@@ -14,25 +21,27 @@ export class CompleteBankConnectionUseCase {
     @Inject(AIS_GATEWAY) private readonly aisGateway: AisGateway,
   ) {}
 
-  async execute(
-    userId: string,
-    body: { connectionId: string; consentToken: string; expectedIban?: string },
-  ): Promise<BankAccountSummary> {
+  async execute(userId: string, body: unknown): Promise<BankAccountSummary> {
+    const parsed = completeBankConnectionSchema.parse(body);
     const connection = await this.prisma.bankConnection.findFirst({
-      where: { userId, yapilyAuthId: body.connectionId },
+      where: { userId, yapilyAuthId: parsed.connectionId },
     });
     if (!connection) {
       throw new NotFoundException('Bank connection not found');
     }
+    // Replay guard: a connection can only be completed once.
+    if (connection.status !== 'PENDING') {
+      throw new ConflictException('Bank connection is already completed');
+    }
 
-    const accounts = await this.aisGateway.getAccounts(body.consentToken);
+    const accounts = await this.aisGateway.getAccounts(parsed.consentToken);
     if (!accounts.length) {
       throw new BadRequestException('No accounts returned from bank');
     }
 
     let selected = accounts[0];
-    if (body.expectedIban) {
-      const normalized = body.expectedIban.replace(/\s+/g, '').toUpperCase();
+    if (parsed.expectedIban) {
+      const normalized = parsed.expectedIban.replace(/\s+/g, '').toUpperCase();
       const match = accounts.find((a) => {
         const iban = extractIbanFromAccount(a);
         return iban?.replace(/\s+/g, '').toUpperCase() === normalized;

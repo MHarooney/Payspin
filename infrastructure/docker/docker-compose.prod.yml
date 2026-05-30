@@ -1,13 +1,24 @@
+# Cap container log growth so a chatty/looping container can't fill the VPS disk.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
-    env_file:
-      - .env.production
+    logging: *default-logging
+    # Only the POSTGRES_* secrets — not the whole app env.
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-payspin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-payspin}
     volumes:
       - payspin_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U payspin -d payspin"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-payspin} -d ${POSTGRES_DB:-payspin}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -17,8 +28,19 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    logging: *default-logging
+    command:
+      [
+        "redis-server",
+        "--requirepass",
+        "${REDIS_PASSWORD}",
+        "--appendonly",
+        "yes",
+      ]
+    volumes:
+      - payspin_redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli -a \"$REDIS_PASSWORD\" ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -28,6 +50,7 @@ services:
   api:
     image: payspin/api:latest
     restart: unless-stopped
+    logging: *default-logging
     env_file:
       - .env.production
     depends_on:
@@ -35,27 +58,59 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/v1/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     networks:
       - internal
+      - web
+
+  web:
+    image: payspin/web:latest
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
       - web
 
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      # ":80" = IP-only/no-TLS. Set to a domain for automatic HTTPS.
+      - SITE_ADDRESS=${SITE_ADDRESS:-:80}
+      - ACME_EMAIL=${ACME_EMAIL:-payspin.app@gmail.com}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
       - api
+      - web
     networks:
       - web
 
 volumes:
   payspin_pg_data:
+  payspin_redis_data:
   caddy_data:
   caddy_config:
 

@@ -1,5 +1,6 @@
 import '../../domain/entities/auth_session.dart';
 import '../../domain/entities/bank_account.dart';
+import '../../domain/entities/institution.dart';
 import '../../domain/entities/payment_link.dart';
 import '../../domain/entities/user.dart';
 
@@ -21,6 +22,18 @@ BankAccount mapBankAccount(Map<String, dynamic> json) => BankAccount(
       accountHolder: json['accountHolder'] as String,
       bankName: json['bankName'] as String?,
       verified: json['verified'] as bool? ?? false,
+    );
+
+Institution mapInstitution(Map<String, dynamic> json) => Institution(
+      id: json['id'] as String,
+      name: json['name'] as String? ?? json['fullName'] as String? ?? 'Bank',
+      fullName: json['fullName'] as String? ?? json['name'] as String? ?? 'Bank',
+    );
+
+BankConnectionStart mapBankConnectionStart(Map<String, dynamic> json) =>
+    BankConnectionStart(
+      connectionId: json['connectionId'] as String,
+      authorisationUrl: json['authorisationUrl'] as String,
     );
 
 PaymentLink mapPaymentLink(Map<String, dynamic> json) => PaymentLink(

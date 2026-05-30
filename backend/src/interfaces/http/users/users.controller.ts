@@ -19,10 +19,7 @@ export class UsersController {
   }
 
   @Patch('me')
-  patchMe(
-    @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { displayName: string },
-  ) {
-    return this.updateProfile.execute(user.userId, body.displayName);
+  patchMe(@CurrentUser() user: AuthenticatedUser, @Body() body: unknown) {
+    return this.updateProfile.execute(user.userId, body);
   }
 }
