@@ -1,0 +1,44 @@
+---
+description: Docker, Hetzner deploy, production compose
+globs: infrastructure/**/*
+alwaysApply: false
+---
+
+# Infrastructure & deploy
+
+## Local
+
+```bash
+pnpm db:up    # infrastructure/docker/docker-compose.yml → Postgres :5435, Redis :6381
+pnpm db:down
+```
+
+## Production stack
+
+| File | Role |
+|------|------|
+| `backend/Dockerfile` | API image (monorepo root context) |
+| `infrastructure/docker/docker-compose.prod.yml` | API + Postgres + Redis + Caddy |
+| `infrastructure/docker/Caddyfile` | `:80` → api:3001 |
+| `backend/.env.production.example` | Env template |
+
+## Hetzner deploy
+
+```bash
+export HCLOUD_TOKEN='...'
+./infrastructure/hetzner/up.sh
+```
+
+Requires: verified Hetzner account, project `payspin`, SSH key `~/.ssh/id_ed25519_payspin`.
+
+Deploy streams Docker image over SSH — Hub push optional (`infrastructure/docker/publish.sh`).
+
+## Security
+
+- Postgres/Redis on internal Docker network only
+- Firewall: 22, 80, 443 on VPS
+- Secrets on server at `/opt/payspin/.env.production` — never commit
+
+## Account
+
+Hetzner + Docker Hub: **payspin.app@gmail.com** only.

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Inter:wght@500;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #F9F9F9; padding: 20px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .section { font-size: 11px; font-weight: 600; color: #606060; margin-bottom: 8px; }
+
+  /* Filled primary pill */
+  .btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 100px; cursor: pointer; font-weight: 700; border: none; white-space: nowrap; }
+  .btn-primary-lg { background: #FC00FF; color: #fff; height: 56px; padding: 0 32px; font-size: 16px; font-family: 'Inter', sans-serif; box-shadow: 0px 8px 16px rgba(0,0,0,0.16); }
+  .btn-primary-md { background: #D94DF8; color: #fff; height: 48px; padding: 0 24px; font-size: 14px; font-family: 'Inter', sans-serif; }
+  .btn-primary-sm { background: #D94DF8; color: #fff; height: 40px; padding: 0 20px; font-size: 14px; font-family: 'Inter', sans-serif; }
+  .btn-secondary  { background: #65558F; color: #fff; height: 48px; padding: 0 24px; font-size: 14px; font-family: 'Inter', sans-serif; }
+  .btn-outline    { background: transparent; color: #D94DF8; height: 48px; padding: 0 24px; font-size: 14px; font-family: 'Inter', sans-serif; border: 1.5px solid #D94DF8; }
+  .btn-ghost      { background: transparent; color: #D94DF8; height: 40px; padding: 0 20px; font-size: 14px; font-family: 'Inter', sans-serif; }
+  .btn-teal       { background: #07D8DD; color: #0A0D13; height: 32px; padding: 0 16px; font-size: 12px; border-radius: 100px; font-family: 'Inter', sans-serif; font-weight: 700; }
+  .btn-dark       { background: #2D2D29; color: #fff; height: 40px; padding: 0 20px; font-size: 14px; font-family: 'Inter', sans-serif; border-radius: 100px; }
+
+  /* FAB / Join button */
+  .fab { display: inline-flex; align-items: center; gap: 6px; background: #D94DF8; color: #fff; height: 48px; padding: 0 20px; border-radius: 100px; font-size: 14px; font-weight: 700; font-family: 'Inter', sans-serif; box-shadow: 0px 8px 16px rgba(0,0,0,0.08); }
+  .fab-emblem { width: 24px; height: 24px; background: rgba(255,255,255,0.3); border-radius: 50%; }
+
+  /* Gradient CTA */
+  .btn-gradient { background: linear-gradient(90deg, #FC00FF 0%, #07D8DD 100%); color: #fff; height: 56px; padding: 0 32px; font-size: 16px; font-family: 'Inter', sans-serif; font-weight: 700; border-radius: 100px; }
+</style>
+</head>
+<body>
+  <div class="section">Primary Actions</div>
+  <div class="row">
+    <button class="btn btn-primary-lg">Continuo</button>
+    <button class="btn btn-primary-md">Sign Up</button>
+    <button class="btn btn-primary-sm">Next</button>
+  </div>
+  <div class="section">Secondary Actions</div>
+  <div class="row">
+    <button class="btn btn-secondary">Label</button>
+    <button class="btn btn-outline">Join Circle</button>
+    <button class="btn btn-ghost">Skip</button>
+  </div>
+  <div class="section">Utility & Accent</div>
+  <div class="row">
+    <button class="btn btn-teal">Follow Us</button>
+    <button class="btn btn-dark">High return</button>
+    <button class="btn btn-gradient">Get Started</button>
+  </div>
+  <div class="section">FAB</div>
+  <div class="row">
+    <div class="fab">
+      <div class="fab-emblem"></div>
+      Join
+    </div>
+  </div>
+</body>
+</html>

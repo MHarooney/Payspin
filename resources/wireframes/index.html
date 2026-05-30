@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payspin — Mobile Wireframes v1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Raleway:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="wireframes.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Payspin — Mobile Wireframes v1</h1>
+  <p>P2P Payment Links (Phase 1) · Circles ROSCA (Phase 3) · Yapily payer web · Payspin brand (#FC00FF / #07D8DD)</p>
+  <p style="margin-top:0.5rem;font-size:0.85rem;">
+    Figma: <a href="https://www.figma.com/design/QEy9wqxzUbvamVknKwc8Be" style="color:#07D8DD">Payspin — Mobile Wireframes v1</a>
+    · 56 screens · May 2026
+  </p>
+</header>
+
+<nav class="toc">
+  <a href="#onboarding">Onboarding</a>
+  <a href="#p2p">P2P Links</a>
+  <a href="#profile">Profile</a>
+  <a href="#web">Payer Web</a>
+  <a href="#circles">Circles</a>
+  <a href="#flows">Flows</a>
+</nav>
+
+<!-- ONBOARDING S01-S12 -->
+<section class="flow-section" id="onboarding">
+  <h2>Onboarding — S01–S12</h2>
+  <p class="section-desc">Phase 1 · Tikkie-inspired flow with Payspin branding · DE + NL</p>
+  <div class="screen-grid">
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S01</span> Splash</div>
+      <div class="phone dark">
+        <div class="phone-header"><span>S01</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <div class="logo-mark"></div>
+          <div class="wordmark">Payspin</div>
+          <p class="tagline">Spinning circles</p>
+        </div>
+        <button class="btn-primary">Let's get started</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S02</span> Carousel 1/3</div>
+      <div class="phone">
+        <div class="phone-header"><span>S02</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <div class="logo-mark"></div>
+          <h3 class="screen-h">Request money in seconds</h3>
+          <p class="sub">Create a payment link and share via WhatsApp — just like Tikkie, for DE + NL</p>
+          <p style="font-size:12px;color:#9CA3AF">1 / 3</p>
+        </div>
+        <button class="btn-primary">Next</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S03</span> Carousel 2/3</div>
+      <div class="phone">
+        <div class="phone-header"><span>S03</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <h3 class="screen-h">Save together with Circles</h3>
+          <p class="sub">Digital Geldkring / Sparkreis — rotating savings for your community</p>
+          <span class="pill phase3">Phase 3</span>
+          <p style="font-size:12px;color:#9CA3AF;margin-top:16px">2 / 3</p>
+        </div>
+        <button class="btn-primary">Next</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S04</span> Carousel 3/3</div>
+      <div class="phone">
+        <div class="phone-header"><span>S04</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <h3 class="screen-h">Any EU bank</h3>
+          <p class="sub">Open banking via Yapily — Germany & Netherlands supported at launch</p>
+          <p style="font-size:12px;color:#9CA3AF">3 / 3</p>
+        </div>
+        <button class="btn-primary">Get started</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S05</span> Display name</div>
+      <div class="phone">
+        <div class="phone-header"><span>S05</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">What should we call you?</h3>
+          <p class="sub">This name appears on payment requests</p>
+          <div class="input-mock">Your name</div>
+        </div>
+        <button class="btn-primary">Continue</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S06</span> Phone verify</div>
+      <div class="phone">
+        <div class="phone-header"><span>S06</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Your mobile number</h3>
+          <div class="input-mock">🇩🇪 +49 · 🇳🇱 +31</div>
+          <div class="input-mock" style="margin-top:12px">SMS verification code</div>
+        </div>
+        <button class="btn-primary">Verify</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S07</span> Cookie consent</div>
+      <div class="phone">
+        <div class="phone-header"><span>S07</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <h3 class="screen-h">Payspin cookies?</h3>
+          <p class="sub">We use cookies for analytics and security (GDPR)</p>
+          <div style="display:flex;gap:12px;margin-top:24px">
+            <button class="btn-secondary">Don't accept</button>
+            <button class="btn-primary" style="width:auto;margin:0;padding:14px 24px">Accept</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S08</span> Add IBAN</div>
+      <div class="phone">
+        <div class="phone-header"><span>S08</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Your bank account</h3>
+          <p class="sub">Personal IBAN to receive payments (any country)</p>
+          <div class="input-mock">DE89 3704 0044 0532 0130 00</div>
+          <p style="font-size:12px;color:#6B7280;margin-top:12px">International IBANs supported — validated with Mod-97 checksum</p>
+        </div>
+        <button class="btn-primary">Save IBAN</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S09</span> Onboarding complete</div>
+      <div class="phone">
+        <div class="phone-header"><span>S09</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <div style="font-size:48px">🎉</div>
+          <h3 class="screen-h">You're ready!</h3>
+          <p class="sub">Create your first payment link and share it</p>
+        </div>
+        <button class="btn-primary">Go to Links</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S10</span> First-run hub</div>
+      <div class="phone">
+        <div class="phone-header"><span>S10</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Ready for takeoff</h3>
+          <div class="link-card" style="margin-top:16px"><div><div class="amount">Send a payment link</div><div class="meta">Request money via WhatsApp</div></div><span>→</span></div>
+          <div class="link-card"><div><div class="amount">Explore Circles</div><div class="meta">ROSCA savings · Phase 3</div></div><span>→</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S11</span> Notifications</div>
+      <div class="phone">
+        <div class="phone-header"><span>S11</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <h3 class="screen-h">Stay updated</h3>
+          <p class="sub">Get notified when someone pays your link</p>
+          <div style="background:#F3F4F6;border-radius:12px;padding:20px;margin-top:20px;width:100%">
+            <p style="font-size:14px;font-weight:600">"Payspin" would like to send you notifications</p>
+            <div style="display:flex;gap:12px;margin-top:16px;justify-content:center">
+              <button class="btn-secondary">Don't Allow</button>
+              <button class="btn-primary" style="width:auto;margin:0;padding:12px 20px">Allow</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>S12</span> Login</div>
+      <div class="phone">
+        <div class="phone-header"><span>S12</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <div class="logo-mark"></div>
+          <div class="wordmark">Payspin</div>
+          <div class="input-mock" style="margin-top:24px">Email</div>
+          <div class="input-mock" style="margin-top:8px">Password</div>
+          <button class="btn-primary" style="margin-top:16px">Sign in</button>
+          <p style="font-size:13px;margin-top:16px;color:#9CA3AF">Continue with Google · Apple</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- P2P P01-P14 -->
+<section class="flow-section" id="p2p">
+  <h2>P2P Links — P01–P14</h2>
+  <p class="section-desc">Phase 1 core · Create link → share WhatsApp → Yapily payer web</p>
+  <div class="screen-grid">
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P01</span> Links home</div>
+      <div class="phone" style="position:relative">
+        <div class="phone-header"><span>P01</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Your links</h3>
+          <div class="link-card"><div><div class="amount">€25.00 — Dinner</div><div class="meta"><span class="pill active">Active</span></div></div><span style="color:#07D8DD">↗</span></div>
+          <div class="link-card"><div><div class="amount">€50.00 — Rent share</div><div class="meta"><span class="pill paid">Paid</span></div></div></div>
+        </div>
+        <div class="fab">+</div>
+        <div class="bottom-nav">
+          <div class="nav-item active"><div class="nav-dot"></div>Links</div>
+          <div class="nav-item"><div class="nav-dot"></div>Circles</div>
+          <div class="nav-item"><div class="nav-dot"></div>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P02</span> Empty state</div>
+      <div class="phone">
+        <div class="phone-header"><span>P02</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <div class="empty-state">
+            <div class="icon">🔗</div>
+            <h3 class="screen-h">No links yet</h3>
+            <p class="sub">Create your first payment link in under 10 seconds</p>
+          </div>
+        </div>
+        <button class="btn-primary">Create link</button>
+        <div class="bottom-nav">
+          <div class="nav-item active"><div class="nav-dot"></div>Links</div>
+          <div class="nav-item"><div class="nav-dot"></div>Circles</div>
+          <div class="nav-item"><div class="nav-dot"></div>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P03</span> Amount</div>
+      <div class="phone">
+        <div class="phone-header"><span>P03</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <h3 class="screen-h">How much?</h3>
+          <p style="font-size:48px;font-weight:700;color:#111827">€10</p>
+          <p class="sub">EUR · Fixed amount · Open amount toggle</p>
+        </div>
+        <button class="btn-primary">Continue</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P04</span> Description</div>
+      <div class="phone">
+        <div class="phone-header"><span>P04</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">What is it for?</h3>
+          <div class="input-mock">E.g. Taxi, Dinner, Rent</div>
+        </div>
+        <button class="btn-primary">Continue</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P05</span> Review</div>
+      <div class="phone">
+        <div class="phone-header"><span>P05</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Review link</h3>
+          <div class="link-card"><div><div class="amount">€10.00</div><div class="meta">Dinner</div></div></div>
+          <p class="sub">To: Your IBAN ·••• 3000</p>
+        </div>
+        <button class="btn-primary">Create link</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P06</span> Share sheet</div>
+      <div class="phone">
+        <div class="phone-header"><span>P06</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <h3 class="screen-h">€10 for Dinner</h3>
+          <p class="sub">pay.payspin.io/abc123</p>
+          <div class="share-row">
+            <div class="share-btn wa">WA</div>
+            <div class="share-btn qr">QR</div>
+            <div class="share-btn copy">Copy</div>
+          </div>
+          <p class="integration-note">Share via WhatsApp · SMS · native share sheet</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P07</span> QR code</div>
+      <div class="phone">
+        <div class="phone-header"><span>P07</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <h3 class="screen-h">QR for payer</h3>
+          <div class="qr-box">QR CODE<br/>pay.payspin.io/abc123</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P08</span> Link detail</div>
+      <div class="phone">
+        <div class="phone-header"><span>P08</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">€10 — Dinner</h3>
+          <span class="pill active">Active</span>
+          <p class="sub" style="margin-top:16px">Created · Expires in 7 days</p>
+          <p class="sub">1 payer · €10 received</p>
+          <button class="btn-secondary" style="margin-top:24px;width:100%">Cancel link</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P09</span> Push notification</div>
+      <div class="phone">
+        <div class="phone-header"><span>P09</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <div style="background:#fff;border-radius:16px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.15);width:100%;text-align:left">
+            <p style="font-size:12px;color:#9CA3AF">PAYSPIN · now</p>
+            <p style="font-weight:600;margin-top:4px">€10.00 received</p>
+            <p style="font-size:13px;color:#6B7280">From Deutsche Bank · Dinner</p>
+          </div>
+          <p class="integration-note">Firebase FCM push</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P10</span> Expired</div>
+      <div class="phone">
+        <div class="phone-header"><span>P10</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content center">
+          <span class="pill expired">Expired</span>
+          <h3 class="screen-h" style="margin-top:16px">Link no longer active</h3>
+          <p class="sub">Create a new link to request payment</p>
+        </div>
+        <button class="btn-primary">Create new link</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P11</span> IBAN pending</div>
+      <div class="phone">
+        <div class="phone-header"><span>P11</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Verify your IBAN</h3>
+          <p class="sub">International personal IBAN — any country supported via open banking.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>P12–P14</span> Phase 2 placeholders</div>
+      <div class="phone">
+        <div class="phone-header"><span>P12</span><span class="phase-badge" style="background:rgba(156,163,175,0.2);color:#6B7280">Phase 2</span></div>
+        <div class="phone-content">
+          <div class="locked-overlay">
+            <p style="font-weight:600;color:#6B7280">Multi-use links</p>
+            <p style="font-size:13px;color:#9CA3AF;margin-top:8px">P13 · Link analytics · P14 · DATEV export</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROFILE R01-R08 -->
+<section class="flow-section" id="profile">
+  <h2>Profile — R01–R08</h2>
+  <p class="section-desc">Account settings · IBAN · Monerium · Language DE/NL</p>
+  <div class="screen-grid">
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>R01</span> Profile</div>
+      <div class="phone">
+        <div class="phone-header"><span>R01</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <div style="text-align:center;margin-bottom:24px">
+            <div class="logo-mark" style="margin:0 auto 12px"></div>
+            <p style="font-weight:700;font-size:18px">Moustafa</p>
+            <p class="sub">IBAN ·••• 3000</p>
+          </div>
+          <div class="link-card"><div class="amount" style="font-size:15px">Bank account</div><span>→</span></div>
+          <div class="link-card"><div><div class="amount" style="font-size:15px">Monerium (Circles)</div><span class="pill phase3">Phase 3</span></div><span>→</span></div>
+          <div class="link-card"><div class="amount" style="font-size:15px">Notifications</div><span>→</span></div>
+          <div class="link-card"><div class="amount" style="font-size:15px">Language · Deutsch</div><span>→</span></div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-dot"></div>Links</div>
+          <div class="nav-item"><div class="nav-dot"></div>Circles</div>
+          <div class="nav-item active"><div class="nav-dot"></div>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>R02–R08</span> Settings sub-screens</div>
+      <div class="phone">
+        <div class="phone-header"><span>R02</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Bank account</h3>
+          <div class="input-mock">Change IBAN</div>
+          <h3 class="screen-h" style="margin-top:24px">R03 Monerium</h3>
+          <p class="sub">Not connected · Required for Circles</p>
+          <h3 class="screen-h" style="margin-top:24px">R05 Language</h3>
+          <p class="sub">🇩🇪 Deutsch · 🇳🇱 Nederlands</p>
+          <h3 class="screen-h" style="margin-top:24px">R06 Legal</h3>
+          <p class="sub">Terms · Privacy · Impressum</p>
+          <button class="btn-secondary" style="margin-top:24px;width:100%;color:#EF4444;border-color:#EF4444">R08 Log out</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- WEB W01-W06 -->
+<section class="flow-section" id="web">
+  <h2>Payer Web — W01–W06</h2>
+  <p class="section-desc">pay.payspin.io · Zero install · Yapily open banking</p>
+  <div class="screen-grid">
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>W01</span> Link landing</div>
+      <div class="web-frame">
+        <div class="web-bar">pay.payspin.io/abc123</div>
+        <div style="padding:32px;text-align:center">
+          <div class="logo-mark" style="margin:0 auto 16px"></div>
+          <p style="font-size:14px;color:#6B7280">Moustafa requests</p>
+          <p style="font-size:36px;font-weight:700;margin:8px 0">€10.00</p>
+          <p style="color:#6B7280">Dinner</p>
+          <button class="btn-primary" style="margin-top:32px">Pay with my bank</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>W02</span> Bank picker</div>
+      <div class="web-frame">
+        <div class="web-bar">Select your bank · Powered by Yapily</div>
+        <div style="padding:16px"><div class="input-mock">Search banks</div></div>
+        <div class="bank-list">
+          <div class="bank-item"><div class="bank-logo"></div>Deutsche Bank</div>
+          <div class="bank-item"><div class="bank-logo"></div>ING</div>
+          <div class="bank-item"><div class="bank-logo"></div>Sparkasse</div>
+          <div class="bank-item"><div class="bank-logo"></div>ABN AMRO</div>
+          <div class="bank-item"><div class="bank-logo"></div>Rabobank</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>W03</span> Bank SCA</div>
+      <div class="web-frame">
+        <div class="web-bar">External · Your bank app</div>
+        <div style="padding:48px 24px;text-align:center;color:#6B7280">
+          <p style="font-size:48px">🏦</p>
+          <p style="margin-top:16px;font-weight:600;color:#111827">Authenticate with your bank</p>
+          <p style="font-size:14px;margin-top:8px">Face ID · PIN · SCA redirect</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>W04</span> Processing</div>
+      <div class="web-frame">
+        <div style="padding:80px 24px;text-align:center">
+          <p style="font-size:32px">⏳</p>
+          <p style="font-weight:600;margin-top:16px">Confirming with your bank…</p>
+          <p style="font-size:13px;color:#9CA3AF;margin-top:8px">SEPA Instant · ≤10 seconds</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>W05</span> Success</div>
+      <div class="web-frame">
+        <div style="padding:48px 24px;text-align:center">
+          <p style="font-size:48px;color:#10B981">✓</p>
+          <p style="font-size:22px;font-weight:700;margin-top:16px">Payment sent!</p>
+          <p style="color:#6B7280;margin-top:8px">€10.00 to Moustafa</p>
+          <p style="font-size:12px;color:#9CA3AF;margin-top:16px">Ref: PAY-abc123</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>W06</span> Failed</div>
+      <div class="web-frame">
+        <div style="padding:48px 24px;text-align:center">
+          <p style="font-size:48px;color:#EF4444">✕</p>
+          <p style="font-size:22px;font-weight:700;margin-top:16px">Payment failed</p>
+          <p style="color:#6B7280;margin-top:8px">Link expired or bank declined</p>
+          <button class="btn-primary" style="margin-top:24px">Try again</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CIRCLES C01-C16 -->
+<section class="flow-section" id="circles">
+  <h2>Circles ROSCA — C01–C16</h2>
+  <p class="section-desc">Phase 3 · Monerium + Circle MPC + Gnosis Chain · Yapily contributions</p>
+  <div class="screen-grid">
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>C01</span> Empty</div>
+      <div class="phone">
+        <div class="phone-header"><span>C01</span><span class="phase-badge phase3">Phase 3</span></div>
+        <div class="phone-content">
+          <div class="empty-state">
+            <div class="icon">⭕</div>
+            <h3 class="screen-h">No circles yet</h3>
+            <p class="sub">Start or join a rotating savings circle</p>
+          </div>
+        </div>
+        <button class="btn-primary">Create circle</button>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-dot"></div>Links</div>
+          <div class="nav-item active"><div class="nav-dot"></div>Circles</div>
+          <div class="nav-item"><div class="nav-dot"></div>Profile</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>C02</span> Circle list</div>
+      <div class="phone">
+        <div class="phone-header"><span>C02</span><span class="phase-badge phase3">Phase 3</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">My circles</h3>
+          <div class="link-card"><div><div class="amount">Family Savings</div><div class="meta">Round 3/10 · €100/mo</div></div><span class="pill pending">Due</span></div>
+          <div class="link-card"><div><div class="amount">Office Sparkreis</div><div class="meta">Round 7/12</div></div><span class="pill paid">Paid</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>C03–C04</span> Create circle</div>
+      <div class="phone">
+        <div class="phone-header"><span>C03</span><span class="phase-badge phase3">Phase 3</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Create circle</h3>
+          <div class="input-mock">Circle name</div>
+          <div class="input-mock" style="margin-top:8px">€100 / month</div>
+          <div class="input-mock" style="margin-top:8px">10 members · monthly cycle</div>
+          <h3 class="screen-h" style="margin-top:24px">C04 Invite members</h3>
+          <p class="sub">Share invite via WhatsApp</p>
+        </div>
+        <button class="btn-primary">Create & invite</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>C05</span> Circle detail</div>
+      <div class="phone">
+        <div class="phone-header"><span>C05</span><span class="phase-badge phase3">Phase 3</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Family Savings</h3>
+          <p class="sub">Round 3 of 10 · Pot: €1,000</p>
+          <div class="progress-bar"><div class="progress-fill" style="width:30%"></div></div>
+          <p class="sub">Next recipient: Anna</p>
+          <p class="sub">7/10 members paid this round</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>C06–C07</span> Members & history</div>
+      <div class="phone">
+        <div class="phone-header"><span>C06</span><span class="phase-badge phase3">Phase 3</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Members</h3>
+          <div class="member-row"><span>1. Anna · receives this round</span><span class="pill pending">Host</span></div>
+          <div class="member-row"><span>2. You</span><span class="pill paid">Paid</span></div>
+          <div class="member-row"><span>3. Ben</span><span class="pill pending">Pending</span></div>
+          <h3 class="screen-h" style="margin-top:24px">C07 History</h3>
+          <p class="sub">Round 2 → Ben · €1,000 · Mar 2026</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>C08</span> Contribution due</div>
+      <div class="phone">
+        <div class="phone-header"><span>C08</span><span class="phase-badge phase3">Phase 3</span></div>
+        <div class="phone-content center">
+          <h3 class="screen-h">Contribution due</h3>
+          <p style="font-size:36px;font-weight:700">€100</p>
+          <p class="sub">Family Savings · Round 3</p>
+          <button class="btn-primary" style="margin-top:24px">Pay now via Yapily</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>C09–C11</span> Monerium</div>
+      <div class="phone">
+        <div class="phone-header"><span>C09</span><span class="phase-badge phase3">Phase 3</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Connect bank for Circles</h3>
+          <p class="sub">Monerium KYC · Virtual IBAN · EURe wallet on Gnosis</p>
+          <p class="sub" style="margin-top:16px">C10 → Monerium OAuth (external browser)</p>
+          <div style="background:#F0FDF4;border-radius:12px;padding:16px;margin-top:16px">
+            <p style="font-weight:600;color:#10B981">C11 Connected ✓</p>
+            <p style="font-size:13px;margin-top:4px">IBAN DE89… · Wallet 0x7a3…f2</p>
+          </div>
+        </div>
+        <button class="btn-primary">Connect Monerium</button>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>C12</span> Wallet</div>
+      <div class="phone">
+        <div class="phone-header"><span>C12</span><span class="phase-badge phase3">Phase 3</span></div>
+        <div class="phone-content">
+          <h3 class="screen-h">Circle wallet</h3>
+          <p style="font-size:28px;font-weight:700">€850 EURe</p>
+          <p class="sub">Contract: 0x4f2…8b1 · Gnosis Chain</p>
+          <p class="integration-note">Secured by Circle MPC · Gasless txs</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen-wrap">
+      <div class="screen-label"><span>C13–C16</span> Payout · Join · Locked</div>
+      <div class="phone">
+        <div class="phone-header"><span>C16</span><span class="phase-badge">Phase 1</span></div>
+        <div class="phone-content">
+          <div class="locked-overlay">
+            <p style="font-weight:700;font-size:18px">Circles coming soon</p>
+            <p style="font-size:13px;color:#9CA3AF;margin-top:8px">Phase 3 · Monerium + Circle + on-chain ROSCA</p>
+          </div>
+          <p class="sub" style="margin-top:24px">C13 Payout received · C14 Paused · C15 Join via invite</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FLOWS -->
+<section class="flow-section" id="flows">
+  <h2>User Flows</h2>
+  <p class="section-desc">Key journeys connecting mobile, web, and integrations</p>
+  <div style="background:#1f2937;border-radius:16px;padding:2rem;max-width:900px">
+    <h3 style="color:#07D8DD;margin-bottom:1rem">Flow 1 — Create & share payment link</h3>
+    <p style="font-size:14px;color:#d1d5db">P03 → P04 → P05 → P06 → <strong>W01</strong> → <strong>W02</strong> → <strong>W05</strong> → P09</p>
+    <h3 style="color:#07D8DD;margin:1.5rem 0 1rem">Flow 2 — Circles contribution</h3>
+    <p style="font-size:14px;color:#d1d5db">C08 → W01 → W02 → W05 → C05 (status updated)</p>
+    <h3 style="color:#07D8DD;margin:1.5rem 0 1rem">Flow 3 — Monerium onboarding</h3>
+    <p style="font-size:14px;color:#d1d5db">C09 → C10 (Monerium OAuth) → C11 → C12</p>
+  </div>
+</section>
+
+<footer>
+  Payspin Wireframes v1 · Generated May 2026 · Brand: #FC00FF / #07D8DD · Figma: QEy9wqxzUbvamVknKwc8Be
+</footer>
+
+</body>
+</html>

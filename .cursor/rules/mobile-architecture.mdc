@@ -1,0 +1,44 @@
+---
+description: Flutter clean architecture — layers, router, DI, repos
+globs: mobile/lib/**
+alwaysApply: false
+---
+
+# Mobile architecture
+
+## Layers (`mobile/lib/`)
+
+| Layer | Path |
+|-------|------|
+| App | `app/router.dart`, `app/di/injection.dart` |
+| Core | `core/network/`, `core/design_system/`, `core/storage/` |
+| Domain | `domain/entities/`, `domain/repositories/`, `domain/usecases/` |
+| Data | `data/datasources/`, `data/repositories/*_impl.dart` |
+| Presentation | `presentation/<feature>/` |
+
+## Patterns
+
+- **Routing:** `go_router` in `app/router.dart` — add routes + redirect guards there.
+- **DI:** GetIt `sl` — register in `injection.dart`.
+- **State:** `Cubit` for onboarding only; other screens call repos/use cases directly.
+- **API:** `PayspinApiClient` — base URL from `--dart-define=API_URL`.
+
+## New screen
+
+1. Page in `presentation/<feature>/`
+2. Route in `router.dart`
+3. Repo method if new API endpoint
+4. Register deps in `injection.dart`
+
+## UI design
+
+See `.cursor/rules/payspin-design.mdc` — dark prototype, `PayspinTheme`, gradient CTAs.
+
+## Run
+
+```bash
+cd mobile
+flutter run --dart-define=API_URL=http://localhost:3001/v1
+```
+
+Driver tests: `lib/main_driver.dart` (extension before `ensureInitialized`).

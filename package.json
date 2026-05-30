@@ -1,0 +1,29 @@
+{
+  "name": "payspin",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:up": "docker compose -f infrastructure/docker/docker-compose.yml up -d",
+    "db:down": "docker compose -f infrastructure/docker/docker-compose.yml down",
+    "dev:setup": "./scripts/dev/payspin-dev setup",
+    "dev:start": "./scripts/dev/payspin-dev start",
+    "dev:start:web": "./scripts/dev/payspin-dev start --web",
+    "dev:stop": "./scripts/dev/payspin-dev stop",
+    "dev:stop:all": "./scripts/dev/payspin-dev stop --all",
+    "dev:restart": "./scripts/dev/payspin-dev restart",
+    "dev:status": "./scripts/dev/payspin-dev status",
+    "dev:logs": "./scripts/dev/payspin-dev logs api",
+    "dev:doctor": "./scripts/dev/payspin-dev doctor"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,100 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../app/di/injection.dart';
+import '../domain/repositories/auth_repository.dart';
+import '../domain/repositories/bank_account_repository.dart';
+import '../domain/repositories/onboarding_repository.dart';
+import '../presentation/auth/login_page.dart';
+import '../presentation/links/link_detail_page.dart';
+import '../presentation/onboarding/onboarding_cubit.dart';
+import '../presentation/onboarding/pages/step_credentials_page.dart';
+import '../presentation/onboarding/pages/step_full_name_page.dart';
+import '../presentation/onboarding/pages/step_iban_page.dart';
+import '../presentation/onboarding/pages/step_name_page.dart';
+import '../presentation/onboarding/pages/step_otp_page.dart';
+import '../presentation/onboarding/pages/step_phone_page.dart';
+import '../presentation/onboarding/pages/success_page.dart';
+import '../presentation/scan/scan_qr_page.dart';
+import '../presentation/send/send_amount_page.dart';
+import '../presentation/send/send_name_page.dart';
+import '../presentation/shell/main_shell.dart';
+import '../presentation/welcome/welcome_page.dart';
+
+final _rootKey = GlobalKey<NavigatorState>();
+
+GoRouter createRouter() {
+  return GoRouter(
+    navigatorKey: _rootKey,
+    initialLocation: '/welcome',
+    redirect: _redirect,
+    routes: [
+      GoRoute(path: '/welcome', builder: (_, __) => const WelcomePage()),
+      GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+      ShellRoute(
+        builder: (_, state, child) => BlocProvider(
+          create: (_) => sl<OnboardingCubit>(),
+          child: child,
+        ),
+        routes: [
+          GoRoute(path: '/onboarding/name', builder: (_, __) => const StepNamePage()),
+          GoRoute(path: '/onboarding/phone', builder: (_, __) => const StepPhonePage()),
+          GoRoute(path: '/onboarding/otp', builder: (_, __) => const StepOtpPage()),
+          GoRoute(path: '/onboarding/credentials', builder: (_, __) => const StepCredentialsPage()),
+          GoRoute(path: '/onboarding/iban', builder: (_, __) => const StepIbanPage()),
+          GoRoute(path: '/onboarding/full-name', builder: (_, __) => const StepFullNamePage()),
+          GoRoute(path: '/onboarding/success', builder: (_, __) => const SuccessPage()),
+        ],
+      ),
+      ShellRoute(
+        builder: (_, state, child) => MainShell(child: child),
+        routes: [
+          GoRoute(path: '/home', builder: (_, __) => const SizedBox.shrink()),
+          GoRoute(path: '/home/profile', builder: (_, __) => const SizedBox.shrink()),
+        ],
+      ),
+      GoRoute(path: '/send/amount', builder: (_, __) => const SendAmountPage()),
+      GoRoute(
+        path: '/send/name',
+        builder: (_, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return SendNamePage(
+            amountCents: extra['cents'] as int?,
+            amountLabel: extra['amountLabel'] as String? ?? '—',
+          );
+        },
+      ),
+      GoRoute(path: '/scan', builder: (_, __) => const ScanQrPage()),
+      GoRoute(
+        path: '/links/:id',
+        builder: (_, state) => LinkDetailPage(linkId: state.pathParameters['id']!),
+      ),
+    ],
+  );
+}
+
+Future<String?> _redirect(BuildContext context, GoRouterState state) async {
+  final loc = state.matchedLocation;
+  if (loc == '/welcome' || loc.startsWith('/onboarding') || loc == '/login') {
+    return null;
+  }
+
+  final hasSession = await sl<AuthRepository>().hasSession();
+  if (!hasSession) return '/welcome';
+
+  if (loc.startsWith('/send') || loc.startsWith('/scan') || loc.startsWith('/links')) {
+    return null;
+  }
+
+  if (loc.startsWith('/home')) {
+    final accounts = await sl<BankAccountRepository>().listAccounts();
+    if (accounts.isEmpty) return '/onboarding/iban?existing=1';
+    return null;
+  }
+
+  final complete = await sl<OnboardingRepository>().isOnboardingComplete();
+  if (!complete) return '/onboarding/name';
+
+  return null;
+}

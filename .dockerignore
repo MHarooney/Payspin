@@ -1,0 +1,16 @@
+**/node_modules
+**/.git
+**/.turbo
+**/dist
+**/.next
+**/build
+**/.dart_tool
+mobile/
+frontend/
+resources/
+scripts/
+*.md
+.env
+.env.*
+!.env.example
+!backend/.env.production.example

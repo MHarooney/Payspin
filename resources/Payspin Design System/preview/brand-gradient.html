@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@700;800&family=Inter:wght@500;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #fff; padding: 20px; }
+  .col { display: flex; flex-direction: column; gap: 10px; }
+  .grad-card { height: 72px; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 0 20px; }
+  .label-row { display: flex; justify-content: space-between; align-items: center; }
+  .label { font-size: 10px; color: #9199A0; }
+  .label strong { font-size: 11px; color: #263238; display: block; }
+
+  /* Splash gradient */
+  .g-splash { background: linear-gradient(180deg, #FC00FF 0%, #07D8DD 100%); }
+  /* Horizontal */
+  .g-horiz  { background: linear-gradient(90deg,  #FC00FF 0%, #07D8DD 100%); }
+  /* Progress */
+  .g-progress { height: 14px; border-radius: 8px; background: linear-gradient(90deg, #D94DF8 0%, #6B96EA 56%, #48ADE5 75%, #07D8DD 100%); }
+  /* Purple to teal */
+  .g-pteal  { background: linear-gradient(135deg, #6929C4 0%, #07D8DD 100%); }
+
+  .text-on { font-family: 'Raleway', sans-serif; font-weight: 800; font-size: 20px; color: #fff; letter-spacing: -0.02em; }
+</style>
+</head>
+<body>
+  <div class="col">
+    <div>
+      <div class="label-row" style="margin-bottom:4px;">
+        <span class="label"><strong>Splash / Brand</strong>#FC00FF → #07D8DD vertical</span>
+      </div>
+      <div class="grad-card g-splash">
+        <span class="text-on">Payspin</span>
+      </div>
+    </div>
+    <div>
+      <div class="label-row" style="margin-bottom:4px;">
+        <span class="label"><strong>Horizontal CTA</strong>#FC00FF → #07D8DD</span>
+      </div>
+      <div class="grad-card g-horiz">
+        <span class="text-on" style="font-size:15px;">Get Started</span>
+      </div>
+    </div>
+    <div>
+      <div class="label-row" style="margin-bottom:4px;">
+        <span class="label"><strong>Progress Bar</strong>Magenta → Blue → Cyan</span>
+      </div>
+      <div class="g-progress"></div>
+    </div>
+    <div>
+      <div class="label-row" style="margin-bottom:4px;">
+        <span class="label"><strong>Accent Gradient</strong>#6929C4 → #07D8DD</span>
+      </div>
+      <div class="grad-card g-pteal" style="height:52px;">
+        <span class="text-on" style="font-size:13px;font-weight:700;">Your Circle</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

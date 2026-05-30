@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@700;800&family=Inter:wght@500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #F9F9F9; padding: 20px; }
+  .row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .logo-card { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .logo-bg { padding: 16px 24px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  .bg-white { background: #fff; border: 1px solid #F0F0F0; }
+  .bg-gradient { background: linear-gradient(135deg, #FC00FF, #07D8DD); }
+  .bg-dark { background: #1A1C1E; }
+  .label { font-size: 10px; color: #9199A0; font-weight: 500; }
+  img { display: block; }
+
+  /* Onboarding pagination dots */
+  .dots { display: flex; gap: 6px; align-items: center; margin-top: 12px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #D9D9D9; }
+  .dot.active { width: 24px; border-radius: 20px; background: #F465F6; }
+
+  .section { font-size: 11px; font-weight: 600; color: #606060; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+  <div class="section">Logo Variants</div>
+  <div class="row">
+    <div class="logo-card">
+      <div class="logo-bg bg-white">
+        <img src="../assets/Emblem_Gradient-01.png" width="48" height="48" alt="Emblem gradient">
+      </div>
+      <div class="label">Emblem · Gradient</div>
+    </div>
+    <div class="logo-card">
+      <div class="logo-bg bg-gradient">
+        <img src="../assets/Emblem_White-01.png" width="48" height="48" alt="Emblem white">
+      </div>
+      <div class="label">Emblem · White on gradient</div>
+    </div>
+    <div class="logo-card">
+      <div class="logo-bg bg-dark">
+        <img src="../assets/Logo_White-01.png" width="56" height="56" alt="Logo white">
+      </div>
+      <div class="label">Wordmark · White on dark</div>
+    </div>
+    <div class="logo-card">
+      <div class="logo-bg bg-gradient">
+        <img src="../assets/logo-gradient.png" width="120" height="38" alt="Logo gradient" style="object-fit:contain;">
+      </div>
+      <div class="label">Full Logo · On gradient</div>
+    </div>
+  </div>
+  <div class="section" style="margin-top:16px;">Pagination Dots</div>
+  <div class="dots">
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+</body>
+</html>

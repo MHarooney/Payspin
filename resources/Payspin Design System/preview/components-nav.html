@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@700&family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #F9F9F9; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  .label { font-size: 10px; font-weight: 600; color: #9199A0; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+
+  /* ── Top Bar ─────────────────────────────────── */
+  .topbar {
+    background: #fff;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-radius: 12px;
+    border: 1px solid #F5F5F5;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.05);
+    gap: 12px;
+  }
+  .back-btn {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .topbar-title {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    color: #212B36;
+    flex: 1;
+  }
+  .topbar-title.center { text-align: center; }
+  .notif-btn {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: #F9F9F9;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Bottom Nav ──────────────────────────────── */
+  .bottomnav {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #F5F5F5;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.05);
+    display: flex;
+    height: 64px;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    border-radius: 12px;
+  }
+  .nav-label { font-size: 10px; font-weight: 500; color: #9199A0; }
+  .nav-item.active .nav-label { color: #D94DF8; font-weight: 700; }
+
+  /* ── Variants row ────────────────────────────── */
+  .variants { display: flex; gap: 12px; }
+  .variant { flex: 1; }
+
+  svg { display: block; }
+</style>
+</head>
+<body>
+
+  <!-- Top Bars -->
+  <div>
+    <div class="label">Top Bar — Variants</div>
+    <div class="variants">
+      <!-- Home: title left + notif icon -->
+      <div class="variant">
+        <div class="topbar">
+          <span class="topbar-title">Home</span>
+          <div class="notif-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#606060" stroke-width="1.8" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+        </div>
+      </div>
+      <!-- Back + centered title -->
+      <div class="variant">
+        <div class="topbar">
+          <div class="back-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0A0D13" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </div>
+          <span class="topbar-title center">Notifications</span>
+          <div style="width:32px;flex-shrink:0;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav: Home active -->
+  <div>
+    <div class="label">Bottom Nav — Home active</div>
+    <div class="bottomnav">
+      <div class="nav-item active">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D94DF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-label" style="color:#D94DF8;">Home</span>
+      </div>
+      <div class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9199A0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-label">Circles</span>
+      </div>
+      <div class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9199A0" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+        <span class="nav-label">Profile</span>
+      </div>
+      <div class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9199A0" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="nav-label">Settings</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav: Circles active -->
+  <div>
+    <div class="label">Bottom Nav — Circles active</div>
+    <div class="bottomnav">
+      <div class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9199A0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-label">Home</span>
+      </div>
+      <div class="nav-item active">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D94DF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-label" style="color:#D94DF8;">Circles</span>
+      </div>
+      <div class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9199A0" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+        <span class="nav-label">Profile</span>
+      </div>
+      <div class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9199A0" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="nav-label">Settings</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

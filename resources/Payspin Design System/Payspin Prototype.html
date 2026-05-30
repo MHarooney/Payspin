@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payspin — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #050509; min-height: 100vh; font-family: 'Inter', sans-serif; color: #fff; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; gap: 24px; flex-wrap: wrap;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(252,0,255,0.10) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(7,216,221,0.08) 0%, transparent 50%),
+      #050509;
+    min-height: 100vh;
+  }
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .nav-pills { display: flex; flex-wrap: wrap; gap: 6px; max-width: 420px; justify-content: center; }
+  .pill {
+    padding: 6px 12px; border-radius: 100px; font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; border: none;
+    font-family: 'Inter', sans-serif;
+  }
+  .pill-active { background: linear-gradient(135deg, #FC00FF, #07D8DD); color: #fff; }
+  .pill-inactive { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.08); }
+  .label { color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-align: center; }
+  .label strong { color: #fff; font-weight: 700; }
+
+  /* hide scrollbars in screens */
+  ::-webkit-scrollbar { width: 0; height: 0; }
+  * { scrollbar-width: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="screens.jsx"></script>
+<script type="text/babel">
+const { useState } = React;
+
+function App() {
+  const [screen, setScreen] = useState('welcome');
+
+  // Onboarding state
+  const [name, setName] = useState('');
+  const [country, setCountry] = useState({ code: '+31', flag: '🇳🇱', name: 'Netherlands' });
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [iban, setIban] = useState('');
+  const [fullName, setFullName] = useState('');
+
+  // Send flow state
+  const [amount, setAmount] = useState('0');
+  const [sendLabel, setSendLabel] = useState('');
+
+  // Home variant (empty vs list)
+  const [homeMode, setHomeMode] = useState('list');
+
+  const phoneDisplay = `${country.code} ${phone || '6 12345678'}`;
+  const ibanDisplay = iban || 'NL13ABNA0885334361';
+
+  const goHome = () => setScreen('home');
+  const goBack = () => {
+    const flow = ['welcome','step1','step2','step3','step4','step5','success','home'];
+    const i = flow.indexOf(screen);
+    if (i > 0) setScreen(flow[i - 1]); else setScreen('welcome');
+  };
+
+  const onTab = (tab) => {
+    if (tab === 'home') setScreen('home');
+    if (tab === 'scan') setScreen('scan');
+    if (tab === 'profile') setScreen('profile');
+    if (tab === 'groepies') setScreen('groepies');
+  };
+
+  const renderScreen = () => {
+    switch (screen) {
+      case 'welcome':
+        return <WelcomeScreen onStart={() => setScreen('step1')} />;
+      case 'step1':
+        return <Step1Name value={name} setValue={setName} onBack={() => setScreen('welcome')} onNext={() => setScreen('step2')} />;
+      case 'step2':
+        return <Step2Phone value={phone} setValue={setPhone} country={country} setCountry={setCountry} onBack={() => setScreen('step1')} onNext={() => setScreen('step3')} />;
+      case 'step3':
+        return <Step3OTP value={otp} setValue={setOtp} phoneDisplay={phoneDisplay} onBack={() => setScreen('step2')} onNext={() => setScreen('step4')} />;
+      case 'step4':
+        return <Step4IBAN value={iban} setValue={setIban} onBack={() => setScreen('step3')} onNext={() => setScreen('step5')} />;
+      case 'step5':
+        return <Step5FullName value={fullName} setValue={setFullName} ibanDisplay={ibanDisplay} onBack={() => setScreen('step4')} onNext={() => setScreen('success')} />;
+      case 'success':
+        return <SuccessScreen name={name} onContinue={goHome} />;
+      case 'home':
+        return <HomeScreen name={name} mode={homeMode} onTab={onTab} onFAB={() => { setAmount('0'); setSendLabel(''); setScreen('send-amount'); }} onOpenTikkie={() => {}} />;
+      case 'groepies':
+        return <GroepiesScreen onTab={onTab} onFAB={() => { setAmount('0'); setSendLabel(''); setScreen('send-amount'); }} />;
+      case 'profile':
+        return <ProfileScreen name={name} fullName={fullName} iban={iban} phone={phone ? `${country.code} ${phone}` : ''} onTab={onTab} onLogout={() => setScreen('welcome')} />;
+      case 'scan':
+        return <ScanQRScreen onTab={onTab} onClose={() => setScreen('home')} />;
+      case 'send-amount':
+        return <SendAmountScreen amount={amount} setAmount={setAmount} onBack={() => setScreen('home')} onNext={() => setScreen('send-name')} />;
+      case 'send-name':
+        return <SendNameItScreen amount={amount} label={sendLabel} setLabel={setSendLabel} onBack={() => setScreen('send-amount')} onSend={() => setScreen('home')} />;
+      default:
+        return <WelcomeScreen onStart={() => setScreen('step1')} />;
+    }
+  };
+
+  // Wrap in iOS frame; status bar lives in frame, no nav title
+  const isDark = true;
+  return (
+    <div className="stage">
+      <div data-screen-label={screen}>
+        <IOSDevice width={390} height={812} dark={isDark}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', paddingTop: 50 }}>
+            {renderScreen()}
+          </div>
+        </IOSDevice>
+      </div>
+
+      <div className="nav-pills">
+        {[
+          ['welcome','Welcome'],
+          ['step1','1: Name'],
+          ['step2','2: Phone'],
+          ['step3','3: OTP'],
+          ['step4','4: IBAN'],
+          ['step5','5: Full Name'],
+          ['success','Success'],
+          ['home','Home'],
+          ['groepies','Groepies'],
+          ['profile','Profile'],
+          ['scan','Scan QR'],
+          ['send-amount','Send: Amount'],
+          ['send-name','Send: Label'],
+        ].map(([id, label]) => (
+          <button key={id} className={`pill ${screen === id ? 'pill-active' : 'pill-inactive'}`} onClick={() => setScreen(id)}>{label}</button>
+        ))}
+      </div>
+      <div className="label">
+        <strong>Payspin</strong> · Dark mode prototype · Tap pills to jump · Click <strong>+</strong> on Home to open Send
+      </div>
+      <div className="label" style={{ marginTop: -8 }}>
+        Home variant:
+        <button onClick={() => setHomeMode('list')} className={`pill ${homeMode === 'list' ? 'pill-active' : 'pill-inactive'}`} style={{ marginLeft: 8 }}>With history</button>
+        <button onClick={() => setHomeMode('empty')} className={`pill ${homeMode === 'empty' ? 'pill-active' : 'pill-inactive'}`} style={{ marginLeft: 6 }}>Empty (new user)</button>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

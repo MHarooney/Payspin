@@ -1,0 +1,168 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String        @map("password_hash")
+  displayName  String?       @map("display_name")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  bankAccounts BankAccount[]
+  paymentLinks PaymentLink[]
+
+  @@map("users")
+}
+
+model BankAccount {
+  id                 String        @id @default(uuid())
+  userId             String        @map("user_id")
+  ibanEncrypted      String        @map("iban_encrypted")
+  ibanIv             String        @map("iban_iv")
+  ibanLast4          String        @map("iban_last4")
+  accountHolder      String        @map("account_holder")
+  bankName           String?       @map("bank_name")
+  verified           Boolean       @default(false)
+  verificationSource String?       @map("verification_source")
+  yapilyConnectionId String?       @map("yapily_connection_id")
+  yapilyInstitutionId String?      @map("yapily_institution_id")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentLinks       PaymentLink[]
+  bankConnections    BankConnection[]
+
+  @@index([userId])
+  @@map("bank_accounts")
+}
+
+model BankConnection {
+  id              String    @id @default(uuid())
+  userId          String    @map("user_id")
+  institutionId   String    @map("institution_id")
+  yapilyAuthId    String?   @map("yapily_auth_id")
+  status          String    @default("PENDING")
+  bankAccountId   String?   @map("bank_account_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  bankAccount     BankAccount? @relation(fields: [bankAccountId], references: [id])
+
+  @@index([userId])
+  @@map("bank_connections")
+}
+
+model PaymentLink {
+  id             String            @id @default(uuid())
+  shortCode      String            @unique @map("short_code")
+  payeeUserId    String            @map("payee_user_id")
+  bankAccountId  String            @map("bank_account_id")
+  amountCents    Int?              @map("amount_cents")
+  currency       String            @default("EUR")
+  description    String?
+  status         PaymentLinkStatus @default(ACTIVE)
+  linkType       PaymentLinkType   @default(SINGLE) @map("link_type")
+  maxUses        Int?              @map("max_uses")
+  useCount       Int               @default(0) @map("use_count")
+  expiresAt      DateTime?         @map("expires_at")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  payeeUser      User              @relation(fields: [payeeUserId], references: [id], onDelete: Cascade)
+  bankAccount    BankAccount       @relation(fields: [bankAccountId], references: [id])
+  payments       Payment[]
+
+  @@index([payeeUserId])
+  @@index([status])
+  @@map("payment_links")
+}
+
+model Payment {
+  id                     String        @id @default(uuid())
+  paymentLinkId          String        @map("payment_link_id")
+  yapilyPaymentId        String?       @unique @map("yapily_payment_id")
+  yapilyAuthRequestId    String?       @map("yapily_auth_request_id")
+  paymentRequestSnapshot Json?         @map("payment_request_snapshot")
+  amountCents            Int           @map("amount_cents")
+  currency               String        @default("EUR")
+  status                 PaymentStatus @default(AWAITING_AUTHORIZATION)
+  payerBankName          String?       @map("payer_bank_name")
+  idempotencyKey         String?       @unique @map("idempotency_key")
+  initiatedAt            DateTime      @default(now()) @map("initiated_at")
+  completedAt            DateTime?     @map("completed_at")
+  webhookRaw             Json?         @map("webhook_raw")
+  paymentLink            PaymentLink   @relation(fields: [paymentLinkId], references: [id], onDelete: Cascade)
+
+  @@index([paymentLinkId])
+  @@index([status])
+  @@map("payments")
+}
+
+model WebhookEvent {
+  id          String    @id @default(uuid())
+  eventId     String    @unique @map("event_id")
+  eventType   String    @map("event_type")
+  payload     Json
+  processedAt DateTime? @map("processed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("webhook_events")
+}
+
+model Circle {
+  id                    String         @id @default(uuid())
+  name                  String
+  hostUserId            String         @map("host_user_id")
+  memberCount           Int            @map("member_count")
+  contributionCents     Int            @map("contribution_cents")
+  cycleDurationDays     Int            @map("cycle_duration_days")
+  smartContractAddress  String?        @map("smart_contract_address")
+  status                String         @default("DRAFT")
+  currentRound          Int            @default(0) @map("current_round")
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+  members               CircleMember[]
+
+  @@map("circles")
+}
+
+model CircleMember {
+  id            String   @id @default(uuid())
+  circleId      String   @map("circle_id")
+  userId        String   @map("user_id")
+  moneriumIban  String?  @map("monerium_iban")
+  walletAddress String?  @map("wallet_address")
+  payoutOrder   Int      @map("payout_order")
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now()) @map("created_at")
+  circle        Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@index([circleId])
+  @@map("circle_members")
+}
+
+enum PaymentLinkStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  SETTLED
+  COLLECTING
+}
+
+enum PaymentLinkType {
+  SINGLE
+  MULTI
+}
+
+enum PaymentStatus {
+  AWAITING_AUTHORIZATION
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}

@@ -1,0 +1,53 @@
+---
+description: NestJS clean architecture — use cases, gateways, modules
+globs: backend/**/*.ts
+alwaysApply: false
+---
+
+# Backend clean architecture
+
+## Layers (`backend/src/`)
+
+| Layer | Path | Contains |
+|-------|------|----------|
+| Application | `application/use-cases/` | `*UseCase.execute()` — business logic |
+| Infrastructure | `infrastructure/` | Prisma, Yapily, encryption, BullMQ |
+| Interfaces | `interfaces/http/`, `interfaces/webhooks/` | Controllers, guards — thin |
+
+## New endpoint checklist
+
+1. Zod schema → `packages/validators/`
+2. DTO → `packages/shared-types/` (if new shape)
+3. Use case → `application/use-cases/<feature>/`
+4. Controller + module → `interfaces/http/<feature>/`
+5. Register in `http-api.module.ts`
+6. Gateways needed? `imports: [YapilyModule]` in feature module
+
+## Inject gateways correctly
+
+```typescript
+// ✅
+constructor(@Inject(PIS_GATEWAY) private readonly pis: PisGateway) {}
+
+// ❌ — direct Yapily HTTP in use case
+```
+
+## Controllers stay thin
+
+```typescript
+// ✅
+@Post('login')
+login(@Body() body: unknown) {
+  return this.loginUser.execute(body);
+}
+```
+
+## Prisma
+
+- Schema: `backend/prisma/schema.prisma`
+- Dev migrate: `pnpm prisma migrate dev`
+- Prod migrate: `prisma migrate deploy` (Docker entrypoint)
+
+## Tests
+
+`backend/test/*.test.ts` — Node test runner + tsx. Add tests for gateways/factories, not trivial wiring.

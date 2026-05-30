@@ -1,0 +1,22 @@
+node_modules
+dist
+.next
+.turbo
+.payspin
+.env
+.env.local
+*.log
+.DS_Store
+backend/.env
+backend/.env.production
+frontend/.env.local
+# Firebase / credentials
+**/firebase-adminsdk*.json
+**/*-adminsdk-*.json
+# Flutter / Dart
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/pubspec.lock

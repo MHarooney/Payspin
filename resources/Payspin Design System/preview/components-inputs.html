@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #F9F9F9; padding: 20px; }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .section { font-size: 11px; font-weight: 600; color: #606060; margin-bottom: 6px; }
+
+  .input-field {
+    background: #fff;
+    border: 1px solid #EDF1F3;
+    border-radius: 10px;
+    box-shadow: 0px 1px 2px 0px rgba(228,229,231,0.24);
+    height: 56px;
+    padding: 0 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .input-label { font-size: 11px; color: #9199A0; margin-bottom: 2px; }
+  .input-value { font-size: 14px; font-weight: 500; color: #1A1C1E; letter-spacing: -0.01em; }
+  .input-placeholder { font-size: 14px; font-weight: 400; color: #9199A0; }
+  .input-active { border-color: #D94DF8; }
+  .input-error  { border-color: #FC00FF; }
+
+  /* Tab toggle */
+  .tab-bar {
+    background: #F5F6F9;
+    border-radius: 7px;
+    padding: 2px;
+    display: flex;
+    height: 48px;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    color: #7D7D91;
+  }
+  .tab.active {
+    background: #fff;
+    color: #23244A;
+    box-shadow: 0px 1px 2px rgba(228,229,231,0.24);
+  }
+
+  /* Phone input */
+  .phone-row { display: flex; gap: 8px; }
+  .phone-code {
+    width: 72px;
+    background: #fff;
+    border: 1px solid #EDF1F3;
+    border-radius: 10px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 13px;
+    color: #1A1C1E;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .flag { width: 18px; height: 14px; background: linear-gradient(#012169 33%, #fff 33%, #fff 66%, #C8102E 66%); border-radius: 2px; }
+  .phone-number { flex: 1; }
+</style>
+</head>
+<body>
+  <div class="section">Sign Up / Login Toggle</div>
+  <div class="tab-bar">
+    <div class="tab active">Sign Up</div>
+    <div class="tab">Log In</div>
+  </div>
+
+  <div style="height:10px;"></div>
+  <div class="section">Input Fields</div>
+  <div class="stack">
+    <div class="input-field">
+      <div class="input-label">First Name</div>
+      <div class="input-value">Lois</div>
+    </div>
+    <div class="input-field input-active">
+      <div class="input-label">Email</div>
+      <div class="input-value">loisbecket@gmail.com</div>
+    </div>
+    <div class="input-field">
+      <div class="input-label">Password</div>
+      <div class="input-placeholder">••••••••</div>
+    </div>
+    <div class="input-field">
+      <div class="input-placeholder">Birth of date</div>
+    </div>
+  </div>
+
+  <div style="height:10px;"></div>
+  <div class="section">Phone Number Input</div>
+  <div class="phone-row">
+    <div class="phone-code">
+      <div class="flag"></div>
+      <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="#606060" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div class="input-field phone-number">
+      <div class="input-value">(454) 726-0592</div>
+    </div>
+  </div>
+</body>
+</html>

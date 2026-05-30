@@ -1,0 +1,98 @@
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../tokens/payspin_tokens.dart';
+
+class PayspinBottomNav extends StatelessWidget {
+  const PayspinBottomNav({super.key, required this.currentIndex, required this.onTap});
+
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xD90B0B12),
+            border: Border(top: BorderSide(color: PayspinTokens.border)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Row(
+              children: [
+                _item(0, 'Home', Icons.home_rounded),
+                _item(1, 'Scan QR', Icons.qr_code_scanner_rounded),
+                _item(2, 'Profile', Icons.person_rounded),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _item(int index, String label, IconData icon) {
+    final selected = currentIndex == index;
+    final color = selected ? PayspinTokens.textPrimary : PayspinTokens.textMuted;
+    return Expanded(
+      child: InkWell(
+        onTap: () => onTap(index),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 22, color: color),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: color,
+                ),
+              ),
+              if (selected) ...[
+                const SizedBox(height: 4),
+                Container(
+                  width: 4,
+                  height: 4,
+                  decoration: const BoxDecoration(color: PayspinTokens.mint, shape: BoxShape.circle),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class PayspinGradientFab extends StatelessWidget {
+  const PayspinGradientFab({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(shape: BoxShape.circle, gradient: PayspinTokens.gradientPink, boxShadow: PayspinTokens.fabShadow),
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: const Icon(Icons.add, color: Colors.white, size: 28),
+        ),
+      ),
+    );
+  }
+}

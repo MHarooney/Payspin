@@ -1,0 +1,42 @@
+---
+description: Payspin monorepo core principles — scope, layers, ports, accounts
+alwaysApply: true
+---
+
+# Payspin core
+
+## Monorepo
+
+- **pnpm workspace:** `backend/`, `frontend/`, `packages/*`
+- **Standalone:** `mobile/` (Flutter), `infrastructure/`, `scripts/`
+- **Deferred:** `Payspin-portal/` — do not expand unless asked
+
+## Principles
+
+1. Minimal diffs — no drive-by refactors or unrelated files.
+2. Backend business logic lives in `application/use-cases/`, not controllers.
+3. Yapily only via `PIS_GATEWAY` / `AIS_GATEWAY` (`@payspin/pisp-provider`).
+4. Validation via Zod in `@payspin/validators`, not Nest DTOs for domain rules.
+5. Match existing naming — grep the nearest feature folder before inventing patterns.
+
+## Local ports
+
+| Service | URL |
+|---------|-----|
+| API | http://localhost:3001/v1 |
+| Payer web | http://localhost:3000 |
+| Postgres | :5435 |
+| Redis | :6381 |
+
+Dev CLI: `./scripts/dev/payspin-dev {setup|start|stop|status|doctor}`
+
+## Agent docs
+
+- Start: `AGENTS.md`, `docs/agents/architecture.md`
+- Workflows: `docs/agents/workflows.md`
+- Skill: `.cursor/skills/payspin/SKILL.md`
+
+## Production accounts
+
+- Hetzner / Docker: **payspin.app@gmail.com** only
+- Never commit `.env`, tokens, or production secrets

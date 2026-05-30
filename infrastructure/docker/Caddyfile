@@ -1,0 +1,8 @@
+{
+	email payspin.app@gmail.com
+}
+
+# HTTP on server IP (no domain yet). Replace with api.payspin.app when DNS is ready.
+:80 {
+	reverse_proxy api:3001
+}

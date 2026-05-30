@@ -1,0 +1,153 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /circles/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    match /circles/{parent}/circle_payments/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    match /{path=**}/circle_payments/{document} {
+      allow read: if true;
+    }
+
+
+    match /payment_methods/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    match /News/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    match /Circle_Payouts/{parent}/Circle_PaypoutsPerMonth/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /{path=**}/Circle_PaypoutsPerMonth/{document} {
+      allow read: if true;
+    }
+
+
+    match /new_notification/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    match /notifications/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    match /users/{document} {
+      allow create: if request.auth.uid == document;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth.uid == document;
+    }
+
+    match /posts/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /new_notification/{parent}/notification/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    match /{path=**}/notification/{document} {
+      allow read: if true;
+    }
+
+
+    match /circles/{parent}/circleUsers/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    match /{path=**}/circleUsers/{document} {
+      allow read: if true;
+    }
+
+
+    match /offers/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    match /psPosts/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /psAppRemoteVariable/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if false;
+      allow delete: if false;
+    }
+
+    match /Circle_Payouts/{document} {
+      allow create: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+
+    // Blog collections - secure rules
+    match /blogs/{document} {
+      allow create, update, delete: if request.auth != null;
+      allow read: if true;
+    }
+    
+    match /categories/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;  // Require authentication for writes
+    }
+    
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if true;  // Allow anonymous comments
+      allow update, delete: if request.auth != null;  // Require authentication for moderation
+    }
+    
+    // Default rule for other collections - more permissive for reads
+    match /{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}

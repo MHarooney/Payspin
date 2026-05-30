@@ -1,0 +1,32 @@
+---
+description: Shared packages — validators, types, pisp-provider tokens
+globs: packages/**/*
+alwaysApply: false
+---
+
+# Shared packages
+
+## Layout
+
+| Package | Path | Purpose |
+|---------|------|---------|
+| `@payspin/shared-types` | `packages/shared-types/` | DTOs consumed by backend + frontend |
+| `@payspin/validators` | `packages/validators/` | Zod schemas — validate in use cases |
+| `@payspin/pisp-provider` | `packages/pisp-provider/` | `PIS_GATEWAY`, `AIS_GATEWAY` tokens + interfaces |
+
+## Rules
+
+1. **Validators first** — new input shapes go in `packages/validators/` before use cases.
+2. **Types second** — response DTOs in `packages/shared-types/`; export from package index.
+3. **No Nest imports** in packages — keep them framework-agnostic.
+4. **Gateway interfaces** live in `pisp-provider`; implementations in `backend/src/infrastructure/yapily/`.
+
+## Build
+
+```bash
+pnpm --filter @payspin/validators build
+pnpm --filter @payspin/shared-types build
+# or from root: pnpm build
+```
+
+Backend and frontend depend on workspace packages via `workspace:*` in `package.json`.

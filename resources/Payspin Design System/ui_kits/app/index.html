@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payspin App UI Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1A1A2E; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Inter', sans-serif; padding: 20px; }
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .phone-outer {
+    width: 390px;
+    height: 780px;
+    background: #fff;
+    border-radius: 48px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .screen { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .screen-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .screen-content::-webkit-scrollbar { display: none; }
+
+  /* Nav pills */
+  .nav-pills { display: flex; gap: 8px; }
+  .pill { padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; font-family: 'Inter', sans-serif; }
+  .pill-active { background: #FC00FF; color: #fff; }
+  .pill-inactive { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+  .screen-label { color: rgba(255,255,255,0.4); font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-align: center; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="Components.jsx"></script>
+<script type="text/babel">
+const { useState } = React;
+
+// ── SCREEN: Splash ─────────────────────────────────────────────────
+function SplashScreen({ onNext }) {
+  return (
+    <div style={{ flex: 1, background: 'linear-gradient(180deg, #FC00FF 0%, #07D8DD 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={onNext}>
+      <img src="../../assets/logo-white-full.png" alt="Payspin" style={{ width: 220, height: 220, objectFit: 'contain' }} />
+    </div>
+  );
+}
+
+// ── SCREEN: Onboarding ─────────────────────────────────────────────
+function OnboardingScreen({ onNext }) {
+  const [slide, setSlide] = useState(0);
+  const slides = [
+    { title: 'Trusted & Secured', body: 'Your trusted tradition, now is smarter not harder. Your money, your community, and your peace of mind. Secured payments, powered by top EU providers.', cta: 'Next' },
+    { title: 'Same Trust', body: 'Join or create savings circles with people you trust. Set your contribution amount, duration and schedule — all in one place.', cta: 'Next' },
+    { title: 'Secured Payments', body: 'Your payments are protected by leading EU payment providers. Every transaction is tracked and transparent.', cta: 'Get Started' },
+  ];
+  const s = slides[slide];
+  return (
+    <div style={{ flex: 1, background: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <StatusBar />
+      <div style={{ flex: 1, background: '#F0F0F0', position: 'relative', overflow: 'hidden' }}>
+        <img src="../../assets/onboarding-hero.png" alt="hero" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+        <div style={{ position: 'absolute', top: 16, left: 16 }}>
+          <img src="../../assets/logo-gradient.png" alt="Payspin" style={{ height: 36, objectFit: 'contain' }} />
+        </div>
+        <div style={{ position: 'absolute', top: 16, right: 16 }}>
+          <button onClick={onNext} style={{ background: 'rgba(255,255,255,0.8)', border: 'none', borderRadius: 100, padding: '6px 14px', fontSize: 12, fontWeight: 600, fontFamily: 'Inter,sans-serif', cursor: 'pointer', color: '#263238' }}>Skip</button>
+        </div>
+      </div>
+      <div style={{ padding: '20px 24px 16px', background: '#fff' }}>
+        <DotsIndicator count={3} active={slide} />
+        <div style={{ marginTop: 16, marginBottom: 8 }}>
+          <div style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 700, fontSize: 22, color: '#212B36', marginBottom: 8 }}>{s.title}</div>
+          <div style={{ fontFamily: 'Inter,sans-serif', fontSize: 13, color: '#6C7278', lineHeight: 1.6 }}>{s.body}</div>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <PrimaryButton label={s.cta} onClick={() => slide < 2 ? setSlide(slide + 1) : onNext()} color={T.primary} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── SCREEN: Sign Up / Login ────────────────────────────────────────
+function AuthScreen({ onNext }) {
+  const [tab, setTab] = useState('signup');
+  const [step, setStep] = useState(0); // 0=form, 1=phone
+  if (step === 1) return <PhoneScreen onNext={onNext} onBack={() => setStep(0)} />;
+  return (
+    <div style={{ flex: 1, background: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <StatusBar />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px 24px' }}>
+        {/* Back */}
+        <div style={{ height: 44, display: 'flex', alignItems: 'center' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0A0D13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        </div>
+        {/* Emblem */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
+          <img src="../../assets/Emblem_Gradient-01.png" alt="Payspin" style={{ width: 44, height: 44, objectFit: 'contain' }} />
+        </div>
+        <div style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 700, fontSize: 28, color: '#1A1C1E', textAlign: 'center', marginBottom: 4, letterSpacing: '-0.02em' }}>Let's Get Started</div>
+        <div style={{ fontFamily: 'Inter,sans-serif', fontSize: 12, color: '#6C7278', textAlign: 'center', marginBottom: 16 }}>Create an account or log in to explore about our app</div>
+        {/* Tab toggle */}
+        <div style={{ background: '#F5F6F9', borderRadius: 7, padding: 2, display: 'flex', height: 44, marginBottom: 16 }}>
+          {[['signup','Sign Up'],['login','Log In']].map(([id, label]) => (
+            <button key={id} onClick={() => setTab(id)} style={{ flex: 1, borderRadius: 6, border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontSize: 13, fontWeight: 500, background: tab === id ? '#fff' : 'transparent', color: tab === id ? '#23244A' : '#7D7D91', boxShadow: tab === id ? '0px 1px 2px rgba(228,229,231,0.24)' : 'none' }}>
+              {label}
+            </button>
+          ))}
+        </div>
+        {/* Form */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+          {tab === 'signup' && (
+            <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ flex: 1 }}><InputField label="First Name" value="Lois" /></div>
+              <div style={{ flex: 1 }}><InputField label="Last Name" value="Becket" /></div>
+            </div>
+          )}
+          <InputField label="Email" value={tab === 'signup' ? 'loisbecket@gmail.com' : ''} placeholder={tab === 'login' ? 'Enter your email' : ''} active={tab === 'login'} />
+          {tab === 'signup' && <InputField label="Date of Birth" value="18/03/2024" />}
+          <InputField label="Password" placeholder="••••••••" />
+        </div>
+        <PrimaryButton label={tab === 'signup' ? 'Sign Up' : 'Log In'} onClick={() => setStep(1)} color={T.primary} />
+        {/* Divider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '14px 0 12px' }}>
+          <div style={{ flex: 1, height: 1, background: '#EDF1F3' }}></div>
+          <span style={{ fontFamily: 'Inter,sans-serif', fontSize: 12, color: '#6C7278' }}>Or {tab === 'signup' ? 'Sign Up' : 'Log In'} with</span>
+          <div style={{ flex: 1, height: 1, background: '#EDF1F3' }}></div>
+        </div>
+        {/* Social */}
+        <div style={{ display: 'flex', gap: 12 }}>
+          {[{name:'Google',color:'#EA4335',letter:'G'},{name:'Apple',color:'#000',letter:''}].map(s => (
+            <button key={s.name} style={{ flex: 1, height: 44, borderRadius: 10, border: '1px solid #EDF1F3', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontSize: 13, fontWeight: 500, color: '#263238' }}>
+              {s.name === 'Google' && <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>}
+              {s.name === 'Apple' && <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>}
+              {s.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── SCREEN: Phone Auth ─────────────────────────────────────────────
+function PhoneScreen({ onNext, onBack }) {
+  return (
+    <div style={{ flex: 1, background: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <StatusBar />
+      <div style={{ flex: 1, padding: '0 16px 24px' }}>
+        <div style={{ height: 44, display: 'flex', alignItems: 'center' }}>
+          <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0A0D13" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </button>
+        </div>
+        <div style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 700, fontSize: 26, color: '#1A1C1E', marginBottom: 6, letterSpacing: '-0.02em' }}>Enter your Phone Number</div>
+        <div style={{ fontFamily: 'Inter,sans-serif', fontSize: 12, color: '#6C7278', marginBottom: 24, lineHeight: 1.6 }}>Enter your phone number, We will send you a confirmation code there.</div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 40 }}>
+          {/* Country code */}
+          <div style={{ width: 68, background: '#fff', border: '1px solid #EDF1F3', borderRadius: 10, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, flexShrink: 0, boxShadow: '0px 1px 2px rgba(228,229,231,0.24)' }}>
+            <div style={{ width: 20, height: 14, background: 'linear-gradient(#012169 33%, #fff 33%, #fff 66%, #C8102E 66%)', borderRadius: 2 }}></div>
+            <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="#606060" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </div>
+          <InputField label="" value="(454) 726-0592" active={true} />
+        </div>
+        <PrimaryButton label="Continue" onClick={onNext} color={T.primary} />
+      </div>
+      {/* Keyboard mock */}
+      <div style={{ background: '#D1D5DB', padding: '12px 4px 4px' }}>
+        {[['1','2','3'],['4','5','6'],['7','8','9'],['*','0','#']].map((row, ri) => (
+          <div key={ri} style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
+            {row.map(k => (
+              <div key={k} style={{ flex: 1, height: 42, background: k === '*' || k === '#' ? '#ADB5BD' : '#fff', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter,sans-serif', fontSize: 18, fontWeight: 400, color: '#0A0D13', boxShadow: '0 1px 0 rgba(0,0,0,0.2)' }}>
+                {k}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── SCREEN: Home ───────────────────────────────────────────────────
+function HomeScreen({ onNav }) {
+  return (
+    <div style={{ flex: 1, background: '#F9F9F9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <StatusBar />
+      <TopBar title="Home" rightIcon={
+        <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#F9F9F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#606060" strokeWidth="1.8" strokeLinecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+      } />
+      <div className="screen-content" style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Promo banner */}
+        <div style={{ background: '#ECF0FF', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 700, fontSize: 14, color: '#263238', marginBottom: 4 }}>Check Out Our Latest Offers!</div>
+            <div style={{ background: '#5C7AEA', borderRadius: 10, width: 60, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: 'Inter,sans-serif', fontSize: 11, fontWeight: 700, color: '#fff' }}>125% OFF</span>
+            </div>
+          </div>
+        </div>
+        {/* Pagination dots */}
+        <DotsIndicator count={5} active={0} />
+        {/* Social banner */}
+        <BannerCard title="Stay connected with us!" subtitle="Follow us on our various platforms to know the latest news and events offered by the association." ctaLabel="Follow Us" bg="#008D8F" />
+        {/* Circle section */}
+        <div style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 700, fontSize: 18, color: '#0A0D13' }}>Your current circle</div>
+        <CircleCard adminName="Omar" circleName="The First" total="2,000 EUR" monthly="333 EUR" duration="6 Months" progress={0.33} startDate="Jan 2025" endDate="Dec 2025" />
+        {/* Join FAB area */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={() => onNav('circles')} style={{ background: '#D94DF8', color: '#fff', borderRadius: 100, height: 44, padding: '0 20px', display: 'flex', alignItems: 'center', gap: 8, border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontWeight: 700, fontSize: 14, boxShadow: '0px 8px 16px rgba(0,0,0,0.08)' }}>
+            <img src="../../assets/Emblem_White-01.png" style={{ width: 22, height: 22, objectFit: 'contain' }} alt="" />
+            Join
+          </button>
+        </div>
+        <div style={{ height: 8 }}></div>
+      </div>
+      <BottomNav active="home" onNav={onNav} />
+      <HomeIndicator />
+    </div>
+  );
+}
+
+// ── SCREEN: Admin ──────────────────────────────────────────────────
+function AdminScreen({ onNav, onBack }) {
+  const contributors = [
+    { rank: 'The Second', name: 'Ali', amount: '333 EUR', paid: true },
+    { rank: 'Third', name: 'Asmaa', amount: '333 EUR', paid: true },
+    { rank: 'Fourth', name: 'Ahmed', amount: '333 EUR', paid: false },
+    { rank: 'Fifth', name: 'Kamal', amount: '333 EUR', paid: false },
+    { rank: 'Sixth', name: 'Seif', amount: '333 EUR', paid: false },
+  ];
+  return (
+    <div style={{ flex: 1, background: '#F9F9F9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <StatusBar />
+      <TopBar title="Circle Admin" onBack={onBack} />
+      <div className="screen-content" style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <CircleCard adminName="Omar" circleName="The First" total="1,800 EUR" monthly="333 EUR" duration="6 Months" progress={0.33} startDate="Jan 2025" endDate="Dec 2024" />
+        {/* Info row */}
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #F5F5F5', boxShadow: '0px 8px 16px rgba(0,0,0,0.08)', padding: '14px 16px', display: 'flex', gap: 24 }}>
+          {[['Monthly installment', '333 EUR'], ['Service fees', '300 EUR']].map(([k, v]) => (
+            <div key={k}>
+              <div style={{ fontFamily: 'Inter,sans-serif', fontSize: 11, color: '#9199A0', marginBottom: 2 }}>{k}</div>
+              <div style={{ fontFamily: 'Inter,sans-serif', fontSize: 14, fontWeight: 700, color: '#263238' }}>{v}</div>
+            </div>
+          ))}
+        </div>
+        {/* Contributors */}
+        <div style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 700, fontSize: 18, color: '#263238', marginTop: 4 }}>Contributors</div>
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #F5F5F5', boxShadow: '0px 8px 16px rgba(0,0,0,0.08)', padding: '4px 16px' }}>
+          <ContributorRow rank="Admin" name="Omar" amount="333 EUR" paid={true} />
+          {contributors.map(c => <ContributorRow key={c.rank} {...c} />)}
+        </div>
+        <div style={{ height: 8 }}></div>
+      </div>
+      <BottomNav active="circles" onNav={onNav} />
+      <HomeIndicator />
+    </div>
+  );
+}
+
+// ── SCREEN: Create Circle ──────────────────────────────────────────
+function CreateScreen({ onNav, onBack }) {
+  const [step, setStep] = useState(1);
+  return (
+    <div style={{ flex: 1, background: '#fff', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <StatusBar />
+      <TopBar title="Create Your Own Circle" onBack={onBack} />
+      <div style={{ padding: '16px 24px 12px' }}>
+        <Stepper step={step} total={3} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 4px 0', marginTop: 4 }}>
+          {['Details', 'Role', 'Schedule'].map((s, i) => (
+            <span key={s} style={{ fontFamily: 'Inter,sans-serif', fontSize: 10, color: i + 1 <= step ? T.primaryLight : '#9199A0', fontWeight: i + 1 === step ? 700 : 500 }}>{s}</span>
+          ))}
+        </div>
+      </div>
+      <div className="screen-content" style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
+        {step === 1 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <InputField label="Circle Name" value="The First" active={true} />
+            <InputField label="Description" placeholder="What is this circle for?" />
+            <InputField label="Total Amount (EUR)" value="2,000" />
+          </div>
+        )}
+        {step === 2 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 700, fontSize: 16, color: '#263238' }}>Choose :</div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              {['Start on', 'Duration of months', 'Amount'].map(label => (
+                <div key={label} style={{ flex: 1, background: '#fff', border: '1px solid #F5F5F5', borderRadius: 16, boxShadow: '0px 8px 16px rgba(0,0,0,0.08)', padding: '8px 10px', textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 700, fontSize: 12, color: '#263238' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+            {/* Scroll picker mock */}
+            <div style={{ background: '#F8F8F8', borderRadius: 12, padding: '8px 0', display: 'flex', justifyContent: 'center', gap: 24 }}>
+              {[['May','Apr','Mar','Feb'], ['10','9','8','7'], ['300','250','200','150']].map((col, ci) => (
+                <div key={ci} style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+                  {col.map((v, vi) => (
+                    <div key={v} style={{ fontFamily: 'Inter,sans-serif', fontSize: vi === 2 ? 15 : 12, fontWeight: vi === 2 ? 700 : 400, color: vi === 2 ? '#0A0D13' : '#9199A0', padding: '3px 0' }}>{v}</div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {step === 3 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 700, fontSize: 16, color: '#263238', marginBottom: 4 }}>Review & Confirm</div>
+            {[['Circle Name','The First'],['Total Amount','2,000 EUR'],['Duration','10 months'],['Monthly','200 EUR'],['Start Date','May 2025']].map(([k,v]) => (
+              <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F5F5F5' }}>
+                <span style={{ fontFamily: 'Inter,sans-serif', fontSize: 13, color: '#6C7278' }}>{k}</span>
+                <span style={{ fontFamily: 'Inter,sans-serif', fontSize: 13, fontWeight: 600, color: '#263238' }}>{v}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <div style={{ height: 16 }}></div>
+      </div>
+      <div style={{ padding: '12px 16px 16px', background: '#fff', borderTop: '1px solid #F5F5F5' }}>
+        <PrimaryButton label={step < 3 ? 'Continue' : 'Create Circle'} onClick={() => step < 3 ? setStep(step + 1) : onNav('circles')} color={T.primaryLight} />
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+// ── SCREEN: Notifications ──────────────────────────────────────────
+function NotificationsScreen({ onBack }) {
+  return (
+    <div style={{ flex: 1, background: '#F9F9F9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <StatusBar />
+      <TopBar title="Notifications" centerTitle={true} onBack={onBack} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }}>
+        {/* Empty state illustration placeholder */}
+        <div style={{ width: 160, height: 160, background: 'linear-gradient(135deg, #F9DDFF, #B6FAF9)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#D94DF8" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </div>
+        <div style={{ fontFamily: 'Raleway,sans-serif', fontWeight: 700, fontSize: 20, color: '#0A0D13' }}>No Notifications</div>
+        <div style={{ fontFamily: 'Inter,sans-serif', fontSize: 14, color: '#73697F', textAlign: 'center', lineHeight: 1.6, maxWidth: 260 }}>We'll let you know when there will be something to update you.</div>
+      </div>
+      <HomeIndicator />
+    </div>
+  );
+}
+
+// ── SCREEN: Circles (placeholder) ─────────────────────────────────
+function CirclesScreen({ onNav, onAdmin, onCreate }) {
+  return (
+    <div style={{ flex: 1, background: '#F9F9F9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <StatusBar />
+      <TopBar title="My Circles" />
+      <div className="screen-content" style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button onClick={onCreate} style={{ flex: 1, height: 44, background: T.primaryLight, color: '#fff', borderRadius: 100, border: 'none', fontFamily: 'Inter,sans-serif', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>+ Create Circle</button>
+          <button onClick={onAdmin} style={{ flex: 1, height: 44, background: '#fff', color: T.primaryLight, borderRadius: 100, border: `1.5px solid ${T.primaryLight}`, fontFamily: 'Inter,sans-serif', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>View Admin</button>
+        </div>
+        <CircleCard adminName="Omar" circleName="The First" total="2,000 EUR" monthly="333 EUR" duration="6 Months" progress={0.33} startDate="Jan 2025" endDate="Dec 2025" />
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #F5F5F5', boxShadow: '0px 8px 16px rgba(0,0,0,0.08)', padding: '40px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontFamily: 'Inter,sans-serif', fontSize: 13, color: '#9199A0', textAlign: 'center' }}>To create an association or join an association, click "join."</div>
+          <button onClick={onCreate} style={{ marginTop: 4, background: T.primaryLight, color: '#fff', borderRadius: 100, height: 36, padding: '0 20px', border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif', fontWeight: 700, fontSize: 13 }}>Join a Circle</button>
+        </div>
+      </div>
+      <BottomNav active="circles" onNav={onNav} />
+      <HomeIndicator />
+    </div>
+  );
+}
+
+// ── APP SHELL ──────────────────────────────────────────────────────
+function App() {
+  const [screen, setScreen] = useState('splash');
+  const screenHistory = React.useRef(['splash']);
+
+  const go = (s) => {
+    screenHistory.current.push(s);
+    setScreen(s);
+  };
+  const back = () => {
+    screenHistory.current.pop();
+    const prev = screenHistory.current[screenHistory.current.length - 1] || 'splash';
+    setScreen(prev);
+  };
+  const onNav = (id) => {
+    const map = { home: 'home', circles: 'circles', profile: 'home', settings: 'home' };
+    go(map[id] || 'home');
+  };
+
+  return (
+    <div className="stage">
+      <div className="phone-outer">
+        <div className="screen">
+          {screen === 'splash'         && <SplashScreen onNext={() => go('onboarding')} />}
+          {screen === 'onboarding'     && <OnboardingScreen onNext={() => go('auth')} />}
+          {screen === 'auth'           && <AuthScreen onNext={() => go('home')} />}
+          {screen === 'home'           && <HomeScreen onNav={onNav} />}
+          {screen === 'circles'        && <CirclesScreen onNav={onNav} onAdmin={() => go('admin')} onCreate={() => go('create')} />}
+          {screen === 'admin'          && <AdminScreen onNav={onNav} onBack={back} />}
+          {screen === 'create'         && <CreateScreen onNav={onNav} onBack={back} />}
+          {screen === 'notifications'  && <NotificationsScreen onBack={back} />}
+        </div>
+      </div>
+      {/* Screen nav pills */}
+      <div className="nav-pills">
+        {[['splash','Splash'],['onboarding','Onboard'],['auth','Auth'],['home','Home'],['circles','Circles'],['admin','Admin'],['create','Create'],['notifications','Notifs']].map(([id,label]) => (
+          <button key={id} className={`pill ${screen === id ? 'pill-active' : 'pill-inactive'}`} onClick={() => go(id)}>{label}</button>
+        ))}
+      </div>
+      <div className="screen-label">Payspin iOS App · Click screens to navigate</div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+---
+description: Next.js payer web — public pay links, no auth
+globs: frontend/**/*
+alwaysApply: false
+---
+
+# Frontend (payer web)
+
+## Scope
+
+Public payer flow only — **no JWT, no payee auth**. Payee app is Flutter.
+
+## Structure
+
+- App Router: `frontend/app/`
+- Dynamic pay link: `app/[code]/page.tsx`
+- Yapily callback: `app/[code]/callback/page.tsx`
+- API helpers: `frontend/lib/api.ts`
+
+## Env
+
+- `NEXT_PUBLIC_API_URL` → backend `/v1` (default `http://localhost:3001/v1`)
+
+## Patterns
+
+- Server Components for initial link fetch (`GET /pay/:code`)
+- Client component for pay button (`POST /pay/:code/initiate` → redirect)
+- Types from `@payspin/shared-types` — do not duplicate DTOs
+
+## Dev
+
+```bash
+pnpm --filter @payspin/frontend dev   # port 3000
+# or: ./scripts/dev/payspin-dev start --web
+```
+
+## Production
+
+Deploy separately from API (Vercel or extend prod compose). Set `NEXT_PUBLIC_API_URL` to public API HTTPS URL.

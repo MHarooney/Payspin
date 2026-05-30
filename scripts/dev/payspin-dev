@@ -1,0 +1,423 @@
+#!/usr/bin/env bash
+# Payspin local development orchestrator
+#
+# Usage:
+#   ./scripts/dev/payspin-dev <command> [options]
+#   pnpm dev:cli -- <command>   # from repo root via package.json
+#
+# Commands:
+#   setup      First-time install (deps, .env, prisma, shared packages)
+#   start      Start stack (default: db + api; use flags for web/mobile)
+#   stop       Stop services
+#   restart    Stop then start
+#   status     Show running services and health
+#   logs       Tail service logs (api | web)
+#   doctor     Check prerequisites
+#   help       Show help
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib.sh
+source "${SCRIPT_DIR}/lib.sh"
+
+WITH_WEB=false
+WITH_MOBILE=false
+MOBILE_TARGET="${PAYSPIN_MOBILE_TARGET:-ios}"
+SKIP_SETUP=false
+FORCE_PORTS=false
+
+usage() {
+  cat <<'EOF'
+Payspin development CLI
+
+Usage:
+  payspin-dev <command> [options]
+
+Commands:
+  setup       Install dependencies, create backend/.env, run Prisma migrate
+  start       Start local stack (database + API by default)
+  stop        Stop API, web, and/or Docker infrastructure
+  restart     Restart selected services
+  status      Print service status and health checks
+  logs        Tail logs (api | web)
+  doctor      Verify prerequisites (node, pnpm, docker, flutter)
+  help        Show this message
+
+Start options:
+  --web, -w           Also start Next.js payer web (:3000)
+  --mobile, -m        Also launch Flutter (foreground; blocks terminal)
+  --target <name>     Mobile API target: ios (default) | android | device
+  --skip-setup        Do not run prisma generate on start
+  --force-ports       Kill any process on API/web ports before start
+
+Stop options:
+  --web               Stop payer web
+  --all               Stop API, web, and Docker (db + redis)
+  --docker            Stop only Docker services (keep API/web stopped separately)
+
+Examples:
+  ./scripts/dev/payspin-dev setup
+  ./scripts/dev/payspin-dev start
+  ./scripts/dev/payspin-dev start --web
+  ./scripts/dev/payspin-dev start --mobile --target device
+  ./scripts/dev/payspin-dev restart --web
+  ./scripts/dev/payspin-dev stop --all
+  ./scripts/dev/payspin-dev status
+  ./scripts/dev/payspin-dev logs api
+
+Environment:
+  PAYSPIN_API_PORT     API port (default: 3001)
+  PAYSPIN_WEB_PORT     Payer web port (default: 3000)
+  PAYSPIN_MOBILE_TARGET  Default mobile target for --mobile
+
+Logs:  .payspin/logs/
+PIDs:   .payspin/pids/
+EOF
+}
+
+parse_global_flags() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --web|-w) WITH_WEB=true ;;
+      --mobile|-m) WITH_MOBILE=true ;;
+      --target) shift; MOBILE_TARGET="${1:?--target requires ios|android|device}" ;;
+      --skip-setup) SKIP_SETUP=true ;;
+      --force-ports) FORCE_PORTS=true ;;
+      --all) STOP_ALL=true ;;
+      --docker) STOP_DOCKER=true ;;
+      *) return 0 ;;
+    esac
+    shift
+  done
+}
+
+cmd_setup() {
+  log_step "Payspin first-time setup"
+  require_cmd node "Node.js 20+ required"
+  require_cmd pnpm "npm install -g pnpm"
+  require_docker
+
+  cd "$PAYSPIN_ROOT"
+
+  log_info "Installing monorepo dependencies…"
+  pnpm install
+
+  log_info "Starting Docker (Postgres :${PG_PORT}, Redis :${REDIS_PORT})…"
+  docker compose -f "$DOCKER_COMPOSE_FILE" up -d
+
+  if [[ ! -f "$BACKEND_ENV" ]]; then
+    cp "$BACKEND_ENV_EXAMPLE" "$BACKEND_ENV"
+    log_ok "Created backend/.env from .env.example"
+  else
+    log_info "backend/.env already exists"
+  fi
+
+  log_info "Prisma generate + migrate…"
+  pnpm --filter @payspin/backend prisma:generate
+  pnpm --filter @payspin/backend prisma:migrate
+
+  log_info "Building shared TypeScript packages…"
+  pnpm --filter @payspin/shared-types build
+  pnpm --filter @payspin/validators build
+  pnpm --filter @payspin/pisp-provider build
+
+  ensure_state_dirs
+  log_ok "Setup complete. Run: ./scripts/dev/payspin-dev start"
+}
+
+start_docker() {
+  require_docker
+  if docker_services_up; then
+    log_info "Docker services already running"
+  else
+    log_info "Starting Postgres (:${PG_PORT}) and Redis (:${REDIS_PORT})…"
+    docker compose -f "$DOCKER_COMPOSE_FILE" up -d
+    sleep 2
+  fi
+  log_ok "Infrastructure ready"
+}
+
+start_api() {
+  ensure_state_dirs
+  if is_running api; then
+    log_warn "API already running (pid $(<"$(pid_file api)"))"
+    return 0
+  fi
+
+  if [[ "$FORCE_PORTS" == true ]]; then
+    free_port "$API_PORT"
+  fi
+
+  if [[ "$SKIP_SETUP" != true ]]; then
+    log_info "Prisma client generate…"
+    (cd "$PAYSPIN_ROOT" && pnpm --filter @payspin/backend prisma:generate) >/dev/null
+  fi
+
+  local logf
+  logf="$(log_file api)"
+  log_info "Starting API on :${API_PORT} (log: ${logf})…"
+
+  (
+    cd "$PAYSPIN_ROOT"
+    exec pnpm --filter @payspin/backend dev
+  ) >>"$logf" 2>&1 &
+
+  local pid=$!
+  save_pid api "$pid"
+
+  log_info "Waiting for API health…"
+  if wait_for_health "$API_HEALTH_URL" 90; then
+    log_ok "API healthy at ${API_HEALTH_URL}"
+  else
+    log_error "API did not become healthy in time. Check: payspin-dev logs api"
+    tail -n 30 "$logf" >&2 || true
+    exit 1
+  fi
+}
+
+start_web() {
+  ensure_state_dirs
+  if is_running web; then
+    log_warn "Payer web already running"
+    return 0
+  fi
+
+  if [[ "$FORCE_PORTS" == true ]]; then
+    free_port "$WEB_PORT"
+  fi
+
+  local logf
+  logf="$(log_file web)"
+  log_info "Starting payer web on :${WEB_PORT} (log: ${logf})…"
+
+  (
+    cd "$PAYSPIN_ROOT"
+    exec pnpm --filter @payspin/frontend dev
+  ) >>"$logf" 2>&1 &
+
+  save_pid web $!
+  sleep 3
+  log_ok "Payer web starting → http://localhost:${WEB_PORT}"
+}
+
+start_mobile() {
+  require_cmd flutter "Install Flutter SDK"
+  local api_url
+  api_url="$(api_url_for_target "$MOBILE_TARGET")"
+
+  log_step "Launching Flutter (foreground)"
+  log_info "API_URL=${api_url}"
+  log_warn "This blocks the terminal. Press q to quit Flutter."
+
+  cd "${PAYSPIN_ROOT}/mobile"
+  flutter pub get
+  exec flutter run --dart-define="API_URL=${api_url}"
+}
+
+cmd_start() {
+  parse_global_flags "$@"
+  log_step "Starting Payspin dev stack"
+
+  start_docker
+  start_api
+
+  if [[ "$WITH_WEB" == true ]]; then
+    start_web
+  fi
+
+  echo ""
+  log_ok "Stack running"
+  printf '  API:        %s\n' "$API_HEALTH_URL"
+  [[ "$WITH_WEB" == true ]] && printf '  Payer web:  http://localhost:%s/{shortCode}\n' "$WEB_PORT"
+  printf '  Postgres:   localhost:%s\n' "$PG_PORT"
+  printf '  Redis:      localhost:%s\n' "$REDIS_PORT"
+  echo ""
+  log_info "Mobile (separate terminal): payspin-dev start --mobile"
+  log_info "Or: cd mobile && flutter run --dart-define=API_URL=http://localhost:${API_PORT}/v1"
+
+  if [[ "$WITH_MOBILE" == true ]]; then
+    start_mobile
+  fi
+}
+
+STOP_ALL=false
+STOP_DOCKER=false
+STOP_WEB_FLAG=false
+
+cmd_stop() {
+  STOP_ALL=false
+  STOP_DOCKER=false
+  STOP_WEB_FLAG=false
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --all) STOP_ALL=true ;;
+      --docker) STOP_DOCKER=true ;;
+      --web|-w) STOP_WEB_FLAG=true ;;
+      *) ;;
+    esac
+    shift
+  done
+
+  log_step "Stopping Payspin services"
+
+  if [[ "$STOP_ALL" == true || "$STOP_WEB_FLAG" == true ]]; then
+    stop_process web
+  fi
+
+  stop_process api
+
+  if [[ "$STOP_ALL" == true || "$STOP_DOCKER" == true ]]; then
+    log_info "Stopping Docker services…"
+    (cd "$PAYSPIN_ROOT" && docker compose -f "$DOCKER_COMPOSE_FILE" down) || true
+  fi
+
+  if [[ "$FORCE_PORTS" == true || "$STOP_ALL" == true ]]; then
+    free_port "$API_PORT"
+    free_port "$WEB_PORT"
+  fi
+
+  log_ok "Stop complete"
+}
+
+cmd_restart() {
+  local saved_web="$WITH_WEB"
+  parse_global_flags "$@"
+
+  # If --web passed to restart, stop web too
+  local stop_web=false
+  for arg in "$@"; do
+    [[ "$arg" == "--web" || "$arg" == "-w" ]] && stop_web=true
+  done
+  [[ "$saved_web" == true ]] && stop_web=true
+
+  cmd_stop ${stop_web:+--web}
+  sleep 1
+  cmd_start "$@"
+}
+
+cmd_status() {
+  log_step "Payspin service status"
+  echo ""
+
+  printf '%-14s %-10s %-8s %s\n' "SERVICE" "STATE" "PORT" "DETAIL"
+  printf '%-14s %-10s %-8s %s\n' "--------" "-----" "----" "------"
+
+  if docker_services_up; then
+    printf '%-14s %-10s %-8s %s\n' "postgres" "running" "$PG_PORT" "docker: payspin-postgres"
+    printf '%-14s %-10s %-8s %s\n' "redis" "running" "$REDIS_PORT" "docker: payspin-redis"
+  else
+    printf '%-14s %-10s %-8s %s\n' "postgres" "stopped" "$PG_PORT" "run: payspin-dev start"
+    printf '%-14s %-10s %-8s %s\n' "redis" "stopped" "$REDIS_PORT" ""
+  fi
+
+  if is_running api; then
+    local detail="pid $(<"$(pid_file api)")"
+    if curl -sf "$API_HEALTH_URL" >/dev/null 2>&1; then
+      detail="${detail}, healthy"
+    else
+      detail="${detail}, not healthy yet"
+    fi
+    printf '%-14s %-10s %-8s %s\n' "api" "running" "$API_PORT" "$detail"
+  else
+    printf '%-14s %-10s %-8s %s\n' "api" "stopped" "$API_PORT" ""
+  fi
+
+  if is_running web; then
+    printf '%-14s %-10s %-8s %s\n' "payer-web" "running" "$WEB_PORT" "pid $(<"$(pid_file web)")"
+  else
+    printf '%-14s %-10s %-8s %s\n' "payer-web" "stopped" "$WEB_PORT" ""
+  fi
+
+  echo ""
+  log_info "Logs: ${PAYSPIN_LOG_DIR}/"
+}
+
+cmd_logs() {
+  local service="${1:-api}"
+  ensure_state_dirs
+  local logf
+  logf="$(log_file "$service")"
+  if [[ ! -f "$logf" ]]; then
+    die "No log file for '${service}'. Start the service first."
+  fi
+  log_info "Tailing ${logf} (Ctrl+C to exit)"
+  tail -f "$logf"
+}
+
+cmd_doctor() {
+  log_step "Payspin environment check"
+  local ok=true
+
+  check() {
+    local name="$1"
+    local cmd="$2"
+    if command -v "$cmd" >/dev/null 2>&1; then
+      log_ok "${name}: $($cmd --version 2>/dev/null | head -1 || echo ok)"
+    else
+      log_error "${name}: missing (${cmd})"
+      ok=false
+    fi
+  }
+
+  check "Node.js" node
+  check "pnpm" pnpm
+  check "curl" curl
+
+  if command -v docker >/dev/null 2>&1; then
+    if docker info >/dev/null 2>&1; then
+      log_ok "Docker: running"
+    else
+      log_error "Docker: installed but daemon not running"
+      ok=false
+    fi
+  else
+    log_error "Docker: not installed"
+    ok=false
+  fi
+
+  if command -v flutter >/dev/null 2>&1; then
+    log_ok "Flutter: $(flutter --version 2>/dev/null | head -1)"
+  else
+    log_warn "Flutter: not installed (optional for mobile)"
+  fi
+
+  [[ -f "$BACKEND_ENV" ]] && log_ok "backend/.env: present" || log_warn "backend/.env: missing (run: payspin-dev setup)"
+
+  if lsof -ti ":${API_PORT}" >/dev/null 2>&1; then
+    log_warn "Port ${API_PORT} is in use"
+  else
+    log_ok "Port ${API_PORT}: free"
+  fi
+
+  echo ""
+  if [[ "$ok" == true ]]; then
+    log_ok "Doctor: all required checks passed"
+  else
+    die "Doctor: fix issues above before starting"
+  fi
+}
+
+main() {
+  local cmd="${1:-help}"
+  shift || true
+
+  case "$cmd" in
+    setup)    cmd_setup "$@" ;;
+    start)    cmd_start "$@" ;;
+    stop)     cmd_stop "$@" ;;
+    restart)  cmd_restart "$@" ;;
+    status)   cmd_status "$@" ;;
+    logs)     cmd_logs "$@" ;;
+    doctor)   cmd_doctor "$@" ;;
+    help|-h|--help) usage ;;
+    *)
+      log_error "Unknown command: ${cmd}"
+      usage
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
