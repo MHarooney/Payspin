@@ -8,6 +8,7 @@ import '../../core/design_system/widgets/payspin_gradient_text.dart';
 import '../../core/design_system/widgets/payspin_logo.dart';
 import '../../core/design_system/widgets/payspin_tikkie_row.dart';
 import '../../core/errors/api_exception.dart';
+import '../../core/state/links_refresh_notifier.dart';
 import '../../domain/entities/payment_link.dart';
 import '../../domain/repositories/payment_link_repository.dart';
 import 'groepies_page.dart';
@@ -31,13 +32,27 @@ class _HomePageState extends State<HomePage> {
   bool _searchOpen = false;
   String _query = '';
 
+  final LinksRefreshNotifier _refresh = sl<LinksRefreshNotifier>();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onTabChanged?.call(_tab);
     });
+    // Reload when a link is created/cancelled elsewhere in the nav stack.
+    _refresh.addListener(_onLinksChanged);
     _load();
+  }
+
+  void _onLinksChanged() {
+    if (mounted) _load();
+  }
+
+  @override
+  void dispose() {
+    _refresh.removeListener(_onLinksChanged);
+    super.dispose();
   }
 
   void _selectTab(HomeTab tab) {

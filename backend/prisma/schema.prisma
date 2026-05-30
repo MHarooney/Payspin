@@ -120,13 +120,16 @@ model Circle {
   memberCount           Int            @map("member_count")
   contributionCents     Int            @map("contribution_cents")
   cycleDurationDays     Int            @map("cycle_duration_days")
+  inviteCode            String         @unique @map("invite_code")
   smartContractAddress  String?        @map("smart_contract_address")
   status                String         @default("DRAFT")
   currentRound          Int            @default(0) @map("current_round")
+  startedAt             DateTime?      @map("started_at")
   createdAt             DateTime       @default(now()) @map("created_at")
   updatedAt             DateTime       @updatedAt @map("updated_at")
   members               CircleMember[]
 
+  @@index([hostUserId])
   @@map("circles")
 }
 
@@ -141,7 +144,9 @@ model CircleMember {
   createdAt     DateTime @default(now()) @map("created_at")
   circle        Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
 
+  @@unique([circleId, userId])
   @@index([circleId])
+  @@index([userId])
   @@map("circle_members")
 }
 

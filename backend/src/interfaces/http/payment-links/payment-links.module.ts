@@ -23,6 +23,6 @@ import { PaymentLinksController } from './payment-links.controller';
     CancelPaymentLinkUseCase,
     GetPaymentLinkByShortCodeUseCase,
   ],
-  exports: [GetPaymentLinkByShortCodeUseCase],
+  exports: [GetPaymentLinkByShortCodeUseCase, CreatePaymentLinkUseCase],
 })
 export class PaymentLinksModule {}

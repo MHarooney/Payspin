@@ -7,6 +7,9 @@ import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/bank_account_repository.dart';
 import '../domain/repositories/onboarding_repository.dart';
 import '../presentation/auth/login_page.dart';
+import '../presentation/circles/circle_detail_page.dart';
+import '../presentation/circles/create_circle_page.dart';
+import '../presentation/circles/join_circle_page.dart';
 import '../presentation/links/link_detail_page.dart';
 import '../presentation/onboarding/onboarding_cubit.dart';
 import '../presentation/onboarding/pages/step_connect_bank_page.dart';
@@ -72,6 +75,12 @@ GoRouter createRouter() {
         path: '/links/:id',
         builder: (_, state) => LinkDetailPage(linkId: state.pathParameters['id']!),
       ),
+      GoRoute(path: '/circles/create', builder: (_, __) => const CreateCirclePage()),
+      GoRoute(path: '/circles/join', builder: (_, __) => const JoinCirclePage()),
+      GoRoute(
+        path: '/circles/:id',
+        builder: (_, state) => CircleDetailPage(circleId: state.pathParameters['id']!),
+      ),
     ],
   );
 }
@@ -85,7 +94,7 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
   final hasSession = await sl<AuthRepository>().hasSession();
   if (!hasSession) return '/welcome';
 
-  if (loc.startsWith('/send') || loc.startsWith('/scan') || loc.startsWith('/links')) {
+  if (loc.startsWith('/send') || loc.startsWith('/scan') || loc.startsWith('/links') || loc.startsWith('/circles')) {
     return null;
   }
 

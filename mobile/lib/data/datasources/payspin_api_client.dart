@@ -131,6 +131,75 @@ class PayspinApiClient {
     _ensureOk(res);
   }
 
+  Future<List<dynamic>> listCircles() async {
+    final res = await _send(_client.get(Uri.parse('${ApiConfig.baseUrl}/circles'), headers: await _headers()));
+    _ensureOk(res);
+    return jsonDecode(res.body) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createCircle({
+    required String name,
+    required int contributionCents,
+    required int cycleDurationDays,
+    required int memberCount,
+  }) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/circles'),
+      headers: await _headers(),
+      body: jsonEncode({
+        'name': name,
+        'contributionCents': contributionCents,
+        'cycleDurationDays': cycleDurationDays,
+        'memberCount': memberCount,
+      }),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getCircle(String id) async {
+    final res = await _send(_client.get(Uri.parse('${ApiConfig.baseUrl}/circles/$id'), headers: await _headers()));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> joinCircle(String inviteCode) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/circles/join'),
+      headers: await _headers(),
+      body: jsonEncode({'inviteCode': inviteCode.trim().toLowerCase()}),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> activateCircle(String id) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/circles/$id/activate'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> advanceCircleRound(String id) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/circles/$id/advance-round'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createCircleContributionLink(String id) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/circles/$id/contribution-link'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
   Future<List<dynamic>> listBankAccounts() async {
     final res = await _send(_client.get(Uri.parse('${ApiConfig.baseUrl}/bank-accounts'), headers: await _headers()));
     _ensureOk(res);

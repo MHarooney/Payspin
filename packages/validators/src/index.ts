@@ -66,6 +66,26 @@ export const listInstitutionsSchema = z.object({
     .optional(),
 });
 
+export const createCircleSchema = z.object({
+  name: z.string().min(2).max(80),
+  contributionCents: z.number().int().positive().max(MAX_AMOUNT_CENTS),
+  cycleDurationDays: z.number().int().min(7).max(365),
+  memberCount: z.number().int().min(2).max(50),
+});
+
+export const joinCircleSchema = z.object({
+  inviteCode: z.string().min(4).max(12),
+});
+
+export const updateCircleMemberSchema = z
+  .object({
+    payoutOrder: z.number().int().min(0).optional(),
+    status: z.enum(['ACTIVE', 'REMOVED']).optional(),
+  })
+  .refine((data) => data.payoutOrder !== undefined || data.status !== undefined, {
+    message: 'Provide payoutOrder and/or status',
+  });
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CreateBankAccountInput = z.infer<typeof createBankAccountSchema>;
@@ -75,3 +95,6 @@ export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;
 export type CompletePaymentInput = z.infer<typeof completePaymentSchema>;
 export type ConnectBankAccountInput = z.infer<typeof connectBankAccountSchema>;
 export type CompleteBankConnectionInput = z.infer<typeof completeBankConnectionSchema>;
+export type CreateCircleInput = z.infer<typeof createCircleSchema>;
+export type JoinCircleInput = z.infer<typeof joinCircleSchema>;
+export type UpdateCircleMemberInput = z.infer<typeof updateCircleMemberSchema>;

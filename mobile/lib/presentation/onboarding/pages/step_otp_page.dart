@@ -32,7 +32,8 @@ class _StepOtpPageState extends State<StepOtpPage> {
       step: 3,
       totalSteps: 5,
       title: const Text('Enter the code'),
-      subtitle: 'Sent to $phone · stub: any 6 digits (e.g. 123456)',
+      subtitle:
+          'Phone verification is coming soon — this step is a preview for $phone. Enter any 6 digits to continue.',
       onBack: () => context.go('/onboarding/phone'),
       onNext: _code.text.length != 6
           ? null

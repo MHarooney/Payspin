@@ -95,3 +95,45 @@ export interface PaymentPublicStatus {
 }
 
 export const API_BASE_PATH = '/v1';
+
+export enum CircleStatus {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum CircleMemberStatus {
+  ACTIVE = 'ACTIVE',
+  REMOVED = 'REMOVED',
+}
+
+export interface CircleMemberView {
+  id: string;
+  userId: string;
+  displayName: string | null;
+  payoutOrder: number;
+  status: CircleMemberStatus;
+  isCurrentRecipient: boolean;
+}
+
+export interface CircleSummary {
+  id: string;
+  name: string;
+  status: CircleStatus;
+  memberCount: number;
+  activeMemberCount: number;
+  contributionCents: number;
+  cycleDurationDays: number;
+  currentRound: number;
+  hostUserId: string;
+  isHost: boolean;
+  inviteCode: string | null;
+  startedAt: string | null;
+  createdAt: string;
+}
+
+export interface CircleDetail extends CircleSummary {
+  members: CircleMemberView[];
+  currentRecipientDisplayName: string | null;
+}
