@@ -1,14 +1,14 @@
-# Shorebird code push configuration.
-#
-# IMPORTANT: the placeholder app_id below MUST be replaced by running
-# `shorebird init` in this directory while logged in as payspin.app@gmail.com
-# (Shorebird org 49026). `shorebird init` writes the real app_id and adds this
-# file to the Flutter assets in pubspec.yaml. Commit the generated value.
-#
-# Until then, `shorebird release` / `shorebird patch` will reject this file.
-app_id: REPLACE_WITH_SHOREBIRD_INIT_APP_ID
+# This file is used to configure the Shorebird updater used by your app.
+# Learn more at https://docs.shorebird.dev
+# This file does not contain any sensitive information and should be checked into version control.
 
-# Optional: pin per-flavor app ids here if/when Android/iOS flavors are added.
-# flavors:
-#   prod: <app_id>
-auto_update: true
+# Your app_id is the unique identifier assigned to your app.
+# It is used to identify your app when requesting patches from Shorebird's servers.
+# It is not a secret and can be shared publicly.
+app_id: 0192cb98-4f30-4ea6-b1ee-f0ea9e2ea053
+
+# auto_update controls if Shorebird should automatically update in the background on launch.
+# If auto_update: false, you will need to use package:shorebird_code_push to trigger updates.
+# https://pub.dev/packages/shorebird_code_push
+# Uncomment the following line to disable automatic updates.
+# auto_update: false

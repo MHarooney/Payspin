@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1056889519439",
+    "project_id": "payspin-mobile",
+    "storage_bucket": "payspin-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1056889519439:android:cd160168ac47a8d6ae593a",
+        "android_client_info": {
+          "package_name": "io.payspin.payspin_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkzY7MlfiHVg_H2a52WxQSn32020WsLso"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
