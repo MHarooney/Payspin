@@ -30,11 +30,13 @@ function build(prisma: FakePrisma) {
     config,
     pisGateway,
   );
+  const notifyPaymentReceived = { execute: async () => {} } as any;
   const complete = new CompletePayerPaymentUseCase(
     prisma as any,
     getLink,
     decryptedIban,
     pisGateway,
+    notifyPaymentReceived,
   );
   const status = new GetPaymentStatusUseCase(prisma as any, getLink);
   return { getLink, initiate, complete, status };

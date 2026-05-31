@@ -1,0 +1,14 @@
+# Shorebird code push configuration.
+#
+# IMPORTANT: the placeholder app_id below MUST be replaced by running
+# `shorebird init` in this directory while logged in as payspin.app@gmail.com
+# (Shorebird org 49026). `shorebird init` writes the real app_id and adds this
+# file to the Flutter assets in pubspec.yaml. Commit the generated value.
+#
+# Until then, `shorebird release` / `shorebird patch` will reject this file.
+app_id: REPLACE_WITH_SHOREBIRD_INIT_APP_ID
+
+# Optional: pin per-flavor app ids here if/when Android/iOS flavors are added.
+# flavors:
+#   prod: <app_id>
+auto_update: true

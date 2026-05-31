@@ -18,6 +18,13 @@ http://localhost:3000/*/callback
 http://localhost:3001/v1/bank-accounts/connect/callback
 ```
 
+Production (Hetzner VM, app `53b0d904-21b3-41a7-ba2b-e440ab460bf9`):
+
+```
+http://178.105.118.225/v1/bank-accounts/connect/callback
+http://178.105.118.225/*/callback
+```
+
 Payer web uses `PAYER_WEB_URL` + `/{shortCode}/callback?paymentId=…` (see `backend/.env`).
 
 ## 3. API credentials
@@ -27,12 +34,22 @@ From the application **Credentials** tab copy:
 - **Application ID** → `YAPILY_APP_KEY` in `backend/.env`
 - **Application Secret** → `YAPILY_APP_SECRET`
 
-## 4. Webhooks (optional for local)
+## 4. Webhooks (required on production for PENDING → COMPLETED)
 
-For payment status without polling:
+When the payer closes the browser before the bank settles, the only way the
+payee's payment flips to `COMPLETED` is the Yapily webhook.
 
-1. Console → Webhooks → add endpoint: `https://<ngrok-host>/v1/webhooks/yapily`
-2. Copy signing secret → `YAPILY_WEBHOOK_SECRET`
+1. Console → Webhooks → add endpoint:
+   - Local (via tunnel): `https://<ngrok-host>/v1/webhooks/yapily`
+   - **Production:** `http://178.105.118.225/v1/webhooks/yapily`
+2. Subscribe to payment status events.
+3. Copy the signing secret → server env `YAPILY_WEBHOOK_SECRET`
+   (`/opt/payspin/.env.production`), then restart the API.
+
+The endpoint verifies the `webhook-signature` HMAC (`YAPILY_WEBHOOK_SECRET`),
+de-dupes via the `webhook_events` unique constraint, and enqueues to the
+`yapily-webhooks` BullMQ queue. On a completing transition it also fires the
+payee's in-app notification + FCM push (`notifications` queue).
 
 Local dev works without webhooks (sandbox completes via `POST /pay/:code/complete`).
 
@@ -45,11 +62,20 @@ On **Applications → Payspin → Connected Institutions**:
 
 (`yapily-mock` needs manual OB certificates; **Modelo Sandbox** is the recommended preconfigured sandbox per [Yapily Get Started](https://docs.yapily.com/getting-started/get-started).)
 
-Set default institution:
+Set default institution and optional per-country routing (Phase D — the backend
+derives the country from the payee IBAN and picks the matching institution):
 
 ```env
 YAPILY_DEFAULT_INSTITUTION="modelo-sandbox"
+# Optional country → institution overrides (fall back to default when unset)
+YAPILY_INSTITUTION_NL="modelo-sandbox"
+YAPILY_INSTITUTION_DE="modelo-sandbox"
+YAPILY_INSTITUTION_GB="modelo-sandbox"
 ```
+
+> NL/DE live institutions (ING, ABN, Rabobank, Deutsche Bank, …) and
+> `deutschebank-sandbox` require eIDAS certificates — register later; the
+> defaults keep the sandbox journey working today.
 
 UK test login after authorisation: `mits` / `mits`.
 

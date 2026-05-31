@@ -7,6 +7,7 @@ import { PaymentLinksModule } from './payment-links/payment-links.module';
 import { PaymentsModule } from './payments/payments.module';
 import { OpenBankingModule } from './open-banking/open-banking.module';
 import { CirclesModule } from './circles/circles.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { HealthModule } from './health/health.module';
 import { JwtStrategy } from './guards/jwt.strategy';
 import { YapilyModule } from '../../infrastructure/yapily/yapily.module';
@@ -22,6 +23,7 @@ import { YapilyModule } from '../../infrastructure/yapily/yapily.module';
     PaymentsModule,
     OpenBankingModule,
     CirclesModule,
+    NotificationsModule,
     HealthModule,
   ],
   providers: [JwtStrategy],

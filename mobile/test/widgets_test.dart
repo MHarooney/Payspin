@@ -9,10 +9,12 @@ import 'package:payspin_mobile/core/design_system/widgets/payspin_gradient_circl
 import 'package:payspin_mobile/core/design_system/widgets/payspin_skeleton.dart';
 import 'package:payspin_mobile/core/errors/api_exception.dart';
 import 'package:payspin_mobile/core/state/links_refresh_notifier.dart';
+import 'package:payspin_mobile/core/state/notifications_refresh_notifier.dart';
 import 'package:payspin_mobile/domain/entities/institution.dart';
 import 'package:payspin_mobile/domain/entities/payment_link.dart';
 import 'package:payspin_mobile/domain/repositories/auth_repository.dart';
 import 'package:payspin_mobile/domain/repositories/bank_account_repository.dart';
+import 'package:payspin_mobile/domain/repositories/notification_repository.dart';
 import 'package:payspin_mobile/domain/repositories/onboarding_repository.dart';
 import 'package:payspin_mobile/domain/repositories/payment_link_repository.dart';
 import 'package:payspin_mobile/domain/usecases/complete_onboarding_usecase.dart';
@@ -23,6 +25,8 @@ import 'package:payspin_mobile/presentation/links/link_detail_page.dart';
 import 'package:payspin_mobile/presentation/onboarding/onboarding_cubit.dart';
 import 'package:payspin_mobile/presentation/onboarding/pages/step_connect_bank_page.dart';
 import 'package:payspin_mobile/presentation/onboarding/pages/step_credentials_page.dart';
+import 'package:payspin_mobile/presentation/notifications/notifications_page.dart';
+import 'package:payspin_mobile/domain/entities/app_notification.dart';
 
 import 'helpers/fake_repositories.dart';
 
@@ -85,6 +89,8 @@ void main() {
     Future<void> pumpHome(WidgetTester tester, FakePaymentLinkRepository repo, LinksRefreshNotifier notifier) async {
       _sl.registerSingleton<PaymentLinkRepository>(repo);
       _sl.registerSingleton<LinksRefreshNotifier>(notifier);
+      _sl.registerSingleton<NotificationsRefreshNotifier>(NotificationsRefreshNotifier());
+      _sl.registerSingleton<NotificationRepository>(FakeNotificationRepository());
       await tester.pumpWidget(wrap(const Scaffold(body: HomePage())));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
@@ -249,6 +255,48 @@ void main() {
       expect(nextButton().onPressed, isNotNull);
       expect(cubit.state.email, 'jane@example.com');
       expect(cubit.state.password, 'supersecret');
+    });
+  });
+
+  group('NotificationsPage', () {
+    AppNotification _item({String id = 'n1', bool unread = true}) => AppNotification(
+          id: id,
+          type: 'PAYMENT_RECEIVED',
+          title: 'Payment received',
+          body: '€8.00 from Alex',
+          data: const {'linkId': 'l1'},
+          readAt: unread ? null : '2026-01-01T10:00:00.000Z',
+          createdAt: '2026-01-01T10:00:00.000Z',
+        );
+
+    Future<void> pumpNotifications(WidgetTester tester, FakeNotificationRepository repo) async {
+      _sl.registerSingleton<NotificationsRefreshNotifier>(NotificationsRefreshNotifier());
+      _sl.registerSingleton<NotificationRepository>(repo);
+      await tester.pumpWidget(wrap(const NotificationsPage()));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    testWidgets('shows empty state when there are no notifications', (tester) async {
+      await pumpNotifications(tester, FakeNotificationRepository());
+      expect(find.text('No notifications yet'), findsOneWidget);
+    });
+
+    testWidgets('lists payment notifications', (tester) async {
+      await pumpNotifications(
+        tester,
+        FakeNotificationRepository(items: [_item()], unread: 1),
+      );
+      expect(find.text('Payment received'), findsOneWidget);
+      expect(find.text('€8.00 from Alex'), findsOneWidget);
+    });
+
+    testWidgets('shows an error message when loading fails', (tester) async {
+      await pumpNotifications(
+        tester,
+        FakeNotificationRepository(listError: ApiException(500, '')),
+      );
+      expect(find.textContaining('Something went wrong on our end'), findsOneWidget);
     });
   });
 }

@@ -28,6 +28,20 @@ export function validateIbanMod97(iban: string): boolean {
   return remainder === 1;
 }
 
+/**
+ * Extract the ISO 3166-1 alpha-2 country code from an IBAN.
+ * Returns the 2-letter code when the prefix is a known IBAN country, else null.
+ * Does not run the full mod-97 checksum so it can be used on stored IBANs that
+ * were already validated at insert time.
+ */
+export function ibanCountry(iban: string): string | null {
+  const normalized = normalizeIban(iban);
+  const country = normalized.slice(0, 2);
+  if (!/^[A-Z]{2}$/.test(country)) return null;
+  if (IBAN_LENGTHS[country] === undefined) return null;
+  return country;
+}
+
 export function validateIban(iban: string): string | null {
   const normalized = normalizeIban(iban);
   if (!normalized) return 'IBAN is required';

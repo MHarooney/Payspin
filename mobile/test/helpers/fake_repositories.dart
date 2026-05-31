@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:payspin_mobile/domain/entities/app_notification.dart';
 import 'package:payspin_mobile/domain/entities/auth_session.dart';
 import 'package:payspin_mobile/domain/entities/bank_account.dart';
 import 'package:payspin_mobile/domain/entities/institution.dart';
@@ -7,6 +8,7 @@ import 'package:payspin_mobile/domain/entities/payment_link.dart';
 import 'package:payspin_mobile/domain/entities/user.dart';
 import 'package:payspin_mobile/domain/repositories/auth_repository.dart';
 import 'package:payspin_mobile/domain/repositories/bank_account_repository.dart';
+import 'package:payspin_mobile/domain/repositories/notification_repository.dart';
 import 'package:payspin_mobile/domain/repositories/onboarding_repository.dart';
 import 'package:payspin_mobile/domain/repositories/payment_link_repository.dart';
 
@@ -96,6 +98,29 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<User> updateDisplayName(String name) async =>
       User(id: 'u', email: 'a@b.com', displayName: name, createdAt: 'now');
+}
+
+class FakeNotificationRepository implements NotificationRepository {
+  FakeNotificationRepository({this.items = const [], this.unread = 0, this.listError});
+
+  List<AppNotification> items;
+  int unread;
+  Object? listError;
+
+  @override
+  Future<NotificationPage> list({String? cursor, int limit = 20}) async {
+    if (listError != null) throw listError!;
+    return NotificationPage(items: items, unreadCount: unread, nextCursor: null);
+  }
+
+  @override
+  Future<int> unreadCount() async => unread;
+
+  @override
+  Future<void> markRead(String id) async {}
+
+  @override
+  Future<void> markAllRead() async {}
 }
 
 class FakeOnboardingRepository implements OnboardingRepository {

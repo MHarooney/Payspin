@@ -24,6 +24,8 @@ export interface UserProfile {
   id: string;
   email: string;
   displayName: string | null;
+  phoneE164: string | null;
+  phoneVerified: boolean;
   createdAt: string;
 }
 
@@ -95,6 +97,37 @@ export interface PaymentPublicStatus {
 }
 
 export const API_BASE_PATH = '/v1';
+
+export enum NotificationType {
+  PAYMENT_RECEIVED = 'payment.received',
+  PAYMENT_FAILED = 'payment.failed',
+  LINK_EXPIRED = 'link.expired',
+}
+
+export interface NotificationSummary {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  data: Record<string, unknown> | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationListResponse {
+  items: NotificationSummary[];
+  unreadCount: number;
+  nextCursor: string | null;
+}
+
+export interface RegisterDeviceTokenResponse {
+  registered: boolean;
+}
+
+export interface VerifyPhoneResponse {
+  phoneVerified: boolean;
+  phoneVerifiedAt: string | null;
+}
 
 export enum CircleStatus {
   DRAFT = 'DRAFT',

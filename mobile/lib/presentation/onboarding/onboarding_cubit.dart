@@ -37,6 +37,9 @@ class OnboardingCubit extends Cubit<OnboardingDraft> {
     return ok;
   }
 
+  /// Marks the phone verified after a successful real (Firebase) SMS check.
+  void markPhoneVerified() => emit(state.copyWith(otpVerified: true));
+
   String? validateIbanField() => _validateIban(state.iban);
 
   Future<bool> complete({bool alreadyRegistered = false}) async {

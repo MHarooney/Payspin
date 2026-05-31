@@ -11,6 +11,7 @@ import '../presentation/circles/circle_detail_page.dart';
 import '../presentation/circles/create_circle_page.dart';
 import '../presentation/circles/join_circle_page.dart';
 import '../presentation/links/link_detail_page.dart';
+import '../presentation/notifications/notifications_page.dart';
 import '../presentation/onboarding/onboarding_cubit.dart';
 import '../presentation/onboarding/pages/step_connect_bank_page.dart';
 import '../presentation/onboarding/pages/step_credentials_page.dart';
@@ -71,6 +72,7 @@ GoRouter createRouter() {
         },
       ),
       GoRoute(path: '/scan', builder: (_, __) => const ScanQrPage()),
+      GoRoute(path: '/notifications', builder: (_, __) => const NotificationsPage()),
       GoRoute(
         path: '/links/:id',
         builder: (_, state) => LinkDetailPage(linkId: state.pathParameters['id']!),
@@ -94,7 +96,11 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
   final hasSession = await sl<AuthRepository>().hasSession();
   if (!hasSession) return '/welcome';
 
-  if (loc.startsWith('/send') || loc.startsWith('/scan') || loc.startsWith('/links') || loc.startsWith('/circles')) {
+  if (loc.startsWith('/send') ||
+      loc.startsWith('/scan') ||
+      loc.startsWith('/links') ||
+      loc.startsWith('/circles') ||
+      loc.startsWith('/notifications')) {
     return null;
   }
 

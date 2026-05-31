@@ -1,8 +1,9 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { PaymentStatus } from '@prisma/client';
 import { Job } from 'bullmq';
 import { nextStatusAfterPayment } from '../../domain/utils/payment-link-state';
+import { NotifyPaymentReceivedUseCase } from '../../application/use-cases/notifications/notify-payment-received.use-case';
 import { PrismaService } from '../persistence/prisma.module';
 
 export const YAPILY_WEBHOOK_QUEUE = 'yapily-webhooks';
@@ -13,10 +14,23 @@ export interface YapilyWebhookJob {
   payload: Record<string, unknown>;
 }
 
+interface SettledPayment {
+  paymentId: string;
+  payeeUserId: string;
+  linkId: string;
+  amountCents: number;
+  currency: string;
+}
+
 @Injectable()
 @Processor(YAPILY_WEBHOOK_QUEUE)
 export class YapilyWebhookProcessor extends WorkerHost {
-  constructor(private readonly prisma: PrismaService) {
+  // Optional so existing unit tests that construct the processor with only a
+  // Prisma double keep working (notifications are best-effort, never blocking).
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly notifyPaymentReceived?: NotifyPaymentReceivedUseCase,
+  ) {
     super();
   }
 
@@ -34,6 +48,8 @@ export class YapilyWebhookProcessor extends WorkerHost {
       });
       return;
     }
+
+    let settled: SettledPayment | null = null;
 
     await this.prisma.$transaction(async (tx) => {
       const payment = await tx.payment.findFirst({
@@ -86,6 +102,14 @@ export class YapilyWebhookProcessor extends WorkerHost {
                 status: nextStatusAfterPayment(payment.paymentLink),
               },
             });
+
+            settled = {
+              paymentId: payment.id,
+              payeeUserId: payment.paymentLink.payeeUserId,
+              linkId: payment.paymentLinkId,
+              amountCents: payment.amountCents,
+              currency: payment.currency,
+            };
           }
         }
       }
@@ -95,5 +119,11 @@ export class YapilyWebhookProcessor extends WorkerHost {
         data: { processedAt: new Date() },
       });
     });
+
+    // Notify outside the DB transaction so a push/queue hiccup can't roll back a
+    // committed settlement. Only fires on the single winning COMPLETED transition.
+    if (settled && this.notifyPaymentReceived) {
+      await this.notifyPaymentReceived.execute(settled);
+    }
   }
 }

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/di/injection.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
 import '../../../core/design_system/widgets/payspin_onboarding_shell.dart';
 import '../../../core/design_system/widgets/payspin_otp_boxes.dart';
+import '../../../core/firebase/phone_auth_service.dart';
 import '../onboarding_cubit.dart';
 
 class StepOtpPage extends StatefulWidget {
@@ -16,7 +18,20 @@ class StepOtpPage extends StatefulWidget {
 
 class _StepOtpPageState extends State<StepOtpPage> {
   final _code = TextEditingController();
+  final PhoneAuthService _phoneAuth = sl<PhoneAuthService>();
   String? _error;
+  bool _busy = false;
+  bool _codeSent = false;
+
+  bool get _real => _phoneAuth.available;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_real) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _sendCode());
+    }
+  }
 
   @override
   void dispose() {
@@ -24,26 +39,86 @@ class _StepOtpPageState extends State<StepOtpPage> {
     super.dispose();
   }
 
+  String _e164() {
+    final draft = context.read<OnboardingCubit>().state;
+    final digits = draft.phone.replaceAll(RegExp(r'\D'), '');
+    return '${draft.countryCode}$digits';
+  }
+
+  Future<void> _sendCode() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    await _phoneAuth.sendCode(
+      _e164(),
+      onCodeSent: () {
+        if (!mounted) return;
+        setState(() {
+          _codeSent = true;
+          _busy = false;
+        });
+      },
+      onAutoVerified: () {
+        if (mounted) _onVerified();
+      },
+      onError: (message) {
+        if (!mounted) return;
+        setState(() {
+          _error = message;
+          _busy = false;
+        });
+      },
+    );
+  }
+
+  void _onVerified() {
+    context.read<OnboardingCubit>().markPhoneVerified();
+    context.go('/onboarding/credentials');
+  }
+
+  Future<void> _submit() async {
+    final cubit = context.read<OnboardingCubit>();
+    if (_real) {
+      setState(() {
+        _busy = true;
+        _error = null;
+      });
+      final ok = await _phoneAuth.confirmCode(_code.text);
+      if (!mounted) return;
+      if (ok) {
+        _onVerified();
+      } else {
+        setState(() {
+          _error = 'Incorrect code. Please try again.';
+          _busy = false;
+        });
+      }
+      return;
+    }
+
+    // Fallback: Firebase not configured — keep the preview gate.
+    if (!cubit.verifyOtpCode(_code.text)) {
+      setState(() => _error = 'Enter a 6-digit code');
+      return;
+    }
+    context.go('/onboarding/credentials');
+  }
+
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<OnboardingCubit>();
     final phone = cubit.state.phoneDisplay;
+    final subtitle = _real
+        ? 'Enter the 6-digit code we sent to $phone.'
+        : 'Phone verification is coming soon — this step is a preview for $phone. Enter any 6 digits to continue.';
     return PayspinOnboardingShell(
       step: 3,
       totalSteps: 5,
       title: const Text('Enter the code'),
-      subtitle:
-          'Phone verification is coming soon — this step is a preview for $phone. Enter any 6 digits to continue.',
+      subtitle: subtitle,
       onBack: () => context.go('/onboarding/phone'),
-      onNext: _code.text.length != 6
-          ? null
-          : () {
-              if (!cubit.verifyOtpCode(_code.text)) {
-                setState(() => _error = 'Enter a 6-digit code');
-                return;
-              }
-              context.go('/onboarding/credentials');
-            },
+      onNext: (_busy || _code.text.length != 6) ? null : _submit,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -55,6 +130,16 @@ class _StepOtpPageState extends State<StepOtpPage> {
           if (_error != null) ...[
             const SizedBox(height: 14),
             Text(_error!, style: const TextStyle(color: PayspinTokens.error, fontSize: 13)),
+          ],
+          if (_real) ...[
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: _busy ? null : _sendCode,
+              child: Text(
+                _codeSent ? 'Resend code' : 'Send code',
+                style: const TextStyle(color: PayspinTokens.mint),
+              ),
+            ),
           ],
         ],
       ),

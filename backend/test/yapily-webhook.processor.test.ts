@@ -83,4 +83,32 @@ describe('YapilyWebhookProcessor', () => {
 
     assert.equal(prisma.webhookEvents[0].processedAt !== null, true);
   });
+
+  it('notifies the payee exactly once on a completing transition', async () => {
+    const prisma = new FakePrisma();
+    const { link, payment } = seed(prisma);
+    const calls: any[] = [];
+    const notifier = { execute: async (input: any) => calls.push(input) } as any;
+    const processor = new YapilyWebhookProcessor(prisma as any, notifier);
+
+    await processor.process(makeJob({ paymentId: 'yap-1', status: 'COMPLETED' }));
+
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].payeeUserId, link.payeeUserId);
+    assert.equal(calls[0].paymentId, payment.id);
+    assert.equal(calls[0].amountCents, 2500);
+  });
+
+  it('does not notify when the payment is already COMPLETED', async () => {
+    const prisma = new FakePrisma();
+    const { link } = seed(prisma, 'COMPLETED');
+    link.useCount = 1;
+    const calls: any[] = [];
+    const notifier = { execute: async (input: any) => calls.push(input) } as any;
+    const processor = new YapilyWebhookProcessor(prisma as any, notifier);
+
+    await processor.process(makeJob({ paymentId: 'yap-1', status: 'COMPLETED' }));
+
+    assert.equal(calls.length, 0, 'a replay must not re-notify');
+  });
 });

@@ -13,6 +13,7 @@ import { nextStatusAfterPayment } from '../../../domain/utils/payment-link-state
 import { PrismaService } from '../../../infrastructure/persistence/prisma.module';
 import { GetDecryptedIbanUseCase } from '../bank-accounts/get-decrypted-iban.use-case';
 import { GetPaymentLinkByShortCodeUseCase } from '../payment-links/get-payment-link-by-short-code.use-case';
+import { NotifyPaymentReceivedUseCase } from '../notifications/notify-payment-received.use-case';
 
 @Injectable()
 export class CompletePayerPaymentUseCase {
@@ -21,6 +22,7 @@ export class CompletePayerPaymentUseCase {
     private readonly getLink: GetPaymentLinkByShortCodeUseCase,
     private readonly getDecryptedIban: GetDecryptedIbanUseCase,
     @Inject(PIS_GATEWAY) private readonly pisGateway: PisGateway,
+    private readonly notifyPaymentReceived: NotifyPaymentReceivedUseCase,
   ) {}
 
   async execute(shortCode: string, body: unknown): Promise<PaymentPublicStatus> {
@@ -93,6 +95,7 @@ export class CompletePayerPaymentUseCase {
         },
       });
 
+      let didComplete = false;
       if (transition.count === 1 && status === PrismaPaymentStatus.COMPLETED) {
         await tx.paymentLink.update({
           where: { id: link.id },
@@ -101,16 +104,31 @@ export class CompletePayerPaymentUseCase {
             status: nextStatusAfterPayment(link),
           },
         });
+        didComplete = true;
       }
 
-      return tx.payment.findUniqueOrThrow({ where: { id: payment.id } });
+      const row = await tx.payment.findUniqueOrThrow({ where: { id: payment.id } });
+      return { row, didComplete };
     });
 
+    // Synchronous completion (sandbox/instant rails): fire the same dual-channel
+    // notification the webhook path uses. Guarded so the webhook race can't
+    // double-notify (only the winning transition sets didComplete).
+    if (updated.didComplete) {
+      await this.notifyPaymentReceived.execute({
+        payeeUserId: link.payeeUserId,
+        paymentId: payment.id,
+        linkId: link.id,
+        amountCents: payment.amountCents,
+        currency: payment.currency,
+      });
+    }
+
     return {
-      status: updated.status as PaymentStatus,
-      amountCents: updated.amountCents,
-      currency: updated.currency,
-      completedAt: updated.completedAt?.toISOString() ?? null,
+      status: updated.row.status as PaymentStatus,
+      amountCents: updated.row.amountCents,
+      currency: updated.row.currency,
+      completedAt: updated.row.completedAt?.toISOString() ?? null,
     };
   }
 }

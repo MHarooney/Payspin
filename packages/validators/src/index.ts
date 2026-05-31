@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { normalizeIban, validateIban } from './iban';
 
-export { IBAN_LENGTHS, normalizeIban, validateIban, validateIbanMod97 } from './iban';
+export { IBAN_LENGTHS, ibanCountry, normalizeIban, validateIban, validateIbanMod97 } from './iban';
 
 export const createBankAccountSchema = z.object({
   iban: z
@@ -27,6 +27,20 @@ export const loginSchema = z.object({
 
 export const updateUserSchema = z.object({
   displayName: z.string().min(1).max(100).optional(),
+});
+
+export const registerDeviceTokenSchema = z.object({
+  fcmToken: z.string().min(8).max(4096),
+  platform: z.enum(['ios', 'android', 'web', 'unknown']).default('unknown'),
+});
+
+export const listNotificationsSchema = z.object({
+  cursor: z.string().max(64).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export const verifyPhoneSchema = z.object({
+  idToken: z.string().min(10).max(8192),
 });
 
 export const MAX_AMOUNT_CENTS = 999_999_999;
@@ -88,6 +102,9 @@ export const updateCircleMemberSchema = z
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type RegisterDeviceTokenInput = z.infer<typeof registerDeviceTokenSchema>;
+export type ListNotificationsInput = z.infer<typeof listNotificationsSchema>;
+export type VerifyPhoneInput = z.infer<typeof verifyPhoneSchema>;
 export type CreateBankAccountInput = z.infer<typeof createBankAccountSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type CreatePaymentLinkInput = z.infer<typeof createPaymentLinkSchema>;

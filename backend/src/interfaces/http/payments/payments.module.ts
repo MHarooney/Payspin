@@ -6,10 +6,11 @@ import { GetPublicPaymentViewUseCase } from '../../../application/use-cases/paym
 import { InitiatePayerPaymentUseCase } from '../../../application/use-cases/payments/initiate-payer-payment.use-case';
 import { BankAccountsModule } from '../bank-accounts/bank-accounts.module';
 import { PaymentLinksModule } from '../payment-links/payment-links.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { PaymentsController } from './payments.controller';
 
 @Module({
-  imports: [YapilyModule, PaymentLinksModule, BankAccountsModule],
+  imports: [YapilyModule, PaymentLinksModule, BankAccountsModule, NotificationsModule],
   controllers: [PaymentsController],
   providers: [
     GetPublicPaymentViewUseCase,

@@ -7,11 +7,6 @@
 	<key>teamID</key>
 	<string>5HNF7DY6G7</string>
 	<key>signingStyle</key>
-	<string>manual</string>
-	<key>provisioningProfiles</key>
-	<dict>
-		<key>payspin.app</key>
-		<string>PaySpin Development</string>
-	</dict>
+	<string>automatic</string>
 </dict>
 </plist>

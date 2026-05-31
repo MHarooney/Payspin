@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../app/di/injection.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_bottom_nav.dart';
+import '../../core/notifications/push_service.dart';
 import '../home/groepies_page.dart';
 import '../home/home_page.dart';
 import '../profile/profile_page.dart';
@@ -19,6 +21,29 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _index = 0;
   HomeTab _homeTab = HomeTab.tikkies;
+  final PushService _push = sl<PushService>();
+
+  @override
+  void initState() {
+    super.initState();
+    // A tapped push (background/killed) asks the shell to open a link detail.
+    _push.openLinkRequests.addListener(_onOpenLinkRequested);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onOpenLinkRequested());
+  }
+
+  @override
+  void dispose() {
+    _push.openLinkRequests.removeListener(_onOpenLinkRequested);
+    super.dispose();
+  }
+
+  void _onOpenLinkRequested() {
+    final linkId = _push.openLinkRequests.value;
+    if (linkId != null && mounted) {
+      _push.openLinkRequests.value = null;
+      context.push('/links/$linkId');
+    }
+  }
 
   void _onTap(int i) {
     if (i == 1) {

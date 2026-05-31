@@ -1,5 +1,6 @@
 import { completePayment, fetchPaymentStatus } from '@/lib/api';
 import Link from 'next/link';
+import CallbackStatusPoller from './CallbackStatusPoller';
 
 export default async function CallbackPage({
   params,
@@ -59,14 +60,11 @@ export default async function CallbackPage({
         );
       }
       // PENDING / PROCESSING / AWAITING_AUTHORIZATION: the bank is still
-      // settling. Webhooks finalise it server-side; don't leave the payer stuck.
+      // settling. Webhooks finalise it server-side; the client poller below
+      // auto-advances to success without a manual refresh.
       return (
         <Shell>
-          <p style={styles.success}>Payment is being processed</p>
-          <p style={styles.muted}>
-            Your bank is confirming the transfer. The requester is notified
-            automatically once it settles — you can safely close this page.
-          </p>
+          <CallbackStatusPoller code={code} paymentId={paymentId} />
         </Shell>
       );
     } catch {

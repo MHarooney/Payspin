@@ -84,6 +84,52 @@ class PayspinApiClient {
 
   Future<bool> hasToken() => _storage.hasToken();
 
+  Future<Map<String, dynamic>> listNotifications({String? cursor, int limit = 20}) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/notifications').replace(
+      queryParameters: {
+        'limit': '$limit',
+        if (cursor != null) 'cursor': cursor,
+      },
+    );
+    final res = await _send(_client.get(uri, headers: await _headers()));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<void> markNotificationRead(String id) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/notifications/$id/read'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/notifications/read-all'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
+  }
+
+  Future<void> registerDeviceToken({required String fcmToken, required String platform}) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/notifications/device-token'),
+      headers: await _headers(),
+      body: jsonEncode({'fcmToken': fcmToken, 'platform': platform}),
+    ));
+    _ensureOk(res);
+  }
+
+  Future<void> verifyPhone({required String idToken}) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/verify-phone'),
+      headers: await _headers(),
+      body: jsonEncode({'idToken': idToken}),
+    ));
+    _ensureOk(res);
+  }
+
   Future<Map<String, dynamic>> getMe() async {
     final res = await _send(_client.get(Uri.parse('${ApiConfig.baseUrl}/users/me'), headers: await _headers()));
     _ensureOk(res);

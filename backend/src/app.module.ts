@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppConfigModule } from './infrastructure/persistence/prisma.module';
 import { EncryptionModule } from './infrastructure/encryption/encryption.module';
+import { FirebaseModule } from './infrastructure/firebase/firebase.module';
 import { HttpApiModule } from './interfaces/http/http-api.module';
 import { WebhooksModule } from './interfaces/webhooks/webhooks.module';
 
@@ -12,6 +13,7 @@ import { WebhooksModule } from './interfaces/webhooks/webhooks.module';
   imports: [
     AppConfigModule,
     EncryptionModule,
+    FirebaseModule,
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     BullModule.forRootAsync({
       inject: [ConfigService],

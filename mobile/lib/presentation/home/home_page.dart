@@ -17,6 +17,7 @@ import '../../core/errors/api_exception.dart';
 import '../../core/state/links_refresh_notifier.dart';
 import '../../domain/entities/payment_link.dart';
 import '../../domain/repositories/payment_link_repository.dart';
+import '../notifications/notification_bell.dart';
 import 'groepies_page.dart';
 
 enum HomeTab { tikkies, deals, groepies }
@@ -139,6 +140,8 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 _glassIcon(Icons.search, () => setState(() => _searchOpen = !_searchOpen)),
+                const SizedBox(width: 8),
+                NotificationBell(onTap: () => context.push('/notifications')),
               ],
             ),
             AnimatedSize(

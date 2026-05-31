@@ -14,6 +14,10 @@ import {
   buildPaymentRequest,
   redactPaymentRequest,
 } from '../../../infrastructure/yapily/payment-request.factory';
+import {
+  institutionConfigFromEnv,
+  resolveInstitutionForIban,
+} from '../../../domain/utils/institution-routing';
 import { GetDecryptedIbanUseCase } from '../bank-accounts/get-decrypted-iban.use-case';
 import { GetPaymentLinkByShortCodeUseCase } from '../payment-links/get-payment-link-by-short-code.use-case';
 import { PrismaService } from '../../../infrastructure/persistence/prisma.module';
@@ -39,6 +43,12 @@ export class InitiatePayerPaymentUseCase {
     }
 
     const iban = await this.getDecryptedIban.execute(link.bankAccountId, link.payeeUserId);
+    // Route to a Yapily institution based on the payee IBAN country (NL/DE/GB/…)
+    // instead of always hitting a single hardcoded sandbox.
+    const { institutionId } = resolveInstitutionForIban(
+      iban,
+      institutionConfigFromEnv((key) => this.config.get<string>(key)),
+    );
     // Yapily caps paymentIdempotencyId at 35 chars for some institutions (e.g. modelo-sandbox).
     const idempotencyKey = randomBytes(16).toString('hex');
     const payerWebUrl = this.config.get<string>('PAYER_WEB_URL') ?? 'http://localhost:3000';
@@ -104,6 +114,7 @@ export class InitiatePayerPaymentUseCase {
 
     const auth = await this.pisGateway.createPaymentAuthRequest({
       applicationUserId: link.payeeUserId,
+      institutionId,
       callbackUrl,
       paymentRequest,
     });
