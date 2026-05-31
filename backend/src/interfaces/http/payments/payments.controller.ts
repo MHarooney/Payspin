@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { CompletePayerPaymentUseCase } from '../../../application/use-cases/payments/complete-payer-payment.use-case';
 import { GetPaymentStatusUseCase } from '../../../application/use-cases/payments/get-payment-status.use-case';
 import { GetPublicPaymentViewUseCase } from '../../../application/use-cases/payments/get-public-payment-view.use-case';
@@ -19,6 +19,7 @@ export class PaymentsController {
   ) {}
 
   @Get()
+  @SkipThrottle()
   view(@Param('code') code: string) {
     return this.getPublicView.execute(code);
   }
@@ -34,6 +35,7 @@ export class PaymentsController {
   }
 
   @Get('status/:paymentId')
+  @SkipThrottle()
   status(@Param('code') code: string, @Param('paymentId') paymentId: string) {
     return this.getStatus.execute(code, paymentId);
   }

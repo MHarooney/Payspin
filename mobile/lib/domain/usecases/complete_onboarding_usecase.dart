@@ -24,7 +24,7 @@ class CompleteOnboardingUseCase {
     required String password,
     bool alreadyRegistered = false,
   }) async {
-    if (!alreadyRegistered) {
+    if (!alreadyRegistered && !(await _auth.hasSession())) {
       await _auth.register(email: email, password: password, displayName: displayName);
     } else {
       final name = fullName.trim().isNotEmpty ? fullName.trim() : displayName;

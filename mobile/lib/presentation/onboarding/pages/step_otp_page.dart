@@ -65,16 +65,41 @@ class _StepOtpPageState extends State<StepOtpPage> {
       onError: (message) {
         if (!mounted) return;
         setState(() {
-          _error = message;
+          _error = _friendlyPhoneError(message);
           _busy = false;
         });
       },
     );
   }
 
-  void _onVerified() {
-    context.read<OnboardingCubit>().markPhoneVerified();
-    context.go('/onboarding/credentials');
+  String _friendlyPhoneError(String message) {
+    final lower = message.toLowerCase();
+    if (lower.contains('blocked') || lower.contains('too many')) {
+      return 'Too many attempts. Wait a few minutes or use a Firebase test number.';
+    }
+    if (lower.contains('recaptcha') || lower.contains('app verification')) {
+      return 'Phone verification could not finish. Rebuild the app after the latest iOS update, or test on a physical device.';
+    }
+    return message;
+  }
+
+  Future<void> _onVerified() async {
+    final cubit = context.read<OnboardingCubit>();
+    cubit.markPhoneVerified();
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final ok = await cubit.ensureAccountFromPhone(_phoneAuth);
+    if (!mounted) return;
+    if (ok) {
+      context.go('/onboarding/connect');
+    } else {
+      setState(() {
+        _error = cubit.lastError ?? 'Could not finish phone sign-in';
+        _busy = false;
+      });
+    }
   }
 
   Future<void> _submit() async {
@@ -87,7 +112,7 @@ class _StepOtpPageState extends State<StepOtpPage> {
       final ok = await _phoneAuth.confirmCode(_code.text);
       if (!mounted) return;
       if (ok) {
-        _onVerified();
+        await _onVerified();
       } else {
         setState(() {
           _error = 'Incorrect code. Please try again.';
@@ -102,7 +127,7 @@ class _StepOtpPageState extends State<StepOtpPage> {
       setState(() => _error = 'Enter a 6-digit code');
       return;
     }
-    context.go('/onboarding/credentials');
+    await _onVerified();
   }
 
   @override
@@ -118,7 +143,8 @@ class _StepOtpPageState extends State<StepOtpPage> {
       title: const Text('Enter the code'),
       subtitle: subtitle,
       onBack: () => context.go('/onboarding/phone'),
-      onNext: (_busy || _code.text.length != 6) ? null : _submit,
+      nextLoading: cubit.isLoading || _busy,
+      onNext: (_busy || _code.text.length != 6 || cubit.isLoading) ? null : _submit,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

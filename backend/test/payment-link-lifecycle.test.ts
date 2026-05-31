@@ -38,7 +38,12 @@ function build(prisma: FakePrisma) {
     pisGateway,
     notifyPaymentReceived,
   );
-  const status = new GetPaymentStatusUseCase(prisma as any, getLink);
+  const status = new GetPaymentStatusUseCase(
+    prisma as any,
+    getLink,
+    pisGateway,
+    notifyPaymentReceived,
+  );
   return { getLink, initiate, complete, status };
 }
 

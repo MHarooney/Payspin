@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/v1';
-const POLL_INTERVAL_MS = 3500;
+const POLL_INTERVAL_MS = 5000;
 const MAX_DURATION_MS = 120_000;
 
 type Phase = 'processing' | 'completed' | 'failed' | 'timeout';
@@ -31,11 +31,17 @@ export default function CallbackStatusPoller({
     let timer: ReturnType<typeof setTimeout>;
 
     async function poll() {
+      let nextDelay = POLL_INTERVAL_MS;
+
       try {
         const res = await fetch(`${API_URL}/pay/${code}/status/${paymentId}`, {
           cache: 'no-store',
         });
-        if (res.ok && active) {
+
+        if (res.status === 429) {
+          const retryAfter = Number(res.headers.get('Retry-After') ?? '0');
+          nextDelay = retryAfter > 0 ? retryAfter * 1000 : POLL_INTERVAL_MS * 3;
+        } else if (res.ok && active) {
           const data = (await res.json()) as { status: string };
           if (data.status === 'COMPLETED') {
             setPhase('completed');
@@ -49,6 +55,7 @@ export default function CallbackStatusPoller({
         }
       } catch {
         /* transient network error — keep polling until the deadline */
+        nextDelay = POLL_INTERVAL_MS * 2;
       }
 
       if (!active) return;
@@ -56,7 +63,7 @@ export default function CallbackStatusPoller({
         setPhase('timeout');
         return;
       }
-      timer = setTimeout(poll, POLL_INTERVAL_MS);
+      timer = setTimeout(poll, nextDelay);
     }
 
     timer = setTimeout(poll, POLL_INTERVAL_MS);

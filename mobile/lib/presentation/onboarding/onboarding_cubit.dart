@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/errors/api_exception.dart';
+import '../../core/firebase/phone_auth_service.dart';
+import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/complete_onboarding_usecase.dart';
 import '../../domain/usecases/validate_iban_usecase.dart';
 import '../../domain/usecases/verify_otp_usecase.dart';
@@ -11,14 +15,17 @@ class OnboardingCubit extends Cubit<OnboardingDraft> {
     required VerifyOtpUseCase verifyOtp,
     required ValidateIbanUseCase validateIban,
     required CompleteOnboardingUseCase completeOnboarding,
+    required AuthRepository authRepository,
   })  : _verifyOtp = verifyOtp,
         _validateIban = validateIban,
         _completeOnboarding = completeOnboarding,
+        _auth = authRepository,
         super(const OnboardingDraft());
 
   final VerifyOtpUseCase _verifyOtp;
   final ValidateIbanUseCase _validateIban;
   final CompleteOnboardingUseCase _completeOnboarding;
+  final AuthRepository _auth;
 
   String? lastError;
   bool isLoading = false;
@@ -39,6 +46,42 @@ class OnboardingCubit extends Cubit<OnboardingDraft> {
 
   /// Marks the phone verified after a successful real (Firebase) SMS check.
   void markPhoneVerified() => emit(state.copyWith(otpVerified: true));
+
+  /// Creates a Payspin session from the verified phone (no email step in UI).
+  Future<bool> ensureAccountFromPhone(PhoneAuthService phoneAuth) async {
+    isLoading = true;
+    lastError = null;
+    try {
+      if (!await _auth.hasSession()) {
+        final digits = state.phone.replaceAll(RegExp(r'\D'), '');
+        if (digits.length < 6) {
+          lastError = 'Enter a valid phone number';
+          return false;
+        }
+        final email = '$digits@phone.payspin.app';
+        final password = _generatePassword();
+        await _auth.register(
+          email: email,
+          password: password,
+          displayName: state.displayName.trim().isEmpty ? null : state.displayName.trim(),
+        );
+        emit(state.copyWith(email: email, password: password));
+      }
+      await phoneAuth.syncVerifiedPhone();
+      return true;
+    } catch (e) {
+      lastError = apiErrorMessage(e);
+      return false;
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  String _generatePassword() {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final rand = Random.secure();
+    return List.generate(32, (_) => chars[rand.nextInt(chars.length)]).join();
+  }
 
   String? validateIbanField() => _validateIban(state.iban);
 

@@ -23,7 +23,7 @@ export class SandboxPisGateway implements PisGateway {
     return { paymentId, status: PaymentStatus.COMPLETED };
   }
 
-  async getPaymentStatus(): Promise<PaymentStatus> {
+  async getPaymentStatus(_paymentId: string, _consentToken?: string): Promise<PaymentStatus> {
     return PaymentStatus.COMPLETED;
   }
 

@@ -1,10 +1,22 @@
 import 'package:flutter/foundation.dart';
 
 abstract final class ApiConfig {
-  static const String baseUrl = String.fromEnvironment(
-    'API_URL',
-    defaultValue: 'http://localhost:3001/v1',
-  );
+  /// Compile-time override via `--dart-define=API_URL=...`.
+  static const String _fromEnv = String.fromEnvironment('API_URL');
+
+  /// Production VM (Hetzner). Used as the debug default so simulator runs work
+  /// without passing dart-define on every launch.
+  static const String productionUrl = 'http://178.105.118.225/v1';
+
+  static const String _localUrl = 'http://localhost:3001/v1';
+
+  /// Resolved API base. Prefer an explicit `API_URL` dart-define; otherwise
+  /// debug builds talk to [productionUrl] and tests can override via dart-define.
+  static String get baseUrl {
+    if (_fromEnv.isNotEmpty) return _fromEnv;
+    if (kDebugMode) return productionUrl;
+    return _localUrl;
+  }
 
   /// True when [baseUrl] points at a developer-only loopback host that can
   /// never be reachable from a shipped app.
@@ -19,7 +31,7 @@ abstract final class ApiConfig {
     if (kReleaseMode && isLocalHost) {
       throw StateError(
         'API_URL is "$baseUrl", which is a local dev host and cannot work in a '
-        'release build. Pass --dart-define=API_URL=https://api.payspin.app/v1.',
+        'release build. Pass --dart-define=API_URL=$productionUrl.',
       );
     }
   }

@@ -64,12 +64,23 @@ export class YapilyPisGateway implements PisGateway {
     };
   }
 
-  async getPaymentStatus(paymentId: string): Promise<PaymentStatus> {
-    const res = await this.http.request<
-      YapilyMetaResponse<{ status?: string }>
-    >('GET', `/payments/${paymentId}/details`);
+  async getPaymentStatus(paymentId: string, consentToken?: string): Promise<PaymentStatus> {
+    const headers: Record<string, string> = {};
+    if (consentToken) {
+      headers.Consent = consentToken;
+    }
 
-    return this.mapStatus(res.data.status);
+    // Yapily's payment details endpoint nests the result under `data.payments[]`
+    // (not a flat `data.status`). Read the first entry, falling back gracefully.
+    const res = await this.http.request<
+      YapilyMetaResponse<{
+        status?: string;
+        payments?: Array<{ status?: string }>;
+      }>
+    >('GET', `/payments/${paymentId}/details`, { headers });
+
+    const status = res.data.payments?.[0]?.status ?? res.data.status;
+    return this.mapStatus(status);
   }
 
   verifyWebhookSignature(rawBody: string, signature: string): boolean {
@@ -87,7 +98,13 @@ export class YapilyPisGateway implements PisGateway {
 
   private mapStatus(status?: string): PaymentStatus {
     const s = (status ?? 'PENDING').toUpperCase();
-    if (s.includes('COMPLETED') || s.includes('ACCEPTED')) return PaymentStatus.COMPLETED;
+    if (
+      s.includes('COMPLETED') ||
+      s.includes('ACCEPTED') ||
+      s.includes('SETTLED')
+    ) {
+      return PaymentStatus.COMPLETED;
+    }
     if (s.includes('FAILED') || s.includes('REJECTED')) return PaymentStatus.FAILED;
     if (s.includes('PROCESSING')) return PaymentStatus.PROCESSING;
     return PaymentStatus.PENDING;

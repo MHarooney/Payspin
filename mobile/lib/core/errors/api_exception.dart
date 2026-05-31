@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../network/api_config.dart';
+
 /// Wraps a non-2xx HTTP response (or a network sentinel).
 ///
 /// The backend's global exception filter returns a JSON body shaped as
@@ -73,7 +75,12 @@ String apiErrorMessage(Object error) {
       return 'Could not reach the server. Check your connection and try again.';
     }
     if (error.body == 'CONNECTION_REFUSED') {
-      return 'Connection refused. Start the backend on port 3001.';
+      if (ApiConfig.isLocalHost) {
+        return 'Cannot reach the API at ${ApiConfig.baseUrl}. '
+            'Start the local backend or run with '
+            '--dart-define=API_URL=${ApiConfig.productionUrl}.';
+      }
+      return 'Cannot reach the server at ${ApiConfig.baseUrl}. Check your connection.';
     }
     return 'Could not reach the server. Check your connection and try again.';
   }

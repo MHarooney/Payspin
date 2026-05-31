@@ -143,7 +143,7 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
                 children: [
                   IconButton(
                     onPressed: () => context.go(
-                        _existing ? '/home' : '/onboarding/credentials'),
+                        _existing ? '/home' : '/onboarding/otp'),
                     icon: const Icon(Icons.arrow_back,
                         color: PayspinTokens.textPrimary),
                     padding: EdgeInsets.zero,

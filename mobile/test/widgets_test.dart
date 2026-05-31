@@ -24,7 +24,6 @@ import 'package:payspin_mobile/presentation/home/home_page.dart';
 import 'package:payspin_mobile/presentation/links/link_detail_page.dart';
 import 'package:payspin_mobile/presentation/onboarding/onboarding_cubit.dart';
 import 'package:payspin_mobile/presentation/onboarding/pages/step_connect_bank_page.dart';
-import 'package:payspin_mobile/presentation/onboarding/pages/step_credentials_page.dart';
 import 'package:payspin_mobile/presentation/notifications/notifications_page.dart';
 import 'package:payspin_mobile/domain/entities/app_notification.dart';
 
@@ -222,39 +221,6 @@ void main() {
       await tester.pumpWidget(wrap(const StepConnectBankPage()));
       await tester.pumpAndSettle();
       expect(find.textContaining('temporarily unavailable'), findsOneWidget);
-    });
-  });
-
-  group('StepCredentialsPage', () {
-    testWidgets('enables Next only after a valid email and 8+ char password', (tester) async {
-      final cubit = OnboardingCubit(
-        verifyOtp: VerifyOtpUseCase(),
-        validateIban: ValidateIbanUseCase(),
-        completeOnboarding: CompleteOnboardingUseCase(
-          authRepository: FakeAuthRepository(),
-          bankAccountRepository: FakeBankAccountRepository(),
-          onboardingRepository: FakeOnboardingRepository(),
-        ),
-      );
-      await tester.pumpWidget(
-        wrap(BlocProvider.value(value: cubit, child: const StepCredentialsPage())),
-      );
-      await tester.pumpAndSettle();
-
-      PayspinGradientCircleButton nextButton() =>
-          tester.widget<PayspinGradientCircleButton>(find.byType(PayspinGradientCircleButton));
-
-      // Disabled initially (onPressed == null).
-      expect(nextButton().onPressed, isNull);
-
-      await tester.enterText(find.byKey(const ValueKey('field-Email')), 'jane@example.com');
-      await tester.enterText(find.byKey(const ValueKey('field-Password (8+ chars)')), 'supersecret');
-      await tester.pumpAndSettle();
-
-      // Enabled after valid input, and the cubit captured the values.
-      expect(nextButton().onPressed, isNotNull);
-      expect(cubit.state.email, 'jane@example.com');
-      expect(cubit.state.password, 'supersecret');
     });
   });
 

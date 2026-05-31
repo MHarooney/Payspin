@@ -63,7 +63,7 @@ export interface YapilyAccount {
 export interface PisGateway {
   createPaymentAuthRequest(params: PaymentAuthRequestParams): Promise<PaymentAuthRequestResult>;
   createPayment(params: CreatePaymentParams): Promise<CreatePaymentResult>;
-  getPaymentStatus(paymentId: string): Promise<PaymentStatus>;
+  getPaymentStatus(paymentId: string, consentToken?: string): Promise<PaymentStatus>;
   verifyWebhookSignature(rawBody: string, signature: string): boolean;
 }
 
@@ -94,7 +94,7 @@ export interface InitiatePaymentResult {
 /** @deprecated Use PisGateway */
 export interface PisProvider {
   initiatePayment(params: InitiatePaymentParams): Promise<InitiatePaymentResult>;
-  getPaymentStatus(paymentId: string): Promise<PaymentStatus>;
+  getPaymentStatus(paymentId: string, consentToken?: string): Promise<PaymentStatus>;
   verifyWebhookSignature(rawBody: string, signature: string): boolean;
 }
 

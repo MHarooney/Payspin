@@ -43,7 +43,19 @@ class _SendNamePageState extends State<SendNamePage> {
         description: _label.text,
         payUrl: link.payUrl,
       );
-      await share.shareWhatsApp(msg);
+      try {
+        await share.shareWhatsApp(msg);
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Link created. WhatsApp is not on this device — open Home to copy or share the link.',
+              ),
+            ),
+          );
+        }
+      }
       HapticFeedback.mediumImpact();
       if (mounted) {
         context.pop();

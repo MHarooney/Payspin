@@ -72,7 +72,12 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 32),
             PayspinUnderlineField(controller: _email, hintText: 'Email', keyboardType: TextInputType.emailAddress),
             const SizedBox(height: 24),
-            PayspinUnderlineField(controller: _password, hintText: 'Password', obscureText: true),
+            PayspinUnderlineField(
+              controller: _password,
+              hintText: 'Password',
+              obscureText: true,
+              showVisibilityToggle: true,
+            ),
             if (_error != null) ...[
               const SizedBox(height: 12),
               Text(_error!, style: const TextStyle(color: PayspinTokens.error, fontSize: 13)),

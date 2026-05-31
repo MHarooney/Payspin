@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/phone_country_codes.dart';
-import '../../../core/design_system/tokens/payspin_tokens.dart';
 import '../../../core/design_system/widgets/payspin_onboarding_shell.dart';
 import '../../../core/design_system/widgets/payspin_underline_field.dart';
+import '../../../core/design_system/widgets/phone_country_picker.dart';
 import '../onboarding_cubit.dart';
 
 class StepPhonePage extends StatefulWidget {
@@ -52,36 +51,24 @@ class _StepPhonePageState extends State<StepPhonePage> {
               cubit.updateCountry(_country);
               context.go('/onboarding/otp');
             },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              DropdownButton<String>(
-                value: _country,
-                dropdownColor: PayspinTokens.bgElevated,
-                style: GoogleFonts.inter(color: PayspinTokens.mint, fontWeight: FontWeight.w700, fontSize: 18),
-                items: kPhoneCountryCodes
-                    .map((c) => DropdownMenuItem(value: c.$1, child: Text('${c.$2} ${c.$1}')))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) setState(() => _country = v);
-                },
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: PayspinUnderlineField(
-                  controller: _phone,
-                  hintText: '612345678',
-                  keyboardType: TextInputType.phone,
-                  onChanged: (v) {
-                    cubit.updatePhone(v);
-                    setState(() {});
-                  },
-                ),
-              ),
-            ],
+          PhoneCountrySelector(
+            selectedDialCode: _country,
+            onChanged: (dialCode) => setState(() => _country = dialCode),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: PayspinUnderlineField(
+              controller: _phone,
+              hintText: '612345678',
+              keyboardType: TextInputType.phone,
+              onChanged: (v) {
+                cubit.updatePhone(v);
+                setState(() {});
+              },
+            ),
           ),
         ],
       ),

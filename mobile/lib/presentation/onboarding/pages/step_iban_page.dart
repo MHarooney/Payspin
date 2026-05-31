@@ -41,7 +41,7 @@ class _StepIbanPageState extends State<StepIbanPage> {
       subtitle: 'Your IBAN is only shared with people that have to pay you back.',
       onBack: () {
         final existing = GoRouterState.of(context).uri.queryParameters['existing'] == '1';
-        context.go(existing ? '/home' : '/onboarding/credentials');
+        context.go(existing ? '/home' : '/onboarding/connect');
       },
       onNext: () {
         cubit.updateIban(_iban.text);

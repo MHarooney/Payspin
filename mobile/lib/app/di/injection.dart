@@ -60,6 +60,7 @@ Future<void> configureDependencies() async {
       verifyOtp: sl(),
       validateIban: sl(),
       completeOnboarding: sl(),
+      authRepository: sl(),
     ),
   );
 }

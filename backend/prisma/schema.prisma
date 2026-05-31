@@ -120,6 +120,7 @@ model Payment {
   paymentLinkId          String        @map("payment_link_id")
   yapilyPaymentId        String?       @unique @map("yapily_payment_id")
   yapilyAuthRequestId    String?       @map("yapily_auth_request_id")
+  yapilyConsentToken     String?       @map("yapily_consent_token")
   paymentRequestSnapshot Json?         @map("payment_request_snapshot")
   amountCents            Int           @map("amount_cents")
   currency               String        @default("EUR")

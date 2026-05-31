@@ -135,7 +135,7 @@ void main() {
       '/onboarding/name': 'What should we call you?',
       '/onboarding/phone': 'Enter your phone number',
       '/onboarding/otp': 'Enter the code',
-      '/onboarding/credentials': 'Create your account',
+      '/onboarding/connect': 'Connect your bank',
       '/onboarding/iban': 'Which IBAN do you want',
       '/onboarding/full-name': 'first and',
       '/onboarding/success': 'Nice!',
