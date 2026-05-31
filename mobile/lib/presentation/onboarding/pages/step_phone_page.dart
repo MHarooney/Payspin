@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/constants/phone_country_codes.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
 import '../../../core/design_system/widgets/payspin_onboarding_shell.dart';
 import '../../../core/design_system/widgets/payspin_underline_field.dart';
@@ -17,21 +18,15 @@ class StepPhonePage extends StatefulWidget {
 
 class _StepPhonePageState extends State<StepPhonePage> {
   late final TextEditingController _phone;
-  String _country = '+31';
-
-  static const _countries = [
-    ('+31', 'NL'),
-    ('+49', 'DE'),
-    ('+33', 'FR'),
-    ('+44', 'GB'),
-    ('+1', 'US'),
-  ];
+  String _country = kDefaultPhoneCountryCode;
 
   @override
   void initState() {
     super.initState();
     final draft = context.read<OnboardingCubit>().state;
-    _country = draft.countryCode;
+    _country = isSupportedPhoneCountryCode(draft.countryCode)
+        ? draft.countryCode
+        : kDefaultPhoneCountryCode;
     _phone = TextEditingController(text: draft.phone);
   }
 
@@ -67,7 +62,9 @@ class _StepPhonePageState extends State<StepPhonePage> {
                 value: _country,
                 dropdownColor: PayspinTokens.bgElevated,
                 style: GoogleFonts.inter(color: PayspinTokens.mint, fontWeight: FontWeight.w700, fontSize: 18),
-                items: _countries.map((c) => DropdownMenuItem(value: c.$1, child: Text('${c.$2} ${c.$1}'))).toList(),
+                items: kPhoneCountryCodes
+                    .map((c) => DropdownMenuItem(value: c.$1, child: Text('${c.$2} ${c.$1}')))
+                    .toList(),
                 onChanged: (v) {
                   if (v != null) setState(() => _country = v);
                 },
