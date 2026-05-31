@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploy Payspin stack to Hetzner VPS.
-# Builds locally, streams image to server (no Docker Hub push required).
+# Builds locally (Mac), pushes to Docker Hub, server pulls and runs compose.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -10,6 +10,8 @@ HCLOUD_TOKEN="${HCLOUD_TOKEN:-}"
 IMAGE="${DOCKER_IMAGE:-payspin/api:latest}"
 WEB_IMAGE="${DOCKER_WEB_IMAGE:-payspin/web:latest}"
 REMOTE_DIR="/opt/payspin"
+# Hetzner CX servers are amd64; Mac dev machines often build arm64 by default.
+DOCKER_PLATFORM="${DOCKER_PLATFORM:-linux/amd64}"
 # Domain for HTTPS (optional). Leave empty for an IP-only / no-TLS deploy.
 SITE_ADDRESS="${SITE_ADDRESS:-}"
 
@@ -40,11 +42,11 @@ else
   PUBLIC_WEB_URL="http://${SERVER_IP}"
 fi
 
-echo "==> Building ${IMAGE}"
-docker build -f "$ROOT/backend/Dockerfile" -t "$IMAGE" "$ROOT"
+echo "==> Building ${IMAGE} (${DOCKER_PLATFORM})"
+docker build --platform "$DOCKER_PLATFORM" -f "$ROOT/backend/Dockerfile" -t "$IMAGE" "$ROOT"
 
-echo "==> Building ${WEB_IMAGE} (NEXT_PUBLIC_API_URL=${PUBLIC_API_URL})"
-docker build -f "$ROOT/frontend/Dockerfile" \
+echo "==> Building ${WEB_IMAGE} (NEXT_PUBLIC_API_URL=${PUBLIC_API_URL}, ${DOCKER_PLATFORM})"
+docker build --platform "$DOCKER_PLATFORM" -f "$ROOT/frontend/Dockerfile" \
   --build-arg "NEXT_PUBLIC_API_URL=${PUBLIC_API_URL}" \
   -t "$WEB_IMAGE" "$ROOT"
 
@@ -55,8 +57,12 @@ echo "==> Preparing server ${SERVER_IP}"
   systemctl enable --now docker
 )'
 
-echo "==> Loading images on server"
-docker save "$IMAGE" "$WEB_IMAGE" | gzip | "${SSH[@]}" 'gunzip | docker load'
+echo "==> Pushing images to Docker Hub"
+docker push "$IMAGE"
+docker push "$WEB_IMAGE"
+
+echo "==> Pulling images on server (no build on server)"
+"${SSH[@]}" "docker pull ${IMAGE} && docker pull ${WEB_IMAGE}"
 
 echo "==> Uploading compose + Caddyfile"
 "${SSH[@]}" "mkdir -p ${REMOTE_DIR}"
@@ -106,6 +112,9 @@ YAPILY_BASE_URL=https://api.yapily.com
 YAPILY_DEFAULT_INSTITUTION=modelo-sandbox
 YAPILY_DEFAULT_COUNTRY=NL
 DOCKER_IMAGE=${IMAGE}
+DOCKER_WEB_IMAGE=${WEB_IMAGE}
+# IP-only staging deploy: allow internal sandbox gateway until Yapily keys are set.
+PAYSPIN_ALLOW_SANDBOX_GATEWAY=$([[ -z "$SITE_ADDRESS" ]] && echo true || echo false)
 EOF
   "${SCP[@]}" "$ENV_FILE" "root@${SERVER_IP}:${REMOTE_DIR}/.env.production"
 fi

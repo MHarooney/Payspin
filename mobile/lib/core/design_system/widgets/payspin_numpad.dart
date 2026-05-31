@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../tokens/payspin_tokens.dart';
@@ -34,7 +35,10 @@ class PayspinNumpad extends StatelessWidget {
                         side: const BorderSide(color: PayspinTokens.border),
                       ),
                       child: InkWell(
-                        onTap: () => onKey(k),
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          onKey(k);
+                        },
                         borderRadius: BorderRadius.circular(14),
                         child: SizedBox(
                           height: 56,

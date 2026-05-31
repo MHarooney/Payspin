@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:payspin_mobile/core/design_system/widgets/payspin_gradient_circle_button.dart';
+import 'package:payspin_mobile/core/design_system/widgets/payspin_skeleton.dart';
 import 'package:payspin_mobile/core/errors/api_exception.dart';
 import 'package:payspin_mobile/core/state/links_refresh_notifier.dart';
 import 'package:payspin_mobile/domain/entities/institution.dart';
@@ -77,16 +78,21 @@ void main() {
   Widget wrap(Widget child) => MaterialApp(home: child);
 
   group('HomePage', () {
+    // NOTE: empty/error states render continuous "breathing" animations
+    // (PayspinRadialGlow / PayspinSkeleton), so pumpAndSettle would never
+    // settle. Use bounded pumps to let the load future resolve and the first
+    // frame build instead.
     Future<void> pumpHome(WidgetTester tester, FakePaymentLinkRepository repo, LinksRefreshNotifier notifier) async {
       _sl.registerSingleton<PaymentLinkRepository>(repo);
       _sl.registerSingleton<LinksRefreshNotifier>(notifier);
       await tester.pumpWidget(wrap(const Scaffold(body: HomePage())));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
     }
 
     testWidgets('shows empty state when there are no links', (tester) async {
       await pumpHome(tester, FakePaymentLinkRepository(links: const []), LinksRefreshNotifier());
-      expect(find.text('Time for Your First Tikkie!'), findsOneWidget);
+      expect(find.text('Time for your first Tikkie'), findsOneWidget);
     });
 
     testWidgets('renders a link row', (tester) async {
@@ -107,11 +113,12 @@ void main() {
       final repo = FakePaymentLinkRepository(links: const []);
       final notifier = LinksRefreshNotifier();
       await pumpHome(tester, repo, notifier);
-      expect(find.text('Time for Your First Tikkie!'), findsOneWidget);
+      expect(find.text('Time for your first Tikkie'), findsOneWidget);
 
       repo.links = [_link(description: 'Coffee')];
       notifier.bump();
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
 
       expect(find.text('Coffee'), findsOneWidget);
       expect(repo.listCount, greaterThanOrEqualTo(2));
@@ -178,12 +185,12 @@ void main() {
       _sl.registerSingleton<OnboardingRepository>(FakeOnboardingRepository());
     }
 
-    testWidgets('shows a spinner while institutions load', (tester) async {
+    testWidgets('shows a loading skeleton while institutions load', (tester) async {
       final completer = Completer<List<Institution>>();
       registerConnectDeps(FakeBankAccountRepository(institutionsCompleter: completer));
       await tester.pumpWidget(wrap(const StepConnectBankPage()));
       await tester.pump();
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(PayspinSkeleton), findsWidgets);
       completer.complete(const []);
       await tester.pumpAndSettle();
     });

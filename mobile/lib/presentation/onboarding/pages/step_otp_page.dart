@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/design_system/tokens/payspin_tokens.dart';
 import '../../../core/design_system/widgets/payspin_onboarding_shell.dart';
+import '../../../core/design_system/widgets/payspin_otp_boxes.dart';
 import '../onboarding_cubit.dart';
 
 class StepOtpPage extends StatefulWidget {
@@ -47,21 +47,15 @@ class _StepOtpPageState extends State<StepOtpPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextField(
+          PayspinOtpBoxes(
             controller: _code,
-            maxLength: 6,
-            keyboardType: TextInputType.number,
-            style: GoogleFonts.raleway(fontSize: 32, fontWeight: FontWeight.w800, color: PayspinTokens.mint, letterSpacing: 12),
-            textAlign: TextAlign.center,
-            decoration: const InputDecoration(
-              counterText: '',
-              border: InputBorder.none,
-              hintText: '······',
-            ),
+            hasError: _error != null,
             onChanged: (_) => setState(() => _error = null),
           ),
-          if (_error != null)
+          if (_error != null) ...[
+            const SizedBox(height: 14),
             Text(_error!, style: const TextStyle(color: PayspinTokens.error, fontSize: 13)),
+          ],
         ],
       ),
     );

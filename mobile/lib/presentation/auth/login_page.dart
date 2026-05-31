@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app/di/injection.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
+import '../../core/design_system/widgets/payspin_radial_glow.dart';
 import '../../core/design_system/widgets/payspin_underline_field.dart';
 import '../../core/errors/api_exception.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -51,9 +52,17 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: PayspinTokens.bg,
-      appBar: AppBar(leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/welcome'))),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/welcome')),
+      ),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          const Positioned(top: -40, left: 0, right: 0, child: PayspinRadialGlow(size: 360, animate: false)),
+          SafeArea(
+            child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 56, 24, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -72,6 +81,9 @@ class _LoginPageState extends State<LoginPage> {
             PayspinGradientPillButton(label: _loading ? 'Signing in…' : 'Log in', loading: _loading, onPressed: _loading ? null : _submit),
           ],
         ),
+            ),
+          ),
+        ],
       ),
     );
   }

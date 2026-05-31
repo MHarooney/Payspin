@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
+import '../../core/design_system/widgets/payspin_status_chip.dart';
 import '../../core/errors/api_exception.dart';
 import '../../data/services/share_service.dart';
 import '../../domain/entities/payment_link.dart';
@@ -100,6 +102,144 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
     }
   }
 
+  Widget _heroCard(PaymentLinkDetail link) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [PayspinTokens.pink.withValues(alpha: 0.14), PayspinTokens.mint.withValues(alpha: 0.08)],
+        ),
+        borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+        border: Border.all(color: PayspinTokens.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if ((link.description ?? '').isNotEmpty) ...[
+            Text(link.description!, style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted)),
+            const SizedBox(height: 8),
+          ],
+          Text(link.amountLabel, style: GoogleFonts.raleway(fontSize: 40, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              PayspinStatusChip(label: link.statusLabel),
+              if (link.usageLabel != null) ...[
+                const SizedBox(width: 8),
+                Text(link.usageLabel!, style: GoogleFonts.inter(color: PayspinTokens.textMuted, fontWeight: FontWeight.w500, fontSize: 12)),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _copyLinkButton(String url) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
+        side: const BorderSide(color: PayspinTokens.border),
+      ),
+      child: InkWell(
+        onTap: () async {
+          await Clipboard.setData(ClipboardData(text: url));
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: PayspinTokens.bgElevated,
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: PayspinTokens.mint, size: 18),
+                  const SizedBox(width: 10),
+                  Text('Link copied', style: GoogleFonts.inter(color: Colors.white)),
+                ],
+              ),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
+        child: SizedBox(
+          height: 48,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.link, color: PayspinTokens.textBody, size: 18),
+              const SizedBox(width: 10),
+              Text('Copy link', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: PayspinTokens.textBody)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _noPaymentsYet() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: PayspinTokens.bgElevated,
+        borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+        border: Border.all(color: PayspinTokens.border),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.schedule, color: PayspinTokens.textMuted, size: 18),
+          const SizedBox(width: 12),
+          Text('No payments yet — waiting for the first.', style: GoogleFonts.inter(color: PayspinTokens.textMuted)),
+        ],
+      ),
+    );
+  }
+
+  Widget _timelineTile(PaymentRecord p, bool isLast) {
+    final done = p.statusLabel.toLowerCase().contains('paid') || p.statusLabel.toLowerCase().contains('complete');
+    final color = done ? PayspinTokens.mint : PayspinTokens.mustard;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
+                  boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8)],
+                ),
+              ),
+              if (!isLast)
+                Expanded(child: Container(width: 2, color: PayspinTokens.border)),
+            ],
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: PayspinTokens.bgElevated,
+                borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+                border: Border.all(color: PayspinTokens.border),
+              ),
+              child: Row(
+                children: [
+                  Expanded(child: Text(p.amountLabel, style: const TextStyle(fontWeight: FontWeight.w700))),
+                  PayspinStatusChip(label: p.statusLabel, color: color),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final link = _link;
@@ -120,21 +260,12 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(24),
                     children: [
-                      Text(link.amountLabel, style: GoogleFonts.raleway(fontSize: 32, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text(link.statusLabel, style: GoogleFonts.inter(color: PayspinTokens.mint, fontWeight: FontWeight.w600)),
-                          if (link.usageLabel != null) ...[
-                            const SizedBox(width: 8),
-                            Text('· ${link.usageLabel}', style: GoogleFonts.inter(color: PayspinTokens.textMuted, fontWeight: FontWeight.w500)),
-                          ],
-                        ],
-                      ),
+                      _heroCard(link),
                       const SizedBox(height: 24),
-                      if (link.isPayable)
+                      if (link.isPayable) ...[
                         PayspinGradientPillButton(
                           label: 'Share via WhatsApp',
+                          icon: const Icon(Icons.send, color: Colors.white, size: 18),
                           onPressed: () {
                             final share = ShareService();
                             share.shareWhatsApp(share.buildMessage(
@@ -144,8 +275,11 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
                             ));
                           },
                         ),
-                      if (link.canCancel) ...[
                         const SizedBox(height: 12),
+                        _copyLinkButton(link.payUrl),
+                      ],
+                      if (link.canCancel) ...[
+                        const SizedBox(height: 4),
                         TextButton(
                           onPressed: _cancelling ? null : _cancelLink,
                           child: _cancelling
@@ -162,27 +296,11 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
                       ],
                       const SizedBox(height: 24),
                       Text('Payments', style: GoogleFonts.raleway(fontSize: 18, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       if (link.payments.isEmpty)
-                        Text('No payments yet.', style: GoogleFonts.inter(color: PayspinTokens.textMuted))
+                        _noPaymentsYet()
                       else
-                        ...link.payments.map(
-                          (p) => Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: PayspinTokens.bgElevated,
-                              borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-                              border: Border.all(color: PayspinTokens.border),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(child: Text(p.amountLabel, style: const TextStyle(fontWeight: FontWeight.w700))),
-                                Text(p.statusLabel, style: GoogleFonts.inter(fontSize: 11, color: PayspinTokens.mint)),
-                              ],
-                            ),
-                          ),
-                        ),
+                        ...List.generate(link.payments.length, (i) => _timelineTile(link.payments[i], i == link.payments.length - 1)),
                     ],
                   ),
                 ),

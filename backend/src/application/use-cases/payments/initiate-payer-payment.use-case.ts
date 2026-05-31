@@ -9,7 +9,7 @@ import { PaymentLinkType, PaymentStatus as PrismaPaymentStatus } from '@prisma/c
 import { InitiatePaymentResponse } from '@payspin/shared-types';
 import { initiatePaymentSchema } from '@payspin/validators';
 import { PIS_GATEWAY, PisGateway } from '@payspin/pisp-provider';
-import { randomUUID } from 'crypto';
+import { randomBytes } from 'crypto';
 import {
   buildPaymentRequest,
   redactPaymentRequest,
@@ -39,7 +39,8 @@ export class InitiatePayerPaymentUseCase {
     }
 
     const iban = await this.getDecryptedIban.execute(link.bankAccountId, link.payeeUserId);
-    const idempotencyKey = randomUUID();
+    // Yapily caps paymentIdempotencyId at 35 chars for some institutions (e.g. modelo-sandbox).
+    const idempotencyKey = randomBytes(16).toString('hex');
     const payerWebUrl = this.config.get<string>('PAYER_WEB_URL') ?? 'http://localhost:3000';
 
     const paymentRequest = buildPaymentRequest({

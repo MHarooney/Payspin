@@ -9,6 +9,7 @@ Quick index for AI agents working on Payspin.
 3. [conventions.md](conventions.md) — naming, anti-patterns
 4. [workflows.md](workflows.md) — step-by-step task checklists
 5. [mobile-implementation-prompt.md](mobile-implementation-prompt.md) — full agent prompt for **Payspin-mobile** repo (payment links + Circles/Groepies)
+5b. [mobile-ui-ux-enhancement-prompt.md](mobile-ui-ux-enhancement-prompt.md) — **UI/UX polish** to match dark prototype (all screens)
 6. [circles-implementation-prompt.md](circles-implementation-prompt.md) — Circles/Groepies backend + mobile (Phase 2–3)
 7. [circles-contribution-mvp.md](circles-contribution-mvp.md) — round contribution via MULTI payment links
 8. [circles-phase3-blockchain-prompt.md](circles-phase3-blockchain-prompt.md) — **Monerium + blockchain + all missing Circles features**

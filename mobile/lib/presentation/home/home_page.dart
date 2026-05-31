@@ -4,8 +4,14 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
+import '../../core/design_system/widgets/payspin_deals_placeholder.dart';
+import '../../core/design_system/widgets/payspin_empty_state.dart';
+import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_gradient_text.dart';
+import '../../core/design_system/widgets/payspin_groepies_promo_card.dart';
 import '../../core/design_system/widgets/payspin_logo.dart';
+import '../../core/design_system/widgets/payspin_skeleton.dart';
+import '../../core/design_system/widgets/payspin_tab_strip.dart';
 import '../../core/design_system/widgets/payspin_tikkie_row.dart';
 import '../../core/errors/api_exception.dart';
 import '../../core/state/links_refresh_notifier.dart';
@@ -71,10 +77,11 @@ class _HomePageState extends State<HomePage> {
         slivers: [
           SliverToBoxAdapter(child: _header(context)),
           SliverToBoxAdapter(child: _tabs()),
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
           if (_tab == HomeTab.deals)
             const SliverFillRemaining(
               hasScrollBody: false,
-              child: Center(child: Text('Deals — coming soon', style: TextStyle(color: PayspinTokens.textMuted))),
+              child: PayspinDealsPlaceholder(),
             )
           else if (_tab == HomeTab.groepies)
             const SliverFillRemaining(
@@ -134,15 +141,22 @@ class _HomePageState extends State<HomePage> {
                 _glassIcon(Icons.search, () => setState(() => _searchOpen = !_searchOpen)),
               ],
             ),
-            if (_searchOpen)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: TextField(
-                  onChanged: (v) => setState(() => _query = v),
-                  style: GoogleFonts.inter(color: Colors.white),
-                  decoration: const InputDecoration(hintText: 'Search Tikkies…'),
-                ),
-              ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: _searchOpen
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: TextField(
+                        autofocus: true,
+                        onChanged: (v) => setState(() => _query = v),
+                        style: GoogleFonts.inter(color: Colors.white),
+                        decoration: const InputDecoration(hintText: 'Search Tikkies…'),
+                      ),
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
           ],
         ),
       ),
@@ -162,63 +176,89 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _tabs() {
-    Widget tab(String label, HomeTab id) {
-      final active = _tab == id;
-      return GestureDetector(
-        onTap: () => _selectTab(id),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            children: [
-              Text(label, style: GoogleFonts.inter(fontWeight: active ? FontWeight.w700 : FontWeight.w500, fontSize: 14, color: active ? PayspinTokens.textPrimary : PayspinTokens.textMuted)),
-              const SizedBox(height: 6),
-              Container(height: 2, width: 48, color: active ? PayspinTokens.mint : Colors.transparent),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(children: [tab('Tikkies', HomeTab.tikkies), const SizedBox(width: 24), tab('Deals', HomeTab.deals), const SizedBox(width: 24), tab('Groepies', HomeTab.groepies)]),
+    const tabs = [HomeTab.tikkies, HomeTab.deals, HomeTab.groepies];
+    return PayspinTabStrip(
+      labels: const ['Tikkies', 'Deals', 'Groepies'],
+      selectedIndex: tabs.indexOf(_tab),
+      onSelected: (i) => _selectTab(tabs[i]),
     );
   }
 
   Widget _tikkiesContent() {
     final filtered = _filtered;
     if (_loading) {
-      return const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: PayspinTokens.pink)));
+      return const SliverPadding(
+        padding: EdgeInsets.fromLTRB(20, 0, 20, 120),
+        sliver: SliverToBoxAdapter(
+          child: Column(
+            children: [
+              PayspinSkeletonRow(),
+              PayspinSkeletonRow(),
+              PayspinSkeletonRow(),
+              PayspinSkeletonRow(),
+            ],
+          ),
+        ),
+      );
     }
     if (_error != null) {
-      return SliverFillRemaining(child: Center(child: Text(_error!)));
+      return SliverFillRemaining(
+        hasScrollBody: false,
+        child: PayspinEmptyState(
+          emoji: '😕',
+          title: 'Something went wrong',
+          subtitle: _error!,
+          primary: PayspinGradientPillButton(label: 'Try again', onPressed: _load),
+        ),
+      );
     }
     if (filtered.isEmpty && _query.isEmpty) {
-      return SliverFillRemaining(child: _emptyState());
+      return SliverFillRemaining(hasScrollBody: false, child: _emptyState());
+    }
+    if (filtered.isEmpty) {
+      return const SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(32),
+            child: Text('No Tikkies match your search.', style: TextStyle(color: PayspinTokens.textMuted)),
+          ),
+        ),
+      );
     }
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
-          (context, i) => PayspinTikkieRow(
-            link: filtered[i],
-            tintIndex: i,
-            onTap: () => context.push('/links/${filtered[i].id}'),
-          ),
-          childCount: filtered.length,
+          (context, i) {
+            if (i == filtered.length) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: PayspinGroepiesPromoCard(onTap: () => _selectTab(HomeTab.groepies)),
+              );
+            }
+            return PayspinTikkieRow(
+              link: filtered[i],
+              tintIndex: i,
+              onTap: () => context.push('/links/${filtered[i].id}'),
+            );
+          },
+          childCount: filtered.length + 1,
         ),
       ),
     );
   }
 
   Widget _emptyState() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('Time for Your First Tikkie!', style: GoogleFonts.raleway(fontSize: 24, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
-        const SizedBox(height: 8),
-        Text('Cash your money quickly.', style: GoogleFonts.inter(color: PayspinTokens.textMuted)),
-      ],
+    return PayspinEmptyState(
+      emoji: '💸',
+      title: 'Time for your first Tikkie',
+      subtitle: 'Request money from friends in seconds — they pay straight from their bank.',
+      primary: PayspinGradientPillButton(
+        label: 'Create a Tikkie',
+        icon: const Icon(Icons.add, color: Colors.white, size: 20),
+        onPressed: () => context.push('/send/amount'),
+      ),
     );
   }
 }

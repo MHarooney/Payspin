@@ -3,8 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../domain/entities/payment_link.dart';
 import '../tokens/payspin_tokens.dart';
+import 'payspin_status_chip.dart';
 
-class PayspinTikkieRow extends StatelessWidget {
+class PayspinTikkieRow extends StatefulWidget {
   const PayspinTikkieRow({super.key, required this.link, required this.onTap, this.tintIndex = 0});
 
   final PaymentLink link;
@@ -20,14 +21,25 @@ class PayspinTikkieRow extends StatelessWidget {
   }
 
   @override
+  State<PayspinTikkieRow> createState() => _PayspinTikkieRowState();
+}
+
+class _PayspinTikkieRowState extends State<PayspinTikkieRow> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    final tint = _tints[tintIndex % _tints.length];
+    final link = widget.link;
+    final tint = PayspinTikkieRow._tints[widget.tintIndex % PayspinTikkieRow._tints.length];
     final title = link.description?.trim().isNotEmpty == true ? link.description! : link.amountLabel;
     final status = link.completedPaymentCount > 0 ? 'Paid ${link.completedPaymentCount}x' : link.statusLabel;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
+      child: AnimatedScale(
+        scale: _pressed ? 0.98 : 1,
+        duration: const Duration(milliseconds: 110),
+        child: Material(
         color: Colors.white.withValues(alpha: 0.04),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
@@ -35,7 +47,10 @@ class PayspinTikkieRow extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: onTap,
+          onTap: widget.onTap,
+          onTapDown: (_) => setState(() => _pressed = true),
+          onTapUp: (_) => setState(() => _pressed = false),
+          onTapCancel: () => setState(() => _pressed = false),
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
@@ -45,7 +60,7 @@ class PayspinTikkieRow extends StatelessWidget {
                   height: 44,
                   decoration: BoxDecoration(color: tint, borderRadius: BorderRadius.circular(14)),
                   alignment: Alignment.center,
-                  child: Text(emojiFor(link), style: const TextStyle(fontSize: 22)),
+                  child: Text(PayspinTikkieRow.emojiFor(link), style: const TextStyle(fontSize: 22)),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -59,21 +74,7 @@ class PayspinTikkieRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: PayspinTokens.mint.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(width: 6, height: 6, decoration: const BoxDecoration(color: PayspinTokens.mint, shape: BoxShape.circle)),
-                            const SizedBox(width: 6),
-                            Text(status, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: PayspinTokens.mint)),
-                          ],
-                        ),
-                      ),
+                      Align(alignment: Alignment.centerLeft, child: PayspinStatusChip(label: status)),
                     ],
                   ),
                 ),
@@ -92,6 +93,7 @@ class PayspinTikkieRow extends StatelessWidget {
               ],
             ),
           ),
+        ),
         ),
       ),
     );

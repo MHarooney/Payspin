@@ -19,15 +19,26 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
   User? _user;
   BankAccount? _account;
   bool _loading = true;
+
+  late final AnimationController _shine = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  );
 
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _shine.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -39,6 +50,7 @@ class _ProfilePageState extends State<ProfilePage> {
         _account = accounts.isNotEmpty ? accounts.first : null;
         _loading = false;
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) => _shine.forward(from: 0));
     }
   }
 
@@ -73,11 +85,19 @@ class _ProfilePageState extends State<ProfilePage> {
               Column(
                 children: [
                   Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(shape: BoxShape.circle, gradient: PayspinTokens.gradientPink, boxShadow: PayspinTokens.fabShadow),
-                    alignment: Alignment.center,
-                    child: Text(initial, style: GoogleFonts.raleway(fontSize: 36, fontWeight: FontWeight.w800, color: Colors.white)),
+                    width: 104,
+                    height: 104,
+                    decoration: BoxDecoration(shape: BoxShape.circle, gradient: PayspinTokens.gradientTri, boxShadow: PayspinTokens.fabShadow),
+                    padding: const EdgeInsets.all(4),
+                    child: Container(
+                      decoration: const BoxDecoration(shape: BoxShape.circle, color: PayspinTokens.bg),
+                      padding: const EdgeInsets.all(3),
+                      child: Container(
+                        decoration: const BoxDecoration(shape: BoxShape.circle, gradient: PayspinTokens.gradientPink),
+                        alignment: Alignment.center,
+                        child: Text(initial, style: GoogleFonts.raleway(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white)),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 14),
                   Text(name, style: GoogleFonts.raleway(fontSize: 22, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
@@ -85,19 +105,52 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
               const SizedBox(height: 28),
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [PayspinTokens.pink.withValues(alpha: 0.12), PayspinTokens.mint.withValues(alpha: 0.08)]),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: PayspinTokens.border),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Stack(
                   children: [
-                    Text('LINKED IBAN', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: PayspinTokens.textMuted, letterSpacing: 1)),
-                    const SizedBox(height: 8),
-                    Text(_account != null ? '•••• ${_account!.ibanLast4}' : 'Not linked', style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 18)),
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(colors: [PayspinTokens.pink.withValues(alpha: 0.12), PayspinTokens.mint.withValues(alpha: 0.08)]),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: PayspinTokens.border),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('LINKED IBAN', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: PayspinTokens.textMuted, letterSpacing: 1)),
+                          const SizedBox(height: 8),
+                          Text(_account != null ? '•••• ${_account!.ibanLast4}' : 'Not linked', style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 18)),
+                        ],
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: AnimatedBuilder(
+                        animation: _shine,
+                        builder: (context, _) {
+                          if (_shine.isDismissed || _shine.isCompleted) return const SizedBox.shrink();
+                          final t = Curves.easeInOut.transform(_shine.value);
+                          return IgnorePointer(
+                            child: FractionallySizedBox(
+                              widthFactor: 0.4,
+                              alignment: Alignment(-1.4 + 2.8 * t, 0),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.white.withValues(alpha: 0.14),
+                                      Colors.transparent,
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),

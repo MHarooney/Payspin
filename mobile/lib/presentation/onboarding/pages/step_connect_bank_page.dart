@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/di/injection.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
 import '../../../core/design_system/widgets/payspin_gradient_pill_button.dart';
+import '../../../core/design_system/widgets/payspin_skeleton.dart';
 import '../../../core/errors/api_exception.dart';
 import '../../../domain/entities/institution.dart';
 import '../../../domain/repositories/auth_repository.dart';
@@ -217,8 +218,25 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: PayspinTokens.pink),
+      return ListView.separated(
+        itemCount: 5,
+        physics: const NeverScrollableScrollPhysics(),
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        itemBuilder: (_, __) => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          decoration: BoxDecoration(
+            color: PayspinTokens.glass,
+            borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+            border: Border.all(color: PayspinTokens.border),
+          ),
+          child: const Row(
+            children: [
+              PayspinSkeleton(width: 28, height: 28, radius: 8),
+              SizedBox(width: 14),
+              PayspinSkeleton(width: 140, height: 14),
+            ],
+          ),
+        ),
       );
     }
     if (_institutions.isEmpty) {

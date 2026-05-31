@@ -5,6 +5,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
+import '../../core/design_system/widgets/payspin_scan_frame.dart';
 
 class ScanQrPage extends StatefulWidget {
   const ScanQrPage({super.key});
@@ -14,7 +15,15 @@ class ScanQrPage extends StatefulWidget {
 }
 
 class _ScanQrPageState extends State<ScanQrPage> {
+  final MobileScannerController _controller = MobileScannerController();
   bool _handled = false;
+  bool _torchOn = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   void _onDetect(BarcodeCapture capture) {
     if (_handled) return;
@@ -24,6 +33,11 @@ class _ScanQrPageState extends State<ScanQrPage> {
     context.pop(raw);
   }
 
+  Future<void> _toggleTorch() async {
+    await _controller.toggleTorch();
+    if (mounted) setState(() => _torchOn = !_torchOn);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +45,8 @@ class _ScanQrPageState extends State<ScanQrPage> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          MobileScanner(onDetect: _onDetect),
+          MobileScanner(controller: _controller, onDetect: _onDetect),
+          const Positioned.fill(child: PayspinScanFrame()),
           SafeArea(
             child: Column(
               children: [
@@ -41,7 +56,7 @@ class _ScanQrPageState extends State<ScanQrPage> {
                     children: [
                       _roundBtn(Icons.close, () => context.pop()),
                       const Spacer(),
-                      _roundBtn(Icons.flash_on, () {}),
+                      _roundBtn(_torchOn ? Icons.flash_on : Icons.flash_off, _toggleTorch, active: _torchOn),
                       const SizedBox(width: 10),
                       _roundBtn(Icons.help_outline, () {}),
                     ],
@@ -78,14 +93,18 @@ class _ScanQrPageState extends State<ScanQrPage> {
     );
   }
 
-  Widget _roundBtn(IconData icon, VoidCallback onTap) {
+  Widget _roundBtn(IconData icon, VoidCallback onTap, {bool active = false}) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.1),
+      color: active ? PayspinTokens.mint.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.1),
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onTap,
         customBorder: const CircleBorder(),
-        child: SizedBox(width: 40, height: 40, child: Icon(icon, color: Colors.white, size: 20)),
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Icon(icon, color: active ? PayspinTokens.mint : Colors.white, size: 20),
+        ),
       ),
     );
   }

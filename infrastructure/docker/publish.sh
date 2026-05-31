@@ -1,22 +1,34 @@
 #!/usr/bin/env bash
-# Build and push Payspin API image to Docker Hub (payspin account).
+# Build (linux/amd64) and push Payspin images to Docker Hub (payspin account).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-IMAGE="${DOCKER_IMAGE:-payspin/api}"
-TAG="${DOCKER_TAG:-latest}"
-
-cd "$ROOT"
+API_IMAGE="${DOCKER_IMAGE:-payspin/api:latest}"
+WEB_IMAGE="${DOCKER_WEB_IMAGE:-payspin/web:latest}"
+DOCKER_PLATFORM="${DOCKER_PLATFORM:-linux/amd64}"
+PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-http://localhost/v1}"
 
 if ! docker info >/dev/null 2>&1; then
   echo "Docker is not running. Start Docker Desktop." >&2
   exit 1
 fi
 
-echo "==> Building ${IMAGE}:${TAG}"
-docker build -f backend/Dockerfile -t "${IMAGE}:${TAG}" .
+cd "$ROOT"
 
-echo "==> Pushing ${IMAGE}:${TAG}"
-docker push "${IMAGE}:${TAG}"
+echo "==> Building ${API_IMAGE} (${DOCKER_PLATFORM})"
+docker build --platform "$DOCKER_PLATFORM" -f backend/Dockerfile -t "$API_IMAGE" .
 
-echo "Done: ${IMAGE}:${TAG}"
+echo "==> Building ${WEB_IMAGE} (NEXT_PUBLIC_API_URL=${PUBLIC_API_URL}, ${DOCKER_PLATFORM})"
+docker build --platform "$DOCKER_PLATFORM" -f frontend/Dockerfile \
+  --build-arg "NEXT_PUBLIC_API_URL=${PUBLIC_API_URL}" \
+  -t "$WEB_IMAGE" .
+
+echo "==> Pushing ${API_IMAGE}"
+docker push "$API_IMAGE"
+
+echo "==> Pushing ${WEB_IMAGE}"
+docker push "$WEB_IMAGE"
+
+echo "Done:"
+echo "  ${API_IMAGE}"
+echo "  ${WEB_IMAGE}"

@@ -90,16 +90,25 @@ class _SendAmountPageState extends State<SendAmountPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: PayspinTokens.glass,
+                        borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+                        border: Border.all(color: PayspinTokens.border),
+                      ),
                       child: SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text('Payer may choose amount', style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textBody)),
                         value: _openAmount,
-                        activeColor: PayspinTokens.pink,
+                        activeThumbColor: PayspinTokens.pink,
                         onChanged: (v) => setState(() => _openAmount = v),
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 12),
                     PayspinGradientCircleButton(
                       onPressed: (!_openAmount && isZero)
                           ? null

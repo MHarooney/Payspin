@@ -12,7 +12,8 @@ import { SandboxAisGateway } from './sandbox-ais.gateway';
  * unless real Yapily credentials are configured.
  */
 function assertNotSandboxInProduction(http: YapilyHttpClient): void {
-  if (process.env.NODE_ENV === 'production' && !http.isConfigured) {
+  const allowSandbox = process.env.PAYSPIN_ALLOW_SANDBOX_GATEWAY === 'true';
+  if (process.env.NODE_ENV === 'production' && !http.isConfigured && !allowSandbox) {
     throw new Error(
       'Refusing to start in production with the Yapily sandbox gateway. ' +
         'Set YAPILY_APP_KEY and YAPILY_APP_SECRET.',
