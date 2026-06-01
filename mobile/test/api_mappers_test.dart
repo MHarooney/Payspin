@@ -106,14 +106,27 @@ void main() {
       expect(start.authorisationUrl, 'https://bank/auth');
     });
 
-    test('bank account defaults verified to false', () {
+    test('bank account defaults verified + isPrimary to false', () {
       final acc = mapBankAccount({
         'id': 'ba1',
         'ibanLast4': '3000',
         'accountHolder': 'Jane Doe',
       });
       expect(acc.verified, isFalse);
+      expect(acc.isPrimary, isFalse);
       expect(acc.ibanLast4, '3000');
+    });
+
+    test('bank account maps isPrimary when present', () {
+      final acc = mapBankAccount({
+        'id': 'ba1',
+        'ibanLast4': '3000',
+        'accountHolder': 'Jane Doe',
+        'verified': true,
+        'isPrimary': true,
+      });
+      expect(acc.isPrimary, isTrue);
+      expect(acc.verified, isTrue);
     });
   });
 }

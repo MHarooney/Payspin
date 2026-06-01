@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PaymentLinkSummary } from '@payspin/shared-types';
 import { createPaymentLinkSchema } from '@payspin/validators';
 import { generateShortCode } from '../../../domain/utils/short-code';
@@ -18,7 +18,7 @@ export class CreatePaymentLinkUseCase {
 
   async execute(userId: string, body: unknown): Promise<PaymentLinkSummary> {
     const parsed = createPaymentLinkSchema.parse(body);
-    const bankAccount = await this.getDefaultBankAccount.execute(userId);
+    const bankAccount = await this.resolveBankAccount(userId, parsed.bankAccountId);
 
     let shortCode = generateShortCode();
     for (let attempt = 0; attempt < 5; attempt++) {
@@ -46,5 +46,22 @@ export class CreatePaymentLinkUseCase {
     });
 
     return this.stats.withStats(link.id, link);
+  }
+
+  /**
+   * Use the caller-supplied account when provided (verifying ownership), else
+   * fall back to the user's primary/default account.
+   */
+  private async resolveBankAccount(userId: string, bankAccountId?: string) {
+    if (!bankAccountId) {
+      return this.getDefaultBankAccount.execute(userId);
+    }
+    const account = await this.prisma.bankAccount.findFirst({
+      where: { id: bankAccountId, userId },
+    });
+    if (!account) {
+      throw new BadRequestException('Selected bank account was not found');
+    }
+    return account;
   }
 }

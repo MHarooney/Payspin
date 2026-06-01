@@ -95,7 +95,7 @@ class _ScanQrPageState extends State<ScanQrPage> {
 
   Widget _roundBtn(IconData icon, VoidCallback onTap, {bool active = false}) {
     return Material(
-      color: active ? PayspinTokens.mint.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.1),
+      color: active ? PayspinTokens.mint.withValues(alpha: 0.2) : PayspinTokens.surfaceMuted,
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onTap,
@@ -103,7 +103,7 @@ class _ScanQrPageState extends State<ScanQrPage> {
         child: SizedBox(
           width: 40,
           height: 40,
-          child: Icon(icon, color: active ? PayspinTokens.mint : Colors.white, size: 20),
+          child: Icon(icon, color: active ? PayspinTokens.mint : PayspinTokens.textPrimary, size: 20),
         ),
       ),
     );

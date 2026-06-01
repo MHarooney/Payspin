@@ -80,7 +80,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       appBar: AppBar(
         backgroundColor: PayspinTokens.bg,
         title: Text('Notifications',
-            style: GoogleFonts.raleway(fontWeight: FontWeight.w800, color: Colors.white)),
+            style: GoogleFonts.raleway(fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
         actions: [
           if (_items.any((n) => n.isUnread))
             TextButton(
@@ -146,7 +146,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   gradient: PayspinTokens.gradientPink,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.payments_outlined, color: Colors.white, size: 20),
+                child: const Icon(Icons.payments_outlined, color: PayspinTokens.textPrimary, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -155,7 +155,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   children: [
                     Text(n.title,
                         style: GoogleFonts.inter(
-                            color: Colors.white,
+                            color: PayspinTokens.textPrimary,
                             fontWeight: FontWeight.w700,
                             fontSize: 15)),
                     const SizedBox(height: 2),

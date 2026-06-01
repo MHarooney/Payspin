@@ -17,8 +17,12 @@ class PaymentLinkRepositoryImpl implements PaymentLinkRepository {
   }
 
   @override
-  Future<PaymentLink> createLink({int? amountCents, String? description}) async {
-    final json = await _api.createLink(amountCents: amountCents, description: description);
+  Future<PaymentLink> createLink({int? amountCents, String? description, String? bankAccountId}) async {
+    final json = await _api.createLink(
+      amountCents: amountCents,
+      description: description,
+      bankAccountId: bankAccountId,
+    );
     _refresh.bump();
     return mapPaymentLink(json);
   }

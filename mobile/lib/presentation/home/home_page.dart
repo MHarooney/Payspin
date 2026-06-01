@@ -154,7 +154,7 @@ class _HomePageState extends State<HomePage> {
                       child: TextField(
                         autofocus: true,
                         onChanged: (v) => setState(() => _query = v),
-                        style: GoogleFonts.inter(color: Colors.white),
+                        style: GoogleFonts.inter(color: PayspinTokens.textPrimary),
                         decoration: const InputDecoration(hintText: 'Search Tikkies…'),
                       ),
                     )
@@ -173,7 +173,7 @@ class _HomePageState extends State<HomePage> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: SizedBox(width: 40, height: 40, child: Icon(icon, color: Colors.white, size: 20)),
+        child: SizedBox(width: 40, height: 40, child: Icon(icon, color: PayspinTokens.textPrimary, size: 20)),
       ),
     );
   }
@@ -259,7 +259,7 @@ class _HomePageState extends State<HomePage> {
       subtitle: 'Request money from friends in seconds — they pay straight from their bank.',
       primary: PayspinGradientPillButton(
         label: 'Create a Tikkie',
-        icon: const Icon(Icons.add, color: Colors.white, size: 20),
+        icon: const Icon(Icons.add, color: PayspinTokens.onBrand, size: 20),
         onPressed: () => context.push('/send/amount'),
       ),
     );

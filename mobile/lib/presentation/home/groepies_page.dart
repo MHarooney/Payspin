@@ -106,7 +106,7 @@ class _GroepiesTabContentState extends State<GroepiesTabContent> {
       subtitle: 'Create a Groepie and invite friends to save together in rotation.',
       primary: PayspinGradientPillButton(
         label: 'Create Groepie',
-        icon: const Icon(Icons.add, color: Colors.white, size: 20),
+        icon: const Icon(Icons.add, color: PayspinTokens.onBrand, size: 20),
         onPressed: () => context.push('/circles/create'),
       ),
       secondary: TextButton(

@@ -23,6 +23,7 @@ BankAccount mapBankAccount(Map<String, dynamic> json) => BankAccount(
       accountHolder: json['accountHolder'] as String,
       bankName: json['bankName'] as String?,
       verified: json['verified'] as bool? ?? false,
+      isPrimary: json['isPrimary'] as bool? ?? false,
     );
 
 Institution mapInstitution(Map<String, dynamic> json) => Institution(

@@ -21,6 +21,7 @@ import '../presentation/onboarding/pages/step_otp_page.dart';
 import '../presentation/onboarding/pages/step_phone_page.dart';
 import '../presentation/onboarding/pages/success_page.dart';
 import '../presentation/scan/scan_qr_page.dart';
+import '../presentation/security/setup_lock_page.dart';
 import '../presentation/send/send_amount_page.dart';
 import '../presentation/send/send_name_page.dart';
 import '../presentation/shell/main_shell.dart';
@@ -68,6 +69,10 @@ GoRouter createRouter() {
             amountLabel: extra['amountLabel'] as String? ?? '—',
           );
         },
+      ),
+      GoRoute(
+        path: '/security/setup',
+        builder: (_, state) => SetupLockPage(displayName: state.extra as String?),
       ),
       GoRoute(path: '/scan', builder: (_, __) => const ScanQrPage()),
       GoRoute(path: '/notifications', builder: (_, __) => const NotificationsPage()),

@@ -133,6 +133,44 @@ void main() {
       expect(acc.verified, isTrue);
     });
 
+    test('listAccounts maps isPrimary and ordering from the API', () async {
+      final mock = MockClient(
+        (req) async => http.Response(
+          jsonEncode([
+            {'id': 'ba1', 'ibanLast4': '0001', 'accountHolder': 'A', 'verified': true, 'isPrimary': true},
+            {'id': 'ba2', 'ibanLast4': '0002', 'accountHolder': 'B', 'verified': true, 'isPrimary': false},
+          ]),
+          200,
+        ),
+      );
+      final repo = BankAccountRepositoryImpl(_api(mock));
+      final accounts = await repo.listAccounts();
+      expect(accounts, hasLength(2));
+      expect(accounts.first.isPrimary, isTrue);
+      expect(accounts[1].isPrimary, isFalse);
+    });
+
+    test('setPrimary returns the updated primary account', () async {
+      final mock = MockClient(
+        (req) async => http.Response(
+          jsonEncode({'id': 'ba2', 'ibanLast4': '0002', 'accountHolder': 'B', 'verified': true, 'isPrimary': true}),
+          200,
+        ),
+      );
+      final repo = BankAccountRepositoryImpl(_api(mock));
+      final acc = await repo.setPrimary('ba2');
+      expect(acc.id, 'ba2');
+      expect(acc.isPrimary, isTrue);
+    });
+
+    test('deleteAccount propagates a conflict error', () async {
+      final mock = MockClient(
+        (req) async => http.Response(jsonEncode({'message': 'in use'}), 409),
+      );
+      final repo = BankAccountRepositoryImpl(_api(mock));
+      await expectLater(repo.deleteAccount('ba1'), throwsA(isA<ApiException>()));
+    });
+
     test('listInstitutions propagates errors', () async {
       final mock = MockClient((req) async => http.Response('boom', 502));
       final repo = BankAccountRepositoryImpl(_api(mock));

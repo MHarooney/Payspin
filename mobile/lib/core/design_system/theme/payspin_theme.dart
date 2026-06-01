@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../tokens/payspin_tokens.dart';
 
+/// Global Material theme — dark prototype (`screens.jsx` / `PS` tokens).
+/// Uses system fonts at build time so the first frame is not blocked on font CDN.
 abstract final class PayspinTheme {
   static ThemeData dark() {
-    final inter = GoogleFonts.interTextTheme();
-    final raleway = GoogleFonts.ralewayTextTheme();
+    const base = TextStyle(fontFamily: '.AppleSystemUIFont');
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -17,46 +17,63 @@ abstract final class PayspinTheme {
         secondary: PayspinTokens.mint,
         surface: PayspinTokens.bgElevated,
         error: PayspinTokens.error,
-        onPrimary: Colors.white,
+        onPrimary: PayspinTokens.onBrand,
         onSurface: PayspinTokens.textPrimary,
       ),
-      textTheme: raleway.copyWith(
-        bodyMedium: inter.bodyMedium?.copyWith(color: PayspinTokens.textBody),
-        bodySmall: inter.bodySmall?.copyWith(color: PayspinTokens.textMuted),
-        labelLarge: inter.labelLarge?.copyWith(
-          fontWeight: FontWeight.w600,
-          color: PayspinTokens.textMuted,
-        ),
+      iconTheme: const IconThemeData(color: PayspinTokens.textPrimary),
+      dividerColor: PayspinTokens.border,
+      progressIndicatorTheme: const ProgressIndicatorThemeData(color: PayspinTokens.pink),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: PayspinTokens.bgElevated,
+        behavior: SnackBarBehavior.floating,
       ),
-      appBarTheme: AppBarTheme(
+      textTheme: const TextTheme(
+        displayLarge: base,
+        displayMedium: base,
+        displaySmall: base,
+        headlineLarge: base,
+        headlineMedium: base,
+        headlineSmall: base,
+        titleLarge: TextStyle(fontFamily: '.AppleSystemUIFont', fontWeight: FontWeight.w700, color: PayspinTokens.textPrimary),
+        titleMedium: TextStyle(fontFamily: '.AppleSystemUIFont', fontWeight: FontWeight.w600, color: PayspinTokens.textPrimary),
+        bodyLarge: TextStyle(fontFamily: '.AppleSystemUIFont', color: PayspinTokens.textBody),
+        bodyMedium: TextStyle(fontFamily: '.AppleSystemUIFont', color: PayspinTokens.textBody),
+        bodySmall: TextStyle(fontFamily: '.AppleSystemUIFont', color: PayspinTokens.textMuted),
+        labelLarge: TextStyle(fontFamily: '.AppleSystemUIFont', fontWeight: FontWeight.w600, color: PayspinTokens.textMuted),
+      ),
+      appBarTheme: const AppBarTheme(
         backgroundColor: PayspinTokens.bg,
         foregroundColor: PayspinTokens.textPrimary,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.raleway(
+        titleTextStyle: TextStyle(
+          fontFamily: '.AppleSystemUIFont',
           fontSize: 17,
           fontWeight: FontWeight.w700,
           color: PayspinTokens.textPrimary,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: const InputDecorationThemeData(
         filled: true,
         fillColor: PayspinTokens.glass,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
-          borderSide: const BorderSide(color: PayspinTokens.border),
+          borderRadius: BorderRadius.all(Radius.circular(PayspinTokens.radiusInput)),
+          borderSide: BorderSide(color: PayspinTokens.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
-          borderSide: const BorderSide(color: PayspinTokens.border),
+          borderRadius: BorderRadius.all(Radius.circular(PayspinTokens.radiusInput)),
+          borderSide: BorderSide(color: PayspinTokens.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
-          borderSide: const BorderSide(color: PayspinTokens.borderActive),
+          borderRadius: BorderRadius.all(Radius.circular(PayspinTokens.radiusInput)),
+          borderSide: BorderSide(color: PayspinTokens.borderActive),
         ),
-        hintStyle: GoogleFonts.inter(color: PayspinTokens.textHint),
-        labelStyle: GoogleFonts.inter(color: PayspinTokens.textMuted, fontSize: 12),
+        hintStyle: TextStyle(color: PayspinTokens.textHint),
+        labelStyle: TextStyle(color: PayspinTokens.textMuted, fontSize: 12),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: PayspinTokens.mint),
       ),
     );
   }

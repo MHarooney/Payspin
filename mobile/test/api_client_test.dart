@@ -117,6 +117,53 @@ void main() {
       expect(sentBody!['currency'], 'EUR');
     });
 
+    test('createLink forwards bankAccountId when provided', () async {
+      Map<String, dynamic>? sentBody;
+      final mock = MockClient((req) async {
+        sentBody = jsonDecode(req.body) as Map<String, dynamic>;
+        return http.Response(jsonEncode({'id': 'l1'}), 201);
+      });
+      await _client(mock).createLink(amountCents: 500, bankAccountId: 'ba-9');
+      expect(sentBody!['bankAccountId'], 'ba-9');
+    });
+
+    test('createLink omits bankAccountId when null', () async {
+      Map<String, dynamic>? sentBody;
+      final mock = MockClient((req) async {
+        sentBody = jsonDecode(req.body) as Map<String, dynamic>;
+        return http.Response(jsonEncode({'id': 'l1'}), 201);
+      });
+      await _client(mock).createLink(amountCents: 500);
+      expect(sentBody!.containsKey('bankAccountId'), isFalse);
+    });
+
+    test('setPrimaryBankAccount PATCHes the primary path', () async {
+      String? method;
+      String? path;
+      final mock = MockClient((req) async {
+        method = req.method;
+        path = req.url.path;
+        return http.Response(jsonEncode({'id': 'ba1', 'isPrimary': true}), 200);
+      });
+      final res = await _client(mock).setPrimaryBankAccount('ba1');
+      expect(method, 'PATCH');
+      expect(path, endsWith('/bank-accounts/ba1/primary'));
+      expect(res['isPrimary'], true);
+    });
+
+    test('deleteBankAccount issues a DELETE to the account path', () async {
+      String? method;
+      String? path;
+      final mock = MockClient((req) async {
+        method = req.method;
+        path = req.url.path;
+        return http.Response('', 204);
+      });
+      await _client(mock).deleteBankAccount('ba1');
+      expect(method, 'DELETE');
+      expect(path, endsWith('/bank-accounts/ba1'));
+    });
+
     test('cancelLink issues a DELETE to the link path', () async {
       String? method;
       String? path;

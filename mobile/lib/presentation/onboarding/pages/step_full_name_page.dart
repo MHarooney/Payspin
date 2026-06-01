@@ -64,6 +64,7 @@ class _StepFullNamePageState extends State<StepFullNamePage> {
             controller: _name,
             hintText: 'First and last name',
             textCapitalization: TextCapitalization.words,
+            filledTextColor: PayspinTokens.textPrimary,
             onChanged: (v) {
               cubit.updateFullName(v);
               setState(() {});

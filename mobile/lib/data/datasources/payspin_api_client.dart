@@ -152,13 +152,18 @@ class PayspinApiClient {
     return jsonDecode(res.body) as List<dynamic>;
   }
 
-  Future<Map<String, dynamic>> createLink({int? amountCents, String? description}) async {
+  Future<Map<String, dynamic>> createLink({
+    int? amountCents,
+    String? description,
+    String? bankAccountId,
+  }) async {
     final res = await _send(_client.post(
       Uri.parse('${ApiConfig.baseUrl}/links'),
       headers: await _headers(),
       body: jsonEncode({
         if (amountCents != null) 'amountCents': amountCents,
         if (description != null) 'description': description,
+        if (bankAccountId != null) 'bankAccountId': bankAccountId,
         'currency': 'EUR',
       }),
     ));
@@ -268,6 +273,23 @@ class PayspinApiClient {
     ));
     _ensureOk(res);
     return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> setPrimaryBankAccount(String id) async {
+    final res = await _send(_client.patch(
+      Uri.parse('${ApiConfig.baseUrl}/bank-accounts/$id/primary'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<void> deleteBankAccount(String id) async {
+    final res = await _send(_client.delete(
+      Uri.parse('${ApiConfig.baseUrl}/bank-accounts/$id'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
   }
 
   Future<List<dynamic>> listInstitutions({String? country}) async {

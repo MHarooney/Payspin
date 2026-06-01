@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import FirebaseCore
 import FirebaseAuth
 
 @main
@@ -8,19 +9,31 @@ import FirebaseAuth
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    configureFirebaseIfNeeded()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
-  // Silent push fallback for Firebase Phone Auth on physical devices.
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    configureFirebaseIfNeeded()
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+  }
+
+  private func configureFirebaseIfNeeded() {
+    if FirebaseApp.app() == nil {
+      FirebaseApp.configure()
+    }
+  }
+
   override func application(
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-    Auth.auth().setAPNSToken(deviceToken, type: .unknown)
+    if FirebaseApp.app() != nil {
+      Auth.auth().setAPNSToken(deviceToken, type: .unknown)
+    }
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 
-  // Firebase Phone Auth reCAPTCHA returns via this URL scheme — must not cold-start.
   override func application(
     _ app: UIApplication,
     open url: URL,
@@ -30,9 +43,5 @@ import FirebaseAuth
       return true
     }
     return super.application(app, open: url, options: options)
-  }
-
-  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
-    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
   }
 }

@@ -109,7 +109,7 @@ class _Cell extends StatelessWidget {
       height: 60,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: PayspinTokens.surfaceRaised,
         borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
         border: Border.all(color: borderColor, width: active ? 2 : 1),
         boxShadow: active
@@ -118,7 +118,7 @@ class _Cell extends StatelessWidget {
       ),
       child: Text(
         char,
-        style: GoogleFonts.raleway(fontSize: 26, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary),
+        style: GoogleFonts.raleway(fontSize: 26, fontWeight: FontWeight.w800, color: PayspinTokens.mint),
       ),
     );
   }

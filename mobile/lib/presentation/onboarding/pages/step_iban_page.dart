@@ -58,6 +58,7 @@ class _StepIbanPageState extends State<StepIbanPage> {
           PayspinUnderlineField(
             controller: _iban,
             hintText: 'NL00 ABNA 1234 5678 90',
+            filledLetterSpacing: 0.02,
             onChanged: (v) {
               cubit.updateIban(v);
               setState(() => _error = null);

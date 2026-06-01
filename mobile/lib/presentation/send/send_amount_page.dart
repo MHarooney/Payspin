@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/design_system/tokens/payspin_tokens.dart';
+import '../../core/design_system/widgets/payspin_flow_header.dart';
 import '../../core/design_system/widgets/payspin_gradient_circle_button.dart';
 import '../../core/design_system/widgets/payspin_numpad.dart';
 
@@ -55,16 +56,7 @@ class _SendAmountPageState extends State<SendAmountPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              child: Row(
-                children: [
-                  IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back, color: Colors.white)),
-                  const Spacer(),
-                  IconButton(onPressed: () {}, icon: const Icon(Icons.help_outline, color: Colors.white)),
-                ],
-              ),
-            ),
+            PayspinFlowHeader(onBack: () => context.pop(), onHelp: () {}),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text("What's the amount?", style: GoogleFonts.raleway(fontSize: 30, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
@@ -92,16 +84,18 @@ class _SendAmountPageState extends State<SendAmountPage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: PayspinTokens.glass,
+                    child: Material(
+                      color: PayspinTokens.glass,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-                        border: Border.all(color: PayspinTokens.border),
+                        side: const BorderSide(color: PayspinTokens.border),
                       ),
                       child: SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text('Payer may choose amount', style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textBody)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                        title: Text(
+                          'Payer may choose amount',
+                          style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textBody),
+                        ),
                         value: _openAmount,
                         activeThumbColor: PayspinTokens.pink,
                         onChanged: (v) => setState(() => _openAmount = v),

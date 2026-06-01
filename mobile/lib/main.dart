@@ -1,3 +1,8 @@
+import 'package:flutter/foundation.dart';
+
 import 'bootstrap.dart';
 
-void main() => bootstrap();
+void main() {
+  debugPrint('Payspin: Dart main()');
+  bootstrap();
+}

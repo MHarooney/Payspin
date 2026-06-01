@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/phone_country_codes.dart';
 import '../../../core/design_system/widgets/payspin_onboarding_shell.dart';
-import '../../../core/design_system/widgets/payspin_underline_field.dart';
-import '../../../core/design_system/widgets/phone_country_picker.dart';
+import '../../../core/design_system/widgets/payspin_phone_input_row.dart';
 import '../onboarding_cubit.dart';
 
 class StepPhonePage extends StatefulWidget {
@@ -41,8 +40,9 @@ class _StepPhonePageState extends State<StepPhonePage> {
     return PayspinOnboardingShell(
       step: 2,
       totalSteps: 5,
-      title: const Text('Enter your phone number'),
-      subtitle: 'We will send you a confirmation code there.',
+      title: const Text('What is your\nmobile number?'),
+      subtitle:
+          'We\'ll send you a verification code by text message so you can confirm that it\'s really you.',
       onBack: () => context.go('/onboarding/name'),
       onNext: _phone.text.trim().length < 6
           ? null
@@ -51,26 +51,14 @@ class _StepPhonePageState extends State<StepPhonePage> {
               cubit.updateCountry(_country);
               context.go('/onboarding/otp');
             },
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          PhoneCountrySelector(
-            selectedDialCode: _country,
-            onChanged: (dialCode) => setState(() => _country = dialCode),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: PayspinUnderlineField(
-              controller: _phone,
-              hintText: '612345678',
-              keyboardType: TextInputType.phone,
-              onChanged: (v) {
-                cubit.updatePhone(v);
-                setState(() {});
-              },
-            ),
-          ),
-        ],
+      child: PayspinPhoneInputRow(
+        phoneController: _phone,
+        selectedDialCode: _country,
+        onDialCodeChanged: (dialCode) => setState(() => _country = dialCode),
+        onPhoneChanged: (v) {
+          cubit.updatePhone(v);
+          setState(() {});
+        },
       ),
     );
   }

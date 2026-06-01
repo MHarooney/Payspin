@@ -1,10 +1,24 @@
-import { Body, Controller, Get, Post, Query, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { ConnectBankAccountUseCase } from '../../../application/use-cases/open-banking/connect-bank-account.use-case';
 import { CompleteBankConnectionUseCase } from '../../../application/use-cases/open-banking/complete-bank-connection.use-case';
 import { CreateBankAccountUseCase } from '../../../application/use-cases/bank-accounts/create-bank-account.use-case';
 import { ListBankAccountsUseCase } from '../../../application/use-cases/bank-accounts/list-bank-accounts.use-case';
+import { SetPrimaryBankAccountUseCase } from '../../../application/use-cases/bank-accounts/set-primary-bank-account.use-case';
+import { DeleteBankAccountUseCase } from '../../../application/use-cases/bank-accounts/delete-bank-account.use-case';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../guards/jwt.strategy';
@@ -16,6 +30,8 @@ export class BankAccountsController {
   constructor(
     private readonly createAccount: CreateBankAccountUseCase,
     private readonly listAccounts: ListBankAccountsUseCase,
+    private readonly setPrimary: SetPrimaryBankAccountUseCase,
+    private readonly deleteAccount: DeleteBankAccountUseCase,
     private readonly connect: ConnectBankAccountUseCase,
     private readonly completeConnect: CompleteBankConnectionUseCase,
     private readonly config: ConfigService,
@@ -31,6 +47,19 @@ export class BankAccountsController {
   @UseGuards(JwtAuthGuard)
   create(@CurrentUser() user: AuthenticatedUser, @Body() body: unknown) {
     return this.createAccount.execute(user.userId, body);
+  }
+
+  @Patch(':id/primary')
+  @UseGuards(JwtAuthGuard)
+  makePrimary(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.setPrimary.execute(user.userId, id);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  async remove(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
+    await this.deleteAccount.execute(user.userId, id);
   }
 
   @Post('connect')

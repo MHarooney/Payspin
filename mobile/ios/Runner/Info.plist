@@ -58,6 +58,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Scan QR codes to open payment links</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Payspin uses Face ID to unlock your account quickly and securely.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>

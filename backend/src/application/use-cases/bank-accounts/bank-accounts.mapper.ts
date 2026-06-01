@@ -7,6 +7,7 @@ export class BankAccountsMapper {
     accountHolder: string;
     bankName: string | null;
     verified: boolean;
+    isPrimary: boolean;
     createdAt: Date;
   }): BankAccountSummary {
     return {
@@ -15,6 +16,7 @@ export class BankAccountsMapper {
       accountHolder: account.accountHolder,
       bankName: account.bankName,
       verified: account.verified,
+      isPrimary: account.isPrimary,
       createdAt: account.createdAt.toISOString(),
     };
   }

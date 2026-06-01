@@ -185,7 +185,7 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
               PayspinGradientPillButton(
                 label: 'Connect your bank',
                 icon: const Icon(Icons.account_balance,
-                    color: Colors.white, size: 20),
+                    color: PayspinTokens.onBrand, size: 20),
                 loading: _connecting,
                 onPressed: _loading || _institutions.isEmpty || _connecting
                     ? null

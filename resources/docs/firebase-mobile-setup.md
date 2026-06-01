@@ -51,6 +51,61 @@ generated options (see step 4).
 - **Authentication → Sign-in method → Phone:** enable. Add **test phone
   numbers** for CI / simulator so no real SMS is sent.
 
+## 2a. Phone Auth device verification (REQUIRED for SMS on Android) ⚠️
+
+**Symptom:** OTP step shows *"We couldn’t verify this device with Google …"*
+(previously *"Phone verification could not finish …"*). Root cause: the app's
+**signing-key SHA fingerprint is not registered** in Firebase, so Android
+Phone Auth can't pass Play Integrity / SafetyNet and the reCAPTCHA fallback
+fails on a sideloaded APK. Confirmed by `google-services.json` having an empty
+`"oauth_client": []`.
+
+### Current test APK signing key (Android debug keystore)
+
+The `flutter`/`shorebird` release APK is signed with the **debug keystore**
+(`android/app/build.gradle.kts` → `signingConfig = signingConfigs.getByName("debug")`),
+so register THIS machine's debug fingerprints:
+
+| Type | Fingerprint |
+|------|-------------|
+| SHA-1 | `F8:D1:6B:D0:26:85:4A:AF:EA:B7:CC:0C:1B:18:0D:E6:DE:86:88:BB` |
+| SHA-256 | `3F:B1:8B:E8:8B:33:CB:06:2A:C7:44:3A:98:AD:E4:3E:28:A5:8B:8D:F8:93:D9:A7:91:57:16:15:B9:57:2F:31` |
+
+Re-extract any time (the debug keystore differs per machine):
+
+```bash
+keytool -list -v -keystore ~/.android/debug.keystore \
+  -alias androiddebugkey -storepass android -keypass android | grep -E "SHA1|SHA256"
+# or, straight from a built APK:
+"$ANDROID_HOME"/build-tools/35.0.0/apksigner verify --print-certs \
+  mobile/dist/payspin-0.1.0+2-release.apk
+```
+
+### Fix (console — `payspin.app@gmail.com`)
+
+1. **Project settings → Your apps → Android (`io.payspin.payspin_mobile`) →
+   Add fingerprint** → paste **both** SHA-1 and SHA-256 above → Save.
+2. **Download the refreshed `google-services.json`** → replace
+   `mobile/android/app/google-services.json` (it will now contain
+   `oauth_client` entries). Rebuild the APK.
+3. **Enable Play Integrity:** [Google Cloud Console](https://console.cloud.google.com/apis/library/playintegrity.googleapis.com)
+   → project `payspin-mobile` → **Enable**. (Authentication → Settings →
+   *SMS / app verification* should show Play Integrity active.)
+
+### Fastest path for testers — test phone numbers (no SMS, no Integrity)
+
+**Authentication → Sign-in method → Phone → Phone numbers for testing** → add e.g.
+`+49 1517 0000000` → code `123456`. These bypass real SMS **and** device
+verification, so onboarding works on any APK/emulator immediately. Use these
+for QA builds; real numbers need the SHA + Play Integrity steps above.
+
+### Stable distribution (recommended follow-up)
+
+The debug keystore is per-machine and not Play-Store valid. Create a dedicated
+**release keystore**, wire `android/key.properties` + a `release` `signingConfig`,
+then register that keystore's SHA-1/256 in Firebase instead. Ask the agent to
+set this up when you're ready to ship beyond sideload.
+
 ## 3. Backend service account (server only — never commit)
 
 1. **Project settings → Service accounts → Generate new private key** → JSON.

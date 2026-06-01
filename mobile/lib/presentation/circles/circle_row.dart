@@ -15,7 +15,7 @@ class CircleRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: PayspinTokens.surfaceRaised,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
           side: const BorderSide(color: PayspinTokens.border),

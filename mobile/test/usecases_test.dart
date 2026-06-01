@@ -54,6 +54,10 @@ class _FakeBankRepo implements BankAccountRepository {
   @override
   Future<List<BankAccount>> listAccounts() async => [];
   @override
+  Future<BankAccount> setPrimary(String id) => throw UnimplementedError();
+  @override
+  Future<void> deleteAccount(String id) => throw UnimplementedError();
+  @override
   Future<List<Institution>> listInstitutions({String? country}) async => [];
   @override
   Future<BankConnectionStart> startConnect({String? institutionId}) => throw UnimplementedError();

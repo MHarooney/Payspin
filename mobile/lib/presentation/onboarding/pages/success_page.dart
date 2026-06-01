@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -9,6 +10,7 @@ import '../../../core/design_system/tokens/payspin_tokens.dart';
 import '../../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../../core/design_system/widgets/payspin_gradient_text.dart';
 import '../../../core/design_system/widgets/payspin_radial_glow.dart';
+import '../onboarding_cubit.dart';
 
 class SuccessPage extends StatefulWidget {
   const SuccessPage({super.key});
@@ -96,7 +98,7 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
                       gradient: PayspinTokens.gradientPink,
                       boxShadow: PayspinTokens.fabShadow,
                     ),
-                    child: const Icon(Icons.check_rounded, color: Colors.white, size: 56),
+                    child: const Icon(Icons.check_rounded, color: PayspinTokens.onBrand, size: 56),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -121,11 +123,12 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
                 Padding(
                   padding: const EdgeInsets.all(24),
                   child: PayspinGradientPillButton(
-                    label: 'Go to Home',
-                    icon: const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+                    label: 'Secure your account',
+                    icon: const Icon(Icons.lock_outline, color: PayspinTokens.onBrand, size: 20),
                     onPressed: () {
                       HapticFeedback.lightImpact();
-                      context.go('/home');
+                      final name = context.read<OnboardingCubit>().state.displayName;
+                      context.go('/security/setup', extra: name);
                     },
                   ),
                 ),

@@ -47,9 +47,9 @@ class _PayspinSkeletonState extends State<PayspinSkeleton>
               begin: Alignment(-1 - 2 * (1 - t), 0),
               end: Alignment(1 - 2 * (1 - t) + 1, 0),
               colors: [
-                Colors.white.withValues(alpha: 0.04),
-                Colors.white.withValues(alpha: 0.10),
-                Colors.white.withValues(alpha: 0.04),
+                PayspinTokens.surfaceRaised,
+                PayspinTokens.border,
+                PayspinTokens.surfaceRaised,
               ],
               stops: const [0.0, 0.5, 1.0],
             ),
@@ -70,7 +70,7 @@ class PayspinSkeletonRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: PayspinTokens.surfaceRaised,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: PayspinTokens.border),
       ),

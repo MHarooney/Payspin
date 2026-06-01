@@ -25,7 +25,7 @@ class PayspinGradientCircleButton extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: enabled ? PayspinTokens.gradientPink : null,
-        color: enabled ? null : Colors.white.withValues(alpha: 0.08),
+        color: enabled ? null : PayspinTokens.surfaceMuted,
         boxShadow: enabled ? PayspinTokens.fabShadow : null,
       ),
       child: Material(
@@ -39,9 +39,9 @@ class PayspinGradientCircleButton extends StatelessWidget {
                 ? const SizedBox(
                     width: 22,
                     height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: PayspinTokens.onBrand),
                   )
-                : Icon(icon, color: Colors.white, size: size * 0.4),
+                : Icon(icon, color: PayspinTokens.onBrand, size: size * 0.4),
           ),
         ),
       ),

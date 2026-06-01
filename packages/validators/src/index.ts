@@ -52,6 +52,8 @@ export const createPaymentLinkSchema = z.object({
   linkType: z.enum(['SINGLE', 'MULTI']).default('SINGLE'),
   maxUses: z.number().int().positive().optional(),
   expiresInDays: z.number().int().min(1).max(365).optional(),
+  /** Optional: pay into a specific IBAN. Omitted → the user's primary account. */
+  bankAccountId: z.string().uuid().optional(),
 });
 
 export const initiatePaymentSchema = z.object({

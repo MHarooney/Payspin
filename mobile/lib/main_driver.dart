@@ -1,4 +1,9 @@
-import 'bootstrap.dart';
+import 'package:flutter_driver/driver_extension.dart';
+
+import 'bootstrap.dart' as boot;
 
 /// Entry point for simulator MCP / Flutter Driver (Cursor dart MCP tools).
-void main() => bootstrap(enableDriver: true);
+void main() {
+  enableFlutterDriverExtension();
+  boot.bootstrap();
+}

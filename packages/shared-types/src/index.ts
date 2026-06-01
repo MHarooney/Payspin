@@ -40,6 +40,8 @@ export interface BankAccountSummary {
   accountHolder: string;
   bankName: string | null;
   verified: boolean;
+  /** Exactly one account per user is primary; it is the default for new links. */
+  isPrimary: boolean;
   createdAt: string;
 }
 

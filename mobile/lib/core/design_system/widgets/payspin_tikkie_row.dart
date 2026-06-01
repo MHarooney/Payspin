@@ -40,7 +40,7 @@ class _PayspinTikkieRowState extends State<PayspinTikkieRow> {
         scale: _pressed ? 0.98 : 1,
         duration: const Duration(milliseconds: 110),
         child: Material(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: PayspinTokens.surfaceRaised,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
           side: const BorderSide(color: PayspinTokens.border),

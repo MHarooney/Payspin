@@ -10,7 +10,7 @@ export class ListBankAccountsUseCase {
   async execute(userId: string): Promise<BankAccountSummary[]> {
     const accounts = await this.prisma.bankAccount.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ isPrimary: 'desc' }, { createdAt: 'desc' }],
     });
     return accounts.map((a) => BankAccountsMapper.toSummary(a));
   }

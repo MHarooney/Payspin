@@ -1,0 +1,270 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../constants/phone_country_codes.dart';
+import '../tokens/payspin_tokens.dart';
+import 'payspin_underline_field.dart';
+
+/// Phone row from [screens.jsx] `Step2Phone`: glass country pill + mint underline input + inline list.
+class PayspinPhoneInputRow extends StatefulWidget {
+  const PayspinPhoneInputRow({
+    super.key,
+    required this.phoneController,
+    required this.selectedDialCode,
+    required this.onDialCodeChanged,
+    this.onPhoneChanged,
+    this.phoneHint = '06 12345678',
+    this.autofocusPhone = true,
+  });
+
+  final TextEditingController phoneController;
+  final String selectedDialCode;
+  final ValueChanged<String> onDialCodeChanged;
+  final ValueChanged<String>? onPhoneChanged;
+  final String phoneHint;
+  final bool autofocusPhone;
+
+  @override
+  State<PayspinPhoneInputRow> createState() => _PayspinPhoneInputRowState();
+}
+
+class _PayspinPhoneInputRowState extends State<PayspinPhoneInputRow> {
+  // The dropdown lives in the root [Overlay] via an [OverlayEntry] positioned
+  // from the anchor's real global rect. A Positioned child overflowing the
+  // local Stack used to paint but never hit-test (taps were dropped); an
+  // overlay entry is hit-tested independently, so list items respond.
+  final GlobalKey _anchorKey = GlobalKey();
+  OverlayEntry? _entry;
+
+  bool get _open => _entry != null;
+
+  PhoneCountry get _selected =>
+      phoneCountryByDialCode(widget.selectedDialCode) ?? defaultPhoneCountry;
+
+  void _toggleCountry() {
+    if (_open) {
+      _close();
+    } else {
+      // Drop the keyboard so the list isn't fighting the bottom inset.
+      FocusManager.instance.primaryFocus?.unfocus();
+      _openDropdown();
+    }
+  }
+
+  void _openDropdown() {
+    final box = _anchorKey.currentContext?.findRenderObject() as RenderBox?;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+    if (box == null || overlay == null) return;
+
+    final topLeft = box.localToGlobal(Offset.zero, ancestor: overlay);
+    final size = box.size;
+    final screen = overlay.size;
+    const gap = 8.0;
+    const maxDropdownHeight = 280.0;
+
+    // Prefer opening below the row; flip above if there isn't room.
+    final spaceBelow = screen.height - (topLeft.dy + size.height) - gap;
+    final openAbove = spaceBelow < 200 && topLeft.dy > spaceBelow;
+    final maxHeight =
+        (openAbove ? topLeft.dy - gap : spaceBelow).clamp(120.0, maxDropdownHeight);
+
+    _entry = OverlayEntry(
+      builder: (_) {
+        return Stack(
+          children: [
+            // Full-screen dismiss barrier.
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: _close,
+              ),
+            ),
+            Positioned(
+              left: topLeft.dx,
+              width: size.width,
+              top: openAbove ? null : topLeft.dy + size.height + gap,
+              bottom: openAbove ? screen.height - topLeft.dy + gap : null,
+              child: _CountryDropdown(
+                selected: _selected,
+                maxHeight: maxHeight,
+                onPick: _pickCountry,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    Overlay.of(context).insert(_entry!);
+    setState(() {});
+  }
+
+  void _close() {
+    _entry?.remove();
+    _entry = null;
+    if (mounted) setState(() {});
+  }
+
+  void _pickCountry(PhoneCountry country) {
+    widget.onDialCodeChanged(country.dialCode);
+    _close();
+  }
+
+  @override
+  void dispose() {
+    _entry?.remove();
+    _entry = null;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      key: _anchorKey,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        _CountryPill(
+          country: _selected,
+          isOpen: _open,
+          onTap: _toggleCountry,
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: PayspinUnderlineField(
+            controller: widget.phoneController,
+            hintText: widget.phoneHint,
+            autofocus: widget.autofocusPhone,
+            keyboardType: TextInputType.phone,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
+            ],
+            onChanged: widget.onPhoneChanged,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CountryPill extends StatelessWidget {
+  const _CountryPill({
+    required this.country,
+    required this.isOpen,
+    required this.onTap,
+  });
+
+  final PhoneCountry country;
+  final bool isOpen;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: PayspinTokens.glass,
+      shape: StadiumBorder(
+        side: BorderSide(
+          color: isOpen ? PayspinTokens.borderActive : PayspinTokens.border,
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const StadiumBorder(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(country.flagEmoji, style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              Text(
+                country.dialCode,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: PayspinTokens.textPrimary,
+                ),
+              ),
+              Icon(
+                isOpen ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                size: 14,
+                color: PayspinTokens.textMuted,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CountryDropdown extends StatelessWidget {
+  const _CountryDropdown({
+    required this.selected,
+    required this.onPick,
+    this.maxHeight = 280,
+  });
+
+  final PhoneCountry selected;
+  final ValueChanged<PhoneCountry> onPick;
+  final double maxHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: PayspinTokens.bgElevated,
+      elevation: 8,
+      shadowColor: Colors.black.withValues(alpha: 0.4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+        side: const BorderSide(color: PayspinTokens.border),
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: ListView.separated(
+          padding: const EdgeInsets.all(6),
+          shrinkWrap: true,
+          itemCount: kPhoneCountries.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 2),
+          itemBuilder: (context, index) {
+            final country = kPhoneCountries[index];
+            return Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              child: InkWell(
+                onTap: () => onPick(country),
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    children: [
+                      Text(country.flagEmoji, style: const TextStyle(fontSize: 18)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          country.name,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: PayspinTokens.textPrimary,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        country.dialCode,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: PayspinTokens.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}

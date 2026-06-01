@@ -59,7 +59,7 @@ void main() {
       );
       expect(
         apiErrorMessage(ApiException(0, 'CONNECTION_REFUSED')),
-        contains('Connection refused'),
+        contains('Cannot reach the server'),
       );
       expect(
         apiErrorMessage(ApiException(0, 'unknown')),

@@ -17,6 +17,10 @@ export class CreateBankAccountUseCase {
     const parsed = createBankAccountSchema.parse(body);
     const { ciphertext, iv } = this.encryption.encrypt(parsed.iban);
 
+    // The very first account a user adds becomes their primary; later additions
+    // don't displace an existing primary (the user switches it explicitly).
+    const existingCount = await this.prisma.bankAccount.count({ where: { userId } });
+
     const account = await this.prisma.bankAccount.create({
       data: {
         userId,
@@ -25,6 +29,7 @@ export class CreateBankAccountUseCase {
         ibanLast4: ibanLast4(parsed.iban),
         accountHolder: parsed.accountHolder,
         bankName: parsed.bankName ?? null,
+        isPrimary: existingCount === 0,
         verificationSource: 'MANUAL',
       },
     });

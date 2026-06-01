@@ -16,7 +16,7 @@ class PayspinProgressBar extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            ColoredBox(color: Colors.white.withValues(alpha: 0.06)),
+            ColoredBox(color: PayspinTokens.surfaceMuted),
             FractionallySizedBox(
               alignment: Alignment.centerLeft,
               widthFactor: progress.clamp(0.0, 1.0),

@@ -5,9 +5,16 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
+import '../../core/design_system/widgets/payspin_accent_circle_button.dart';
+import '../../core/design_system/widgets/payspin_flow_header.dart';
+import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
+import '../../core/design_system/widgets/payspin_iban_tile.dart';
+import '../../core/design_system/widgets/payspin_snackbar.dart';
 import '../../core/design_system/widgets/payspin_underline_field.dart';
 import '../../core/errors/api_exception.dart';
 import '../../data/services/share_service.dart';
+import '../../domain/entities/bank_account.dart';
+import '../../domain/repositories/bank_account_repository.dart';
 import '../../domain/repositories/payment_link_repository.dart';
 
 class SendNamePage extends StatefulWidget {
@@ -23,11 +30,78 @@ class SendNamePage extends StatefulWidget {
 class _SendNamePageState extends State<SendNamePage> {
   final _label = TextEditingController();
   bool _loading = false;
+  List<BankAccount> _accounts = const [];
+  String? _selectedAccountId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAccounts();
+  }
+
+  Future<void> _loadAccounts() async {
+    try {
+      final accounts = await sl<BankAccountRepository>().listAccounts();
+      if (!mounted) return;
+      setState(() {
+        _accounts = accounts;
+        _selectedAccountId = accounts.isEmpty
+            ? null
+            : accounts.firstWhere((a) => a.isPrimary, orElse: () => accounts.first).id;
+      });
+    } catch (_) {
+      // Account selection is optional; the backend falls back to the primary.
+    }
+  }
+
+  BankAccount? get _selectedAccount {
+    if (_accounts.isEmpty) return null;
+    return _accounts.firstWhere(
+      (a) => a.id == _selectedAccountId,
+      orElse: () => _accounts.first,
+    );
+  }
 
   @override
   void dispose() {
     _label.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAccount() async {
+    final chosen = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: PayspinTokens.bgElevated,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+              child: Text(
+                'Pay into',
+                style: GoogleFonts.raleway(fontSize: 18, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary),
+              ),
+            ),
+            for (final account in _accounts)
+              PayspinIbanTile(
+                ibanLast4: account.ibanLast4,
+                accountHolder: account.accountHolder,
+                bankName: account.bankName,
+                isPrimary: account.isPrimary,
+                selected: account.id == _selectedAccountId,
+                onTap: () => Navigator.pop(ctx, account.id),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (chosen != null) setState(() => _selectedAccountId = chosen);
   }
 
   Future<void> _send() async {
@@ -36,6 +110,7 @@ class _SendNamePageState extends State<SendNamePage> {
       final link = await sl<PaymentLinkRepository>().createLink(
         amountCents: widget.amountCents,
         description: _label.text.trim().isEmpty ? null : _label.text.trim(),
+        bankAccountId: _accounts.length > 1 ? _selectedAccountId : null,
       );
       final share = ShareService();
       final msg = share.buildMessage(
@@ -47,12 +122,9 @@ class _SendNamePageState extends State<SendNamePage> {
         await share.shareWhatsApp(msg);
       } catch (_) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Link created. WhatsApp is not on this device — open Home to copy or share the link.',
-              ),
-            ),
+          showPayspinSnackBar(
+            context,
+            'Link created. WhatsApp is not on this device — open Home to copy or share the link.',
           );
         }
       }
@@ -62,12 +134,52 @@ class _SendNamePageState extends State<SendNamePage> {
         context.pop();
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(apiErrorMessage(e))));
-      }
+      if (mounted) showPayspinSnackBar(context, apiErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Widget _buildAccountSelector() {
+    final account = _selectedAccount;
+    if (account == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+      child: Material(
+        color: PayspinTokens.surfaceRaised,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+          side: const BorderSide(color: PayspinTokens.border),
+        ),
+        child: InkWell(
+          onTap: _loading ? null : _pickAccount,
+          borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+            child: Row(
+              children: [
+                const Icon(Icons.credit_card_outlined, size: 18, color: PayspinTokens.textMuted),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Pay into', style: GoogleFonts.inter(fontSize: 11, color: PayspinTokens.textMuted)),
+                      const SizedBox(height: 2),
+                      Text(
+                        '•••• ${account.ibanLast4}',
+                        style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 15, color: PayspinTokens.textPrimary),
+                      ),
+                    ],
+                  ),
+                ),
+                Text('Change', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: PayspinTokens.mint)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -80,23 +192,24 @@ class _SendNamePageState extends State<SendNamePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            PayspinFlowHeader(onBack: () => context.pop(), onHelp: () {}),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              child: Row(
-                children: [
-                  IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back, color: Colors.white)),
-                  const Spacer(),
-                  IconButton(onPressed: () {}, icon: const Icon(Icons.help_outline, color: Colors.white)),
-                ],
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'Requesting ${widget.amountLabel}',
+                style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text('Requesting ${widget.amountLabel}', style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted)),
-            ),
-            Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
-              child: Text('What is it for?', style: GoogleFonts.raleway(fontSize: 30, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
+              child: Text(
+                'What is it for?',
+                style: GoogleFonts.raleway(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                  color: PayspinTokens.textPrimary,
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(24),
@@ -108,66 +221,41 @@ class _SendNamePageState extends State<SendNamePage> {
                 onChanged: (_) => setState(() {}),
               ),
             ),
+            if (_accounts.length > 1) _buildAccountSelector(),
             const Spacer(),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Align(alignment: Alignment.centerRight, child: Text('$left left', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: PayspinTokens.textMuted))),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  '$left left',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: PayspinTokens.textMuted,
+                  ),
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
               child: Row(
                 children: [
                   Expanded(
-                    child: Material(
-                      color: filled ? null : Colors.white.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(100),
-                      child: InkWell(
-                        onTap: filled && !_loading ? _send : null,
-                        borderRadius: BorderRadius.circular(100),
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: filled ? PayspinTokens.gradientPink : null,
-                            borderRadius: BorderRadius.circular(100),
-                            boxShadow: filled ? PayspinTokens.fabShadow : null,
-                          ),
-                          child: SizedBox(
-                            height: 52,
-                            child: Center(
-                              child: _loading
-                                  ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                  : Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.send, color: Colors.white, size: 18),
-                                        const SizedBox(width: 10),
-                                        Text('Share via WhatsApp', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 15, color: Colors.white)),
-                                      ],
-                                    ),
-                            ),
-                          ),
-                        ),
-                      ),
+                    child: PayspinGradientPillButton(
+                      label: 'Share via WhatsApp',
+                      loading: _loading,
+                      onPressed: filled && !_loading ? _send : null,
+                      icon: const Icon(Icons.send, color: PayspinTokens.onBrand, size: 18),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  _circleBtn(Icons.qr_code_2, filled, () {}),
+                  PayspinAccentCircleButton(icon: Icons.qr_code_2, active: filled, onPressed: () {}),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _circleBtn(IconData icon, bool filled, VoidCallback onTap) {
-    return Material(
-      color: filled ? PayspinTokens.mint.withValues(alpha: 0.15) : PayspinTokens.glass,
-      shape: CircleBorder(side: BorderSide(color: filled ? PayspinTokens.mint.withValues(alpha: 0.3) : PayspinTokens.border)),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: SizedBox(width: 52, height: 52, child: Icon(icon, color: filled ? PayspinTokens.mint : Colors.white)),
       ),
     );
   }

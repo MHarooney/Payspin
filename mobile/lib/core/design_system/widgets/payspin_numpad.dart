@@ -44,13 +44,13 @@ class PayspinNumpad extends StatelessWidget {
                           height: 56,
                           child: Center(
                             child: k == 'back'
-                                ? const Icon(Icons.backspace_outlined, color: Colors.white, size: 22)
+                                ? const Icon(Icons.backspace_outlined, color: PayspinTokens.textPrimary, size: 22)
                                 : Text(
                                     k,
                                     style: GoogleFonts.raleway(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 22,
-                                      color: Colors.white,
+                                      color: PayspinTokens.textPrimary,
                                     ),
                                   ),
                           ),

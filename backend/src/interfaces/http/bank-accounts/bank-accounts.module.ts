@@ -5,6 +5,8 @@ import { CompleteBankConnectionUseCase } from '../../../application/use-cases/op
 import { CreateBankAccountUseCase } from '../../../application/use-cases/bank-accounts/create-bank-account.use-case';
 import { ListBankAccountsUseCase } from '../../../application/use-cases/bank-accounts/list-bank-accounts.use-case';
 import { GetDecryptedIbanUseCase } from '../../../application/use-cases/bank-accounts/get-decrypted-iban.use-case';
+import { SetPrimaryBankAccountUseCase } from '../../../application/use-cases/bank-accounts/set-primary-bank-account.use-case';
+import { DeleteBankAccountUseCase } from '../../../application/use-cases/bank-accounts/delete-bank-account.use-case';
 import { BankAccountsController } from './bank-accounts.controller';
 
 @Module({
@@ -14,6 +16,8 @@ import { BankAccountsController } from './bank-accounts.controller';
     CreateBankAccountUseCase,
     ListBankAccountsUseCase,
     GetDecryptedIbanUseCase,
+    SetPrimaryBankAccountUseCase,
+    DeleteBankAccountUseCase,
     ConnectBankAccountUseCase,
     CompleteBankConnectionUseCase,
   ],

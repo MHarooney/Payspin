@@ -61,6 +61,21 @@ describe('createPaymentLinkSchema', () => {
   it('rejects amounts above the max', () => {
     assert.throws(() => createPaymentLinkSchema.parse({ amountCents: 1_000_000_000 }));
   });
+
+  it('accepts an optional bankAccountId (uuid)', () => {
+    const id = '11111111-1111-4111-8111-111111111111';
+    const parsed = createPaymentLinkSchema.parse({ amountCents: 2500, bankAccountId: id });
+    assert.equal(parsed.bankAccountId, id);
+  });
+
+  it('omits bankAccountId when not provided', () => {
+    const parsed = createPaymentLinkSchema.parse({ amountCents: 2500 });
+    assert.equal(parsed.bankAccountId, undefined);
+  });
+
+  it('rejects a non-uuid bankAccountId', () => {
+    assert.throws(() => createPaymentLinkSchema.parse({ amountCents: 2500, bankAccountId: 'not-a-uuid' }));
+  });
 });
 
 describe('payer payment schemas', () => {

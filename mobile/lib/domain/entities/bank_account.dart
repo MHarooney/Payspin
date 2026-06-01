@@ -5,6 +5,7 @@ class BankAccount {
     required this.accountHolder,
     this.bankName,
     required this.verified,
+    this.isPrimary = false,
   });
 
   final String id;
@@ -12,4 +13,7 @@ class BankAccount {
   final String accountHolder;
   final String? bankName;
   final bool verified;
+
+  /// The account new payment links default to. Exactly one per user.
+  final bool isPrimary;
 }

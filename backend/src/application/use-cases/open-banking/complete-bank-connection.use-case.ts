@@ -60,6 +60,7 @@ export class CompleteBankConnectionUseCase {
     const { ciphertext, iv } = this.encryption.encrypt(iban);
 
     const account = await this.prisma.$transaction(async (tx) => {
+      const existingCount = await tx.bankAccount.count({ where: { userId } });
       const created = await tx.bankAccount.create({
         data: {
           userId,
@@ -69,6 +70,7 @@ export class CompleteBankConnectionUseCase {
           accountHolder,
           bankName,
           verified: true,
+          isPrimary: existingCount === 0,
           verificationSource: 'YAPILY',
           yapilyConnectionId: connection.id,
           yapilyInstitutionId: connection.institutionId,

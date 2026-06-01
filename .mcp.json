@@ -1,20 +1,23 @@
 {
   "mcpServers": {
-    "dart": {
+    "payspin-design": {
       "type": "stdio",
-      "command": "${FLUTTER_DART:-dart}",
+      "command": "bash",
       "args": [
-        "mcp-server",
-        "--force-roots-fallback"
+        "scripts/mcp/payspin-design-filesystem.sh"
       ],
       "env": {}
     },
-    "browsermcp": {
+    "figma": {
+      "type": "http",
+      "url": "https://mcp.figma.com/mcp"
+    },
+    "dart": {
       "type": "stdio",
-      "command": "npx",
+      "command": "${FLUTTER_DART:-/Users/mahmoudalharoon/flutter/bin/dart}",
       "args": [
-        "-y",
-        "@browsermcp/mcp"
+        "mcp-server",
+        "--force-roots-fallback"
       ],
       "env": {}
     },
@@ -24,6 +27,15 @@
       "args": [
         "-y",
         "@playwright/mcp@latest"
+      ],
+      "env": {}
+    },
+    "browsermcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@browsermcp/mcp"
       ],
       "env": {}
     },

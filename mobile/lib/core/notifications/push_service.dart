@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -39,9 +40,19 @@ class PushService {
       final messaging = FirebaseMessaging.instance;
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-      await messaging.requestPermission(alert: true, badge: true, sound: true);
+      try {
+        await messaging
+            .requestPermission(alert: true, badge: true, sound: true)
+            .timeout(const Duration(seconds: 8));
+      } on TimeoutException {
+        debugPrint('Push permission request timed out — continuing without push');
+      }
 
-      await _registerToken(await messaging.getToken());
+      final token = await messaging.getToken().timeout(
+            const Duration(seconds: 8),
+            onTimeout: () => null,
+          );
+      await _registerToken(token);
       messaging.onTokenRefresh.listen(_registerToken);
 
       FirebaseMessaging.onMessage.listen((message) {

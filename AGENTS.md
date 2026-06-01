@@ -2,6 +2,8 @@
 
 Entry point for AI agents (Cursor, Claude Code, etc.) working on this monorepo.
 
+**Claude Code:** see [CLAUDE.md](CLAUDE.md) and [docs/agents/claude-mcp-setup.md](docs/agents/claude-mcp-setup.md) for MCP + design context.
+
 ## Product
 
 **Payspin** — P2P payment links (Tikkie-style). Payee uses Flutter app; payer uses public web link → Yapily/iDEAL redirect. **Non-custodial**: we never hold funds.

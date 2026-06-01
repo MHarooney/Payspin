@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app/di/injection.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
+import '../../core/design_system/widgets/payspin_snackbar.dart';
 import '../../core/design_system/widgets/payspin_status_chip.dart';
 import '../../core/errors/api_exception.dart';
 import '../../data/services/share_service.dart';
@@ -138,7 +139,7 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
 
   Widget _copyLinkButton(String url) {
     return Material(
-      color: Colors.white.withValues(alpha: 0.05),
+      color: PayspinTokens.surfaceRaised,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
         side: const BorderSide(color: PayspinTokens.border),
@@ -147,19 +148,7 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
         onTap: () async {
           await Clipboard.setData(ClipboardData(text: url));
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: PayspinTokens.bgElevated,
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: PayspinTokens.mint, size: 18),
-                  const SizedBox(width: 10),
-                  Text('Link copied', style: GoogleFonts.inter(color: Colors.white)),
-                ],
-              ),
-            ),
-          );
+          showPayspinSnackBar(context, 'Link copied', success: true);
         },
         borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
         child: SizedBox(
@@ -265,7 +254,7 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
                       if (link.isPayable) ...[
                         PayspinGradientPillButton(
                           label: 'Share via WhatsApp',
-                          icon: const Icon(Icons.send, color: Colors.white, size: 18),
+                          icon: const Icon(Icons.send, color: PayspinTokens.onBrand, size: 18),
                           onPressed: () {
                             final share = ShareService();
                             share.shareWhatsApp(share.buildMessage(

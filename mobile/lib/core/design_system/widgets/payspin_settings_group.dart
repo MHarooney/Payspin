@@ -21,7 +21,7 @@ class PayspinSettingsGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: PayspinTokens.surfaceRaised,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: PayspinTokens.border),
       ),
@@ -41,7 +41,7 @@ class PayspinSettingsGroup extends StatelessWidget {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(color: PayspinTokens.glass, borderRadius: BorderRadius.circular(10)),
-                        child: Icon(rows[i].icon, size: 18, color: Colors.white),
+                        child: Icon(rows[i].icon, size: 18, color: PayspinTokens.textPrimary),
                       ),
                       const SizedBox(width: 14),
                       Expanded(

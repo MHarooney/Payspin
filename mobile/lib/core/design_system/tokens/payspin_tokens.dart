@@ -20,6 +20,21 @@ abstract final class PayspinTokens {
   static const Color mustard = Color(0xFFFFC408);
   static const Color error = Color(0xFFFC00FF);
 
+  /// Icons and labels on gradient CTAs (prototype `#fff` on pink/mint buttons).
+  static const Color onBrand = textPrimary;
+
+  /// `rgba(255,255,255,0.04)` — list rows, OTP cells, settings groups.
+  static const Color surfaceRaised = Color(0x0AFFFFFF);
+
+  /// `rgba(255,255,255,0.08)` — disabled pills, subtle fills.
+  static const Color surfaceMuted = Color(0x14FFFFFF);
+
+  /// Bottom nav blur scrim over page content.
+  static const Color navBarScrim = Color(0xD90B0B12);
+
+  /// Camera overlay vignette on scan screen.
+  static const Color scanOverlay = Color(0x8C000000);
+
   static const double space1 = 4;
   static const double space2 = 8;
   static const double space3 = 12;

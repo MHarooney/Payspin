@@ -90,7 +90,7 @@ class PayspinGradientFab extends StatelessWidget {
         child: InkWell(
           onTap: onPressed,
           customBorder: const CircleBorder(),
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
+          child: const Icon(Icons.add, color: PayspinTokens.onBrand, size: 28),
         ),
       ),
     );

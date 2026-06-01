@@ -26,6 +26,17 @@ class BankAccountRepositoryImpl implements BankAccountRepository {
   }
 
   @override
+  Future<BankAccount> setPrimary(String id) async {
+    final json = await _api.setPrimaryBankAccount(id);
+    return mapBankAccount(json);
+  }
+
+  @override
+  Future<void> deleteAccount(String id) async {
+    await _api.deleteBankAccount(id);
+  }
+
+  @override
   Future<List<Institution>> listInstitutions({String? country}) async {
     final list = await _api.listInstitutions(country: country);
     return list.map((e) => mapInstitution(e as Map<String, dynamic>)).toList();

@@ -3,6 +3,8 @@ import 'package:get_it/get_it.dart';
 import '../../core/config/remote_config_service.dart';
 import '../../core/firebase/phone_auth_service.dart';
 import '../../core/notifications/push_service.dart';
+import '../../core/security/app_lock_controller.dart';
+import '../../core/security/app_lock_service.dart';
 import '../../core/state/circles_refresh_notifier.dart';
 import '../../core/state/links_refresh_notifier.dart';
 import '../../core/state/notifications_refresh_notifier.dart';
@@ -32,6 +34,8 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(CirclesRefreshNotifier.new);
   sl.registerLazySingleton(NotificationsRefreshNotifier.new);
   sl.registerLazySingleton(RemoteConfigService.new);
+  sl.registerLazySingleton(AppLockService.new);
+  sl.registerLazySingleton(() => AppLockController(sl()));
   sl.registerLazySingleton(() => PhoneAuthService(sl()));
   sl.registerLazySingleton(() => PushService(sl(), sl(), sl()));
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));

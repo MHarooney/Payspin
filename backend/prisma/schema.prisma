@@ -63,6 +63,7 @@ model BankAccount {
   accountHolder      String        @map("account_holder")
   bankName           String?       @map("bank_name")
   verified           Boolean       @default(false)
+  isPrimary          Boolean       @default(false) @map("is_primary")
   verificationSource String?       @map("verification_source")
   yapilyConnectionId String?       @map("yapily_connection_id")
   yapilyInstitutionId String?      @map("yapily_institution_id")

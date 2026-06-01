@@ -1,7 +1,7 @@
 # Payspin Mobile — UI/UX Audit (STEP 0)
 
 **Date:** 2026-05-31
-**Source of truth:** `resources/Payspin Design System/screens.jsx` + `Payspin Prototype.html`
+**Source of truth:** [Claude design — Payspin Prototype.html](https://claude.ai/design/p/0e804e64-9500-4d7e-9fb9-598d971d0b82?file=Payspin+Prototype.html) (same as `resources/Payspin Design System/Payspin Prototype.html` + `screens.jsx`)
 **Scope of work:** `mobile/lib/presentation/` + `mobile/lib/core/design_system/` (Phases A–C; Circles/Phase D deferred per product owner)
 **Mandate:** Prototype is a floor, not a cap. All polish/motion/illustration suggestions accepted within Payspin brand tokens.
 

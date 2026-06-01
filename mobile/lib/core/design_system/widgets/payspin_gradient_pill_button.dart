@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../tokens/payspin_tokens.dart';
 
@@ -23,7 +22,7 @@ class PayspinGradientPillButton extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: enabled ? PayspinTokens.gradientPink : null,
-        color: enabled ? null : Colors.white.withValues(alpha: 0.12),
+        color: enabled ? null : PayspinTokens.surfaceMuted,
         borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
         boxShadow: enabled ? PayspinTokens.fabShadow : null,
       ),
@@ -39,7 +38,7 @@ class PayspinGradientPillButton extends StatelessWidget {
                   ? const SizedBox(
                       width: 22,
                       height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: PayspinTokens.onBrand),
                     )
                   : Row(
                       mainAxisSize: MainAxisSize.min,
@@ -47,11 +46,16 @@ class PayspinGradientPillButton extends StatelessWidget {
                         if (icon != null) ...[icon!, const SizedBox(width: 10)],
                         Text(
                           label,
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                color: PayspinTokens.onBrand,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ) ??
+                              const TextStyle(
+                                color: PayspinTokens.onBrand,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
                       ],
                     ),

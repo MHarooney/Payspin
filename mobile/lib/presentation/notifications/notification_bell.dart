@@ -61,7 +61,7 @@ class _NotificationBellState extends State<NotificationBell> {
             child: const SizedBox(
               width: 40,
               height: 40,
-              child: Icon(Icons.notifications_outlined, color: Colors.white, size: 20),
+              child: Icon(Icons.notifications_outlined, color: PayspinTokens.textPrimary, size: 20),
             ),
           ),
         ),
@@ -81,7 +81,7 @@ class _NotificationBellState extends State<NotificationBell> {
                 child: Text(
                   _unread > 99 ? '99+' : '$_unread',
                   style: GoogleFonts.inter(
-                    color: Colors.white,
+                    color: PayspinTokens.onBrand,
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                   ),

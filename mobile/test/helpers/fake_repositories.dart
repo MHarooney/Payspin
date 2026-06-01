@@ -34,8 +34,17 @@ class FakePaymentLinkRepository implements PaymentLinkRepository {
     return links;
   }
 
+  int? lastAmountCents;
+  String? lastDescription;
+  String? lastBankAccountId;
+
   @override
-  Future<PaymentLink> createLink({int? amountCents, String? description}) async => links.first;
+  Future<PaymentLink> createLink({int? amountCents, String? description, String? bankAccountId}) async {
+    lastAmountCents = amountCents;
+    lastDescription = description;
+    lastBankAccountId = bankAccountId;
+    return links.first;
+  }
 
   @override
   Future<PaymentLinkDetail> getLink(String id) async {
@@ -55,11 +64,15 @@ class FakeBankAccountRepository implements BankAccountRepository {
     this.institutions = const [],
     this.institutionsError,
     this.institutionsCompleter,
+    this.accounts = const [],
   });
 
   List<Institution> institutions;
   Object? institutionsError;
   Completer<List<Institution>>? institutionsCompleter;
+  List<BankAccount> accounts;
+  String? lastSetPrimaryId;
+  String? lastDeletedId;
 
   @override
   Future<List<Institution>> listInstitutions({String? country}) {
@@ -69,10 +82,25 @@ class FakeBankAccountRepository implements BankAccountRepository {
   }
 
   @override
-  Future<List<BankAccount>> listAccounts() async => [];
+  Future<List<BankAccount>> listAccounts() async => accounts;
   @override
   Future<BankAccount> addAccount({required String iban, required String accountHolder, String? bankName}) async =>
       BankAccount(id: 'ba1', ibanLast4: '0000', accountHolder: accountHolder, verified: false);
+  @override
+  Future<BankAccount> setPrimary(String id) async {
+    lastSetPrimaryId = id;
+    return accounts.firstWhere(
+      (a) => a.id == id,
+      orElse: () => BankAccount(id: id, ibanLast4: '0000', accountHolder: 'x', verified: true, isPrimary: true),
+    );
+  }
+
+  @override
+  Future<void> deleteAccount(String id) async {
+    lastDeletedId = id;
+    accounts = accounts.where((a) => a.id != id).toList();
+  }
+
   @override
   Future<BankConnectionStart> startConnect({String? institutionId}) async =>
       const BankConnectionStart(connectionId: 'c1', authorisationUrl: 'https://bank/auth');
