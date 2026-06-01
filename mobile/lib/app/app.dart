@@ -67,16 +67,20 @@ class _AppLockGateState extends State<_AppLockGate> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        widget.child,
-        if (_controller.isLocked)
-          LockScreen(
-            service: _service,
-            onUnlocked: _controller.unlock,
-            onForgot: _forgot,
-          ),
-      ],
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (_) => _controller.recordUserActivity(),
+      child: Stack(
+        children: [
+          widget.child,
+          if (_controller.isLocked)
+            LockScreen(
+              service: _service,
+              onUnlocked: _controller.unlock,
+              onForgot: _forgot,
+            ),
+        ],
+      ),
     );
   }
 }

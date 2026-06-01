@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
+import '../../core/config/app_version.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_iban_tile.dart';
 import '../../core/design_system/widgets/payspin_settings_group.dart';
@@ -107,6 +108,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     }
   }
 
+  Future<void> _openBankAccounts() async {
+    await context.push('/bank-accounts');
+    if (mounted) await _load();
+  }
+
   Future<void> _setPrimary(BankAccount account) async {
     if (account.isPrimary || _busy) return;
     setState(() => _busy = true);
@@ -125,6 +131,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   Future<void> _deleteAccount(BankAccount account) async {
     if (_busy) return;
+    if (account.isPrimary && _accounts.length > 1) {
+      showPayspinSnackBar(context, 'Set another IBAN as primary before removing this one.');
+      return;
+    }
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -152,56 +162,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     } finally {
       if (mounted) setState(() => _busy = false);
     }
-  }
-
-  Widget _buildBankAccountsSection() {
-    final accounts = _accounts;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(
-            accounts.length > 1 ? 'BANK ACCOUNTS · ${accounts.length}' : 'BANK ACCOUNT',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: PayspinTokens.textMuted, letterSpacing: 1),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: PayspinTokens.surfaceRaised,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: PayspinTokens.border),
-          ),
-          child: Column(
-            children: [
-              for (var i = 0; i < accounts.length; i++) ...[
-                if (i > 0) const Divider(height: 1, color: PayspinTokens.border),
-                PayspinIbanTile(
-                  ibanLast4: accounts[i].ibanLast4,
-                  accountHolder: accounts[i].accountHolder,
-                  bankName: accounts[i].bankName,
-                  isPrimary: accounts[i].isPrimary,
-                  onTap: _busy ? null : () => _setPrimary(accounts[i]),
-                  trailing: _accountMenu(accounts[i]),
-                ),
-              ],
-              if (accounts.isNotEmpty) const Divider(height: 1, color: PayspinTokens.border),
-              _addRow(
-                icon: Icons.add,
-                label: accounts.isEmpty ? 'Add an IBAN' : 'Add another IBAN',
-                onTap: () => context.go('/onboarding/iban?existing=1'),
-              ),
-              const Divider(height: 1, color: PayspinTokens.border),
-              _addRow(
-                icon: Icons.account_balance_outlined,
-                label: 'Connect a bank',
-                onTap: () => context.go('/onboarding/connect?existing=1'),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
   }
 
   Widget _accountMenu(BankAccount account) {
@@ -252,6 +212,71 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBankAccountsSection() {
+    final accounts = _accounts;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  accounts.length > 1 ? 'BANK ACCOUNTS · ${accounts.length}' : 'BANK ACCOUNT',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: PayspinTokens.textMuted, letterSpacing: 1),
+                ),
+              ),
+              TextButton(
+                onPressed: _busy ? null : _openBankAccounts,
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text('Manage', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 12, color: PayspinTokens.mint)),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: PayspinTokens.surfaceRaised,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: PayspinTokens.border),
+          ),
+          child: Column(
+            children: [
+              for (var i = 0; i < accounts.length; i++) ...[
+                if (i > 0) const Divider(height: 1, color: PayspinTokens.border),
+                PayspinIbanTile(
+                  ibanLast4: accounts[i].ibanLast4,
+                  accountHolder: accounts[i].accountHolder,
+                  bankName: accounts[i].bankName,
+                  isPrimary: accounts[i].isPrimary,
+                  onTap: _busy ? null : () => _setPrimary(accounts[i]),
+                  trailing: _accountMenu(accounts[i]),
+                ),
+              ],
+              if (accounts.isNotEmpty) const Divider(height: 1, color: PayspinTokens.border),
+              _addRow(
+                icon: Icons.add,
+                label: accounts.isEmpty ? 'Add an IBAN' : 'Add another IBAN',
+                onTap: () => context.push('/onboarding/iban?existing=1'),
+              ),
+              const Divider(height: 1, color: PayspinTokens.border),
+              _addRow(
+                icon: Icons.account_balance_outlined,
+                label: 'Connect a bank',
+                onTap: () => context.push('/onboarding/connect?existing=1'),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -308,51 +333,64 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               const SizedBox(height: 28),
               ClipRRect(
                 borderRadius: BorderRadius.circular(18),
-                child: Stack(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [PayspinTokens.pink.withValues(alpha: 0.12), PayspinTokens.mint.withValues(alpha: 0.08)]),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: PayspinTokens.border),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('PRIMARY IBAN', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: PayspinTokens.textMuted, letterSpacing: 1)),
-                          const SizedBox(height: 8),
-                          Text(_primaryAccount != null ? '•••• ${_primaryAccount!.ibanLast4}' : 'Not linked', style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 18)),
-                        ],
-                      ),
-                    ),
-                    Positioned.fill(
-                      child: AnimatedBuilder(
-                        animation: _shine,
-                        builder: (context, _) {
-                          if (_shine.isDismissed || _shine.isCompleted) return const SizedBox.shrink();
-                          final t = Curves.easeInOut.transform(_shine.value);
-                          return IgnorePointer(
-                            child: FractionallySizedBox(
-                              widthFactor: 0.4,
-                              alignment: Alignment(-1.4 + 2.8 * t, 0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.transparent,
-                                      Colors.white.withValues(alpha: 0.14),
-                                      Colors.transparent,
-                                    ],
-                                  ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _openBankAccounts,
+                    child: Stack(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: [PayspinTokens.pink.withValues(alpha: 0.12), PayspinTokens.mint.withValues(alpha: 0.08)]),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: PayspinTokens.border),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('PRIMARY IBAN', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: PayspinTokens.textMuted, letterSpacing: 1)),
+                                    const SizedBox(height: 8),
+                                    Text(_primaryAccount != null ? '•••• ${_primaryAccount!.ibanLast4}' : 'Not linked', style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 18)),
+                                  ],
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
+                              const Icon(Icons.chevron_right, size: 18, color: PayspinTokens.textMuted),
+                            ],
+                          ),
+                        ),
+                        Positioned.fill(
+                          child: AnimatedBuilder(
+                            animation: _shine,
+                            builder: (context, _) {
+                              if (_shine.isDismissed || _shine.isCompleted) return const SizedBox.shrink();
+                              final t = Curves.easeInOut.transform(_shine.value);
+                              return IgnorePointer(
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.4,
+                                  alignment: Alignment(-1.4 + 2.8 * t, 0),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.white.withValues(alpha: 0.14),
+                                          Colors.transparent,
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -360,10 +398,21 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               const SizedBox(height: 24),
               PayspinSettingsGroup(
                 rows: [
+                  PayspinSettingsRow(
+                    icon: Icons.account_balance_outlined,
+                    label: 'Bank accounts',
+                    detail: _accounts.isEmpty
+                        ? 'Add an IBAN'
+                        : _accounts.length == 1
+                            ? '1 IBAN'
+                            : '${_accounts.length} IBANs',
+                    onTap: _openBankAccounts,
+                  ),
                   PayspinSettingsRow(icon: Icons.lock_outline, label: 'App lock', detail: _lockDetail, onTap: _manageLock),
                   PayspinSettingsRow(icon: Icons.notifications_outlined, label: 'Push notifications', detail: 'On', onTap: () {}),
                   PayspinSettingsRow(icon: Icons.language, label: 'Language', detail: 'English', onTap: () {}),
                   PayspinSettingsRow(icon: Icons.help_outline, label: 'Help & support', onTap: () {}),
+                  PayspinSettingsRow(icon: Icons.info_outline, label: 'Version', detail: AppVersion.serial, onTap: null),
                 ],
               ),
               const SizedBox(height: 16),

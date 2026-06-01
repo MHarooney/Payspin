@@ -20,6 +20,9 @@ abstract final class PayspinTokens {
   static const Color mustard = Color(0xFFFFC408);
   static const Color error = Color(0xFFFC00FF);
 
+  /// Success / "paid" green — distinct from the teal `mint` brand accent.
+  static const Color green = Color(0xFF22C55E);
+
   /// Icons and labels on gradient CTAs (prototype `#fff` on pink/mint buttons).
   static const Color onBrand = textPrimary;
 

@@ -110,7 +110,12 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
 
       if (!mounted) return;
       if (_existing) {
-        context.go('/home');
+        // Adding a bank to an existing account — back to the bank list,
+        // no app-lock setup again.
+        context.go('/bank-accounts');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bank connected')),
+        );
       } else {
         context.go('/onboarding/success');
       }
@@ -143,7 +148,7 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
                 children: [
                   IconButton(
                     onPressed: () => context.go(
-                        _existing ? '/home' : '/onboarding/otp'),
+                        _existing ? '/bank-accounts' : '/onboarding/otp'),
                     icon: const Icon(Icons.arrow_back,
                         color: PayspinTokens.textPrimary),
                     padding: EdgeInsets.zero,

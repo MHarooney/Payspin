@@ -20,6 +20,7 @@ import '../presentation/onboarding/pages/step_name_page.dart';
 import '../presentation/onboarding/pages/step_otp_page.dart';
 import '../presentation/onboarding/pages/step_phone_page.dart';
 import '../presentation/onboarding/pages/success_page.dart';
+import '../presentation/profile/bank_accounts_page.dart';
 import '../presentation/scan/scan_qr_page.dart';
 import '../presentation/security/setup_lock_page.dart';
 import '../presentation/send/send_amount_page.dart';
@@ -75,6 +76,7 @@ GoRouter createRouter() {
         builder: (_, state) => SetupLockPage(displayName: state.extra as String?),
       ),
       GoRoute(path: '/scan', builder: (_, __) => const ScanQrPage()),
+      GoRoute(path: '/bank-accounts', builder: (_, __) => const BankAccountsPage()),
       GoRoute(path: '/notifications', builder: (_, __) => const NotificationsPage()),
       GoRoute(
         path: '/links/:id',
@@ -103,6 +105,7 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
       loc.startsWith('/scan') ||
       loc.startsWith('/links') ||
       loc.startsWith('/circles') ||
+      loc.startsWith('/bank-accounts') ||
       loc.startsWith('/notifications')) {
     return null;
   }

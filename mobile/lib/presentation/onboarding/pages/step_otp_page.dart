@@ -154,9 +154,12 @@ class _StepOtpPageState extends State<StepOtpPage> {
   Widget build(BuildContext context) {
     final cubit = context.read<OnboardingCubit>();
     final phone = cubit.state.phoneDisplay;
-    final subtitle = _real
-        ? 'Enter the 6-digit code we sent to $phone.'
-        : 'Phone verification is coming soon — this step is a preview for $phone. Enter any 6 digits to continue.';
+    final sending = _real && _busy && !_codeSent;
+    final subtitle = !_real
+        ? 'Phone verification is coming soon — this step is a preview for $phone. Enter any 6 digits to continue.'
+        : sending
+            ? 'Verifying your device and sending a code to $phone…'
+            : 'Enter the 6-digit code we sent to $phone.';
     return PayspinOnboardingShell(
       step: 3,
       totalSteps: 5,

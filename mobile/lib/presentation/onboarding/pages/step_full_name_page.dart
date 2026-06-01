@@ -39,7 +39,10 @@ class _StepFullNamePageState extends State<StepFullNamePage> {
       step: 5,
       totalSteps: 5,
       title: const Text('What\'s your first and\nlast name?'),
-      onBack: () => context.go('/onboarding/iban'),
+      onBack: () {
+        final existing = GoRouterState.of(context).uri.queryParameters['existing'] == '1';
+        context.go(existing ? '/onboarding/iban?existing=1' : '/onboarding/iban');
+      },
       nextIcon: Icons.check_rounded,
       nextLoading: cubit.isLoading,
       onNext: !filled || cubit.isLoading
@@ -50,7 +53,16 @@ class _StepFullNamePageState extends State<StepFullNamePage> {
               final ok = await cubit.complete(alreadyRegistered: existing);
               if (!context.mounted) return;
               if (ok) {
-                context.go('/onboarding/success');
+                // Existing users are only adding another IBAN — skip the
+                // celebration + app-lock setup and return to the bank list.
+                if (existing) {
+                  context.go('/bank-accounts');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('IBAN added')),
+                  );
+                } else {
+                  context.go('/onboarding/success');
+                }
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(cubit.lastError ?? 'Could not complete setup')),

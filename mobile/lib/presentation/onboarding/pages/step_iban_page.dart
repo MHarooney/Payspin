@@ -41,7 +41,7 @@ class _StepIbanPageState extends State<StepIbanPage> {
       subtitle: 'Your IBAN is only shared with people that have to pay you back.',
       onBack: () {
         final existing = GoRouterState.of(context).uri.queryParameters['existing'] == '1';
-        context.go(existing ? '/home' : '/onboarding/connect');
+        context.go(existing ? '/bank-accounts' : '/onboarding/connect');
       },
       onNext: () {
         cubit.updateIban(_iban.text);
@@ -50,7 +50,8 @@ class _StepIbanPageState extends State<StepIbanPage> {
           setState(() => _error = err);
           return;
         }
-        context.go('/onboarding/full-name');
+        final existing = GoRouterState.of(context).uri.queryParameters['existing'] == '1';
+        context.go(existing ? '/onboarding/full-name?existing=1' : '/onboarding/full-name');
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

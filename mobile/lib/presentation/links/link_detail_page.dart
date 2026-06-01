@@ -11,6 +11,7 @@ import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_snackbar.dart';
 import '../../core/design_system/widgets/payspin_status_chip.dart';
 import '../../core/errors/api_exception.dart';
+import '../../core/utils/payment_visuals.dart';
 import '../../data/services/share_service.dart';
 import '../../domain/entities/payment_link.dart';
 import '../../domain/repositories/payment_link_repository.dart';
@@ -125,7 +126,13 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
           const SizedBox(height: 12),
           Row(
             children: [
-              PayspinStatusChip(label: link.statusLabel),
+              PayspinStatusChip(
+                label: link.completedPaymentCount > 0 ? 'Paid ${link.completedPaymentCount}x' : link.statusLabel,
+                color: PaymentVisuals.linkStatusColor(
+                  link.status,
+                  hasCompletedPayments: link.completedPaymentCount > 0,
+                ),
+              ),
               if (link.usageLabel != null) ...[
                 const SizedBox(width: 8),
                 Text(link.usageLabel!, style: GoogleFonts.inter(color: PayspinTokens.textMuted, fontWeight: FontWeight.w500, fontSize: 12)),
@@ -185,8 +192,7 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
   }
 
   Widget _timelineTile(PaymentRecord p, bool isLast) {
-    final done = p.statusLabel.toLowerCase().contains('paid') || p.statusLabel.toLowerCase().contains('complete');
-    final color = done ? PayspinTokens.mint : PayspinTokens.mustard;
+    final color = PaymentVisuals.recordStatusColor(p.status);
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

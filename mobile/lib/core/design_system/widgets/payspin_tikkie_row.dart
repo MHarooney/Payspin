@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../domain/entities/payment_link.dart';
+import '../../utils/payment_visuals.dart';
 import '../tokens/payspin_tokens.dart';
 import 'payspin_status_chip.dart';
 
@@ -13,12 +14,10 @@ class PayspinTikkieRow extends StatefulWidget {
   final int tintIndex;
 
   static const _tints = [Color(0x2EFC00FF), Color(0x2E07D8DD), Color(0x2EFFC408), Color(0x2E5C7AEA)];
-  static const _emojis = ['🍣', '⛽', '🎁', '☕', '🍕', '🎬'];
 
-  static String emojiFor(PaymentLink link) {
-    final seed = (link.description ?? link.shortCode).hashCode;
-    return _emojis[seed.abs() % _emojis.length];
-  }
+  /// Emoji chosen from the description (e.g. "Pizza" → 🍕), not at random.
+  static String emojiFor(PaymentLink link) =>
+      PaymentVisuals.emoji(link.description ?? link.shortCode);
 
   @override
   State<PayspinTikkieRow> createState() => _PayspinTikkieRowState();
@@ -32,7 +31,9 @@ class _PayspinTikkieRowState extends State<PayspinTikkieRow> {
     final link = widget.link;
     final tint = PayspinTikkieRow._tints[widget.tintIndex % PayspinTikkieRow._tints.length];
     final title = link.description?.trim().isNotEmpty == true ? link.description! : link.amountLabel;
-    final status = link.completedPaymentCount > 0 ? 'Paid ${link.completedPaymentCount}x' : link.statusLabel;
+    final paid = link.completedPaymentCount > 0;
+    final status = paid ? 'Paid ${link.completedPaymentCount}x' : link.statusLabel;
+    final statusColor = PaymentVisuals.linkStatusColor(link.status, hasCompletedPayments: paid);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -74,7 +75,7 @@ class _PayspinTikkieRowState extends State<PayspinTikkieRow> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 6),
-                      Align(alignment: Alignment.centerLeft, child: PayspinStatusChip(label: status)),
+                      Align(alignment: Alignment.centerLeft, child: PayspinStatusChip(label: status, color: statusColor)),
                     ],
                   ),
                 ),
