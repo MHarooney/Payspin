@@ -111,8 +111,14 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
   }
 
   if (loc.startsWith('/home')) {
-    final accounts = await sl<BankAccountRepository>().listAccounts();
-    if (accounts.isEmpty) return '/onboarding/connect?existing=1';
+    try {
+      final accounts = await sl<BankAccountRepository>()
+          .listAccounts()
+          .timeout(const Duration(seconds: 8));
+      if (accounts.isEmpty) return '/onboarding/connect?existing=1';
+    } catch (_) {
+      // Offline / slow API — still show home; user can retry from profile.
+    }
     return null;
   }
 

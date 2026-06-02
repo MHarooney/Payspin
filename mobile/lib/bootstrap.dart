@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -24,7 +23,12 @@ Future<void> bootstrap() async {
 
   // Engage the lock before the first frame so secured content never flashes.
   final appLock = sl<AppLockController>()..attach();
-  await appLock.evaluateStartupLock();
+  try {
+    await appLock.evaluateStartupLock().timeout(const Duration(seconds: 3));
+  } on TimeoutException {
+    debugPrint('Payspin: startup lock check timed out — continuing unlocked');
+    appLock.markDisabled();
+  }
 
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
@@ -43,6 +47,7 @@ Future<void> bootstrap() async {
   debugPrint('Payspin: runApp');
   runApp(PayspinApp());
 
+  // Firebase + push after first frame so a slow network/keychain never blocks UI.
   unawaited(_deferredStartup());
 }
 

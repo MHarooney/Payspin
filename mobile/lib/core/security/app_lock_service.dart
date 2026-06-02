@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 
+import '../storage/payspin_secure_storage.dart';
+
 /// The strongest enrolled local-auth method, used to choose the priority
 /// unlock affordance: Face ID → fingerprint/Touch ID → app passcode.
 enum BiometricKind { faceId, touchId, faceUnlock, fingerprint, iris, none }
@@ -73,7 +75,7 @@ enum BiometricResult { success, failedFallback, lockedOut, unavailable, canceled
 /// Priority chain (per product spec): Face → Fingerprint → app passcode.
 class AppLockService {
   AppLockService({FlutterSecureStorage? storage, LocalAuthentication? localAuth})
-      : _storage = storage ?? const FlutterSecureStorage(),
+      : _storage = storage ?? payspinSecureStorage,
         _auth = localAuth ?? LocalAuthentication();
 
   final FlutterSecureStorage _storage;
@@ -215,14 +217,7 @@ class AppLockService {
 
   /// Reads a key, treating any keychain/platform failure as "absent" so the
   /// lock never hard-crashes the app on a storage glitch.
-  Future<String?> _read(String key) async {
-    try {
-      return await _storage.read(key: key);
-    } catch (e) {
-      debugPrint('AppLock: storage read failed for $key: $e');
-      return null;
-    }
-  }
+  Future<String?> _read(String key) async => readSecureStorage(_storage, key);
 
   /// Removes all lock material (used on logout / "forgot passcode").
   Future<void> disableLock() async {

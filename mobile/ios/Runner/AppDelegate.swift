@@ -3,25 +3,19 @@ import UIKit
 import FirebaseCore
 import FirebaseAuth
 
+/// Classic AppDelegate lifecycle. UIScene + [FlutterImplicitEngineDelegate] can leave the
+/// simulator with a black screen and no VM service on iOS 26+ (flutter/flutter#186572).
 @main
-@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+@objc class AppDelegate: FlutterAppDelegate {
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    configureFirebaseIfNeeded()
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-  }
-
-  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
-    configureFirebaseIfNeeded()
-    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-  }
-
-  private func configureFirebaseIfNeeded() {
     if FirebaseApp.app() == nil {
       FirebaseApp.configure()
     }
+    GeneratedPluginRegistrant.register(with: self)
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   override func application(
@@ -39,7 +33,7 @@ import FirebaseAuth
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
-    if Auth.auth().canHandle(url) {
+    if FirebaseApp.app() != nil, Auth.auth().canHandle(url) {
       return true
     }
     return super.application(app, open: url, options: options)

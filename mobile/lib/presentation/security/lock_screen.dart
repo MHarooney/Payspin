@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_lock_keypad.dart';
@@ -164,21 +163,21 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                     children: [
                       Text(
                         'Welcome back.',
-                        style: GoogleFonts.raleway(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: PayspinTokens.textPrimary,
-                        ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: PayspinTokens.textPrimary,
+                            ),
                       ),
                       if (_name.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
                           _name,
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(
-                            fontSize: 15,
-                            color: PayspinTokens.textMuted,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontSize: 15,
+                                color: PayspinTokens.textMuted,
+                              ),
                         ),
                       ],
                     ],
@@ -203,7 +202,10 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                   child: _notice != null
                       ? Text(
                           _notice!,
-                          style: GoogleFonts.inter(fontSize: 12, color: PayspinTokens.mustard),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontSize: 12,
+                                color: PayspinTokens.mustard,
+                              ),
                         )
                       : null,
                 ),
@@ -229,11 +231,11 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                   ),
                   child: Text(
                     'Forgot your passcode?',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: PayspinTokens.pink,
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: PayspinTokens.pink,
+                        ),
                   ),
                 ),
                 const SizedBox(height: 20),
