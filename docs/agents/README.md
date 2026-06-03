@@ -11,6 +11,7 @@ Quick index for AI agents working on Payspin.
 5. [mobile-implementation-prompt.md](mobile-implementation-prompt.md) — full agent prompt for **Payspin-mobile** repo (payment links + Circles/Groepies)
 5b. [mobile-ui-ux-enhancement-prompt.md](mobile-ui-ux-enhancement-prompt.md) — **UI/UX polish** to match dark prototype (all screens)
 5c. [payment-notifications-yapily-prompt.md](payment-notifications-yapily-prompt.md) — **Yapily webhooks, Firebase (FCM/SMS/in-app), Shorebird OTA, payer polling, IBAN routing** — full cloud E2E ([Shorebird org 49026](https://console.shorebird.dev/orgs/49026/apps))
+5d. [mobile-otp-debug-prompt.md](mobile-otp-debug-prompt.md) — **Firebase Phone OTP on iPhone** — stale restore, SMS autofill, mobile-mcp device testing
 6. [circles-implementation-prompt.md](circles-implementation-prompt.md) — Circles/Groepies backend + mobile (Phase 2–3)
 7. [circles-contribution-mvp.md](circles-contribution-mvp.md) — round contribution via MULTI payment links
 8. [circles-phase3-blockchain-prompt.md](circles-phase3-blockchain-prompt.md) — **Monerium + blockchain + all missing Circles features**

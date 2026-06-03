@@ -6,7 +6,7 @@ abstract final class ApiConfig {
 
   /// Production VM (Hetzner). Used as the debug default so simulator runs work
   /// without passing dart-define on every launch.
-  static const String productionUrl = 'http://178.105.118.225/v1';
+  static const String productionUrl = 'https://pay.payspin.io/v1';
 
   static const String _localUrl = 'http://localhost:3001/v1';
 

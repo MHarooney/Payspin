@@ -39,6 +39,17 @@
       ],
       "env": {}
     },
+    "mobile-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mobilenext/mobile-mcp@latest"
+      ],
+      "env": {
+        "GO_IOS_PATH": "/Users/mahmoudalharoon/Desktop/Payspin/scripts/dev/ios-mcp-wrapper.sh"
+      }
+    },
     "notion": {
       "type": "http",
       "url": "https://mcp.notion.com/mcp"

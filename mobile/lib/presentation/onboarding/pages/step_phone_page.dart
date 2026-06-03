@@ -21,11 +21,27 @@ class _StepPhonePageState extends State<StepPhonePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeRestoreDraft());
     final draft = context.read<OnboardingCubit>().state;
     _country = isSupportedPhoneCountryCode(draft.countryCode)
         ? draft.countryCode
         : kDefaultPhoneCountryCode;
     _phone = TextEditingController(text: draft.phone);
+  }
+
+  /// Cold-start restore: splash may route here with an empty cubit when phone
+  /// was saved but Firebase never returned a verification id.
+  Future<void> _maybeRestoreDraft() async {
+    final cubit = context.read<OnboardingCubit>();
+    if (cubit.state.phone.trim().isNotEmpty) return;
+    final progress = await cubit.restorePhoneProgress();
+    if (!mounted || progress == null) return;
+    setState(() {
+      _country = isSupportedPhoneCountryCode(progress.countryCode)
+          ? progress.countryCode
+          : kDefaultPhoneCountryCode;
+      _phone.text = progress.phone;
+    });
   }
 
   @override

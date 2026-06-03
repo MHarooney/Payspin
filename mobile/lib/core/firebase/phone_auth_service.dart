@@ -12,15 +12,30 @@ class PhoneAuthService {
 
   final PayspinApiClient _api;
   String? _verificationId;
+  int? _forceResendingToken;
 
   bool get available => FirebaseBootstrap.available;
 
+  /// The Firebase `verificationId` from the last [sendCode], if any. Persisted
+  /// by the OTP flow so it survives an app restart during reCAPTCHA.
+  String? get pendingVerificationId => _verificationId;
+
+  /// Re-seeds the verification id after a cold start so [confirmCode] can run
+  /// without re-triggering reCAPTCHA. The id may have expired server-side, in
+  /// which case [confirmCode] fails gracefully and the user can resend.
+  void restorePendingVerification(String verificationId) {
+    _verificationId = verificationId;
+  }
+
   /// Kicks off SMS delivery. Callbacks mirror Firebase's verifyPhoneNumber.
+  /// Pass [forceResending] true when the user taps Resend (uses Firebase's
+  /// resend token from the prior [codeSent] callback).
   Future<void> sendCode(
     String phoneE164, {
     required void Function() onCodeSent,
     required void Function(String message) onError,
     void Function()? onAutoVerified,
+    bool forceResending = false,
   }) async {
     if (!available) {
       onError('Phone verification is not available');
@@ -29,15 +44,22 @@ class PhoneAuthService {
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: phoneE164,
+        forceResendingToken: forceResending ? _forceResendingToken : null,
         verificationCompleted: (credential) async {
           try {
             await FirebaseAuth.instance.signInWithCredential(credential);
             onAutoVerified?.call();
-          } catch (_) {/* fall through to manual entry */}
+          } catch (e) {
+            debugPrint('PhoneAuth auto-verify signIn failed: $e');
+          }
         },
-        verificationFailed: (e) => onError(e.message ?? 'Verification failed'),
-        codeSent: (verificationId, _) {
+        verificationFailed: (e) {
+          debugPrint('PhoneAuth verificationFailed: ${e.code} ${e.message}');
+          onError(e.message ?? 'Verification failed');
+        },
+        codeSent: (verificationId, forceResendingToken) {
           _verificationId = verificationId;
+          _forceResendingToken = forceResendingToken;
           onCodeSent();
         },
         codeAutoRetrievalTimeout: (verificationId) {
@@ -45,14 +67,21 @@ class PhoneAuthService {
         },
       );
     } catch (e) {
+      debugPrint('PhoneAuth sendCode failed: $e');
       onError('$e');
     }
   }
 
   /// Verifies the entered SMS code. Returns true when Firebase accepts it.
   /// If a Payspin session already exists, also associates the phone server-side.
+  /// True when [confirmCode] can run (Firebase initialized and id present).
+  bool get canConfirmCode => available && _verificationId != null;
+
   Future<bool> confirmCode(String smsCode) async {
-    if (!available || _verificationId == null) return false;
+    if (!available || _verificationId == null) {
+      debugPrint('confirmCode: no verificationId (available=$available)');
+      return false;
+    }
     try {
       final credential = PhoneAuthProvider.credential(
         verificationId: _verificationId!,
@@ -61,6 +90,9 @@ class PhoneAuthService {
       await FirebaseAuth.instance.signInWithCredential(credential);
       await _associateIfSignedIn();
       return true;
+    } on FirebaseAuthException catch (e) {
+      debugPrint('confirmCode FirebaseAuthException: ${e.code} ${e.message}');
+      return false;
     } catch (e) {
       debugPrint('confirmCode failed: $e');
       return false;

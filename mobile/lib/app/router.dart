@@ -26,16 +26,18 @@ import '../presentation/security/setup_lock_page.dart';
 import '../presentation/send/send_amount_page.dart';
 import '../presentation/send/send_name_page.dart';
 import '../presentation/shell/main_shell.dart';
+import '../presentation/splash/splash_page.dart';
 import '../presentation/welcome/welcome_page.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
 
-GoRouter createRouter() {
+GoRouter createRouter({String initialLocation = '/splash'}) {
   return GoRouter(
     navigatorKey: _rootKey,
-    initialLocation: '/welcome',
+    initialLocation: initialLocation,
     redirect: _redirect,
     routes: [
+      GoRoute(path: '/splash', builder: (_, __) => const SplashPage()),
       GoRoute(path: '/welcome', builder: (_, __) => const WelcomePage()),
       GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
       ShellRoute(
@@ -94,7 +96,10 @@ GoRouter createRouter() {
 
 Future<String?> _redirect(BuildContext context, GoRouterState state) async {
   final loc = state.matchedLocation;
-  if (loc == '/welcome' || loc.startsWith('/onboarding') || loc == '/login') {
+  if (loc == '/splash' ||
+      loc == '/welcome' ||
+      loc.startsWith('/onboarding') ||
+      loc == '/login') {
     return null;
   }
 

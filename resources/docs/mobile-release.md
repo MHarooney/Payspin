@@ -43,12 +43,12 @@ Always pin the production API so testers hit the live VM:
 ```bash
 cd mobile
 shorebird release android --artifact apk \
-  --dart-define=API_URL=http://178.105.118.225/v1
+  --dart-define=API_URL=https://pay.payspin.io/v1
 # Output APK → copy to mobile/dist/ for sideload testers (dist/ is gitignored)
 
 # iOS (once signing is unblocked, team 5HNF7DY6G7)
 shorebird release ios \
-  --dart-define=API_URL=http://178.105.118.225/v1 \
+  --dart-define=API_URL=https://pay.payspin.io/v1 \
   --export-options-plist=ios/ExportOptions.plist
 ```
 

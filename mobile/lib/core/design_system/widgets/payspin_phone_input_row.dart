@@ -197,7 +197,9 @@ class _CountryPill extends StatelessWidget {
   }
 }
 
-class _CountryDropdown extends StatelessWidget {
+/// Country picker body shown in the overlay: a search field (filters by name,
+/// ISO, or dial code via [PhoneCountry.matchesQuery]) over the country list.
+class _CountryDropdown extends StatefulWidget {
   const _CountryDropdown({
     required this.selected,
     required this.onPick,
@@ -207,6 +209,40 @@ class _CountryDropdown extends StatelessWidget {
   final PhoneCountry selected;
   final ValueChanged<PhoneCountry> onPick;
   final double maxHeight;
+
+  @override
+  State<_CountryDropdown> createState() => _CountryDropdownState();
+}
+
+class _CountryDropdownState extends State<_CountryDropdown> {
+  final TextEditingController _search = TextEditingController();
+  final FocusNode _searchFocus = FocusNode();
+  List<PhoneCountry> _results = kPhoneCountries;
+
+  @override
+  void initState() {
+    super.initState();
+    _search.addListener(_onQueryChanged);
+    // Open straight into search so a user can type the country immediately.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocus.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _search.removeListener(_onQueryChanged);
+    _search.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  void _onQueryChanged() {
+    final query = _search.text;
+    setState(() {
+      _results = kPhoneCountries.where((c) => c.matchesQuery(query)).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -219,50 +255,114 @@ class _CountryDropdown extends StatelessWidget {
         side: const BorderSide(color: PayspinTokens.border),
       ),
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: ListView.separated(
-          padding: const EdgeInsets.all(6),
-          shrinkWrap: true,
-          itemCount: kPhoneCountries.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 2),
-          itemBuilder: (context, index) {
-            final country = kPhoneCountries[index];
-            return Material(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(10),
-              child: InkWell(
-                onTap: () => onPick(country),
-                borderRadius: BorderRadius.circular(10),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  child: Row(
-                    children: [
-                      Text(country.flagEmoji, style: const TextStyle(fontSize: 18)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          country.name,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: PayspinTokens.textPrimary,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        country.dialCode,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: PayspinTokens.textMuted,
-                        ),
-                      ),
-                    ],
+        constraints: BoxConstraints(maxHeight: widget.maxHeight),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildSearchField(),
+            Flexible(
+              child: _results.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+                      shrinkWrap: true,
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      itemCount: _results.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 2),
+                      itemBuilder: (context, index) =>
+                          _buildCountryRow(_results[index]),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return Padding(
+      padding: const EdgeInsets.all(6),
+      child: TextField(
+        controller: _search,
+        focusNode: _searchFocus,
+        style: GoogleFonts.inter(fontSize: 14, color: PayspinTokens.textPrimary),
+        cursorColor: PayspinTokens.mint,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: 'Search country or code',
+          hintStyle: GoogleFonts.inter(fontSize: 14, color: PayspinTokens.textHint),
+          prefixIcon: const Icon(Icons.search_rounded, size: 18, color: PayspinTokens.textMuted),
+          prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          filled: true,
+          fillColor: PayspinTokens.glass,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
+            borderSide: const BorderSide(color: PayspinTokens.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
+            borderSide: const BorderSide(color: PayspinTokens.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
+            borderSide: const BorderSide(color: PayspinTokens.mint),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+      child: Text(
+        'No countries found',
+        style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted),
+      ),
+    );
+  }
+
+  Widget _buildCountryRow(PhoneCountry country) {
+    final isSelected = country.dialCode == widget.selected.dialCode;
+    return Material(
+      color: isSelected ? PayspinTokens.surfaceMuted : Colors.transparent,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: () => widget.onPick(country),
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Text(country.flagEmoji, style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  country.name,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: PayspinTokens.textPrimary,
                   ),
                 ),
               ),
-            );
-          },
+              Text(
+                country.dialCode,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: isSelected ? PayspinTokens.mint : PayspinTokens.textMuted,
+                ),
+              ),
+              if (isSelected) ...[
+                const SizedBox(width: 8),
+                const Icon(Icons.check_rounded, size: 16, color: PayspinTokens.mint),
+              ],
+            ],
+          ),
         ),
       ),
     );

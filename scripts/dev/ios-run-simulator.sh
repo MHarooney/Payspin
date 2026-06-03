@@ -9,7 +9,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 MOBILE="$ROOT/mobile"
 DEVICE_NAME="${1:-iPhone 17 Pro}"
-API_URL="${API_URL:-http://178.105.118.225/v1}"
+API_URL="${API_URL:-https://pay.payspin.io/v1}"
 
 cd "$MOBILE"
 

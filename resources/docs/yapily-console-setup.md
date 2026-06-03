@@ -18,11 +18,11 @@ http://localhost:3000/*/callback
 http://localhost:3001/v1/bank-accounts/connect/callback
 ```
 
-Production (Hetzner VM, app `53b0d904-21b3-41a7-ba2b-e440ab460bf9`):
+Production (`pay.payspin.io`, app `53b0d904-21b3-41a7-ba2b-e440ab460bf9`):
 
 ```
-http://178.105.118.225/v1/bank-accounts/connect/callback
-http://178.105.118.225/*/callback
+https://pay.payspin.io/v1/bank-accounts/connect/callback
+https://pay.payspin.io/*/callback
 ```
 
 Payer web uses `PAYER_WEB_URL` + `/{shortCode}/callback?paymentId=…` (see `backend/.env`).
@@ -41,7 +41,7 @@ payee's payment flips to `COMPLETED` is the Yapily webhook.
 
 1. Console → Webhooks → add endpoint:
    - Local (via tunnel): `https://<ngrok-host>/v1/webhooks/yapily`
-   - **Production:** `http://178.105.118.225/v1/webhooks/yapily`
+   - **Production:** `https://pay.payspin.io/v1/webhooks/yapily`
 2. Subscribe to payment status events.
 3. Copy the signing secret → server env `YAPILY_WEBHOOK_SECRET`
    (`/opt/payspin/.env.production`), then restart the API.
@@ -104,6 +104,76 @@ curl -u "$YAPILY_APP_KEY:$YAPILY_APP_SECRET" https://api.yapily.com/institutions
 ```
 
 UK sandbox bank (Modelo): institution `modelo-sandbox`, login `mits` / `mits`.
+
+## 8. Going live with real NL/DE banks (N26, ING, ABN AMRO, …)
+
+**Current state (verified via API 2026-06-04):** app `53b0d904-21b3-41a7-ba2b-e440ab460bf9`
+is **Type: `Direct`**. `GET /institutions` returns **only** `modelo-sandbox`.
+Real banks fail to start a consent:
+
+```
+POST /account-auth-requests {"institutionId":"n26"}
+→ 404 "Institution credentials not found for application '53b0d904…' and institution 'n26'"
+```
+
+`n26` exists in the catalog (LIVE, covers DE/NL/AT/FR/ES/IT, `credentialsType: OPEN_BANKING_NO_KEY`)
+but a **Direct** app must register every live bank with its **own eIDAS QWAC/QSEAL
+certificates** (Console → Certificates). That requires an AISP licence/agency.
+
+### Recommended: convert to **Yapily Connect**
+
+Yapily Connect uses Yapily's regulatory licence + certificates, so we don't need
+our own certs — they add the institutions on our behalf and they become available
+immediately. This **cannot** be self-served from a Direct app; raise it with Yapily.
+
+> Channel: [Yapily support](https://support.yapily.com/hc/en-gb/requests/new)
+> (Console → *Contact support*) or your account manager.
+
+**Request template (copy/paste):**
+
+```
+Subject: Convert Direct app to Yapily Connect + enable NL/DE institutions
+
+Hi Yapily team,
+
+We'd like to move our application to Yapily Connect so we can connect live
+accounts without holding our own eIDAS certificates.
+
+  • Application name: Payspin
+  • Application UUID: 53b0d904-21b3-41a7-ba2b-e440ab460bf9
+  • Current type: Direct
+  • Use case: AIS only (account verification / ownership for a P2P payment-link
+    app — we are non-custodial, no funds held). PIS may follow later.
+
+Please convert this app to Yapily Connect (or advise the correct app to use) and
+enable the following live institutions for AIS:
+
+  Netherlands: ING, ABN AMRO, Rabobank, bunq, SNS, ASN, Knab, Revolut, N26
+  Germany:     N26, Deutsche Bank, Commerzbank, Sparkasse, DKB, ING-DiBa,
+               Revolut, Postbank
+
+Also confirm our OB redirect host. We currently use the default
+https://auth.yapily.com/ and our AIS callback is
+https://pay.payspin.io/v1/bank-accounts/connect/callback
+(production). Let us know if a custom redirect or any allow-listing is required.
+
+Thanks!
+```
+
+### Verify once enabled
+
+Re-run the smoke check — DE/NL banks (incl. `n26`) should now appear:
+
+```bash
+AUTH=$(printf "$YAPILY_APP_KEY:$YAPILY_APP_SECRET" | base64)
+curl -s -H "Authorization: Basic $AUTH" "https://api.yapily.com/institutions?country=NL" \
+  | python3 -c "import sys,json;d=json.load(sys.stdin)['data'];print(len(d),'NL banks');[print(' ',i['id'],i['name']) for i in d]"
+curl -s -H "Authorization: Basic $AUTH" "https://api.yapily.com/institutions?country=DE" \
+  | python3 -c "import sys,json;d=json.load(sys.stdin)['data'];print(len(d),'DE banks')"
+```
+
+The mobile **Connect bank** screen already has a NL/DE/GB country selector and passes
+the chosen `institutionId`, so users can pick N26 etc. the moment the list is non-empty.
 
 ## Browser automation
 

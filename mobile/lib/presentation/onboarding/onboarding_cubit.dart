@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/errors/api_exception.dart';
 import '../../core/firebase/phone_auth_service.dart';
+import '../../core/onboarding/onboarding_progress.dart';
+import '../../core/onboarding/onboarding_progress_store.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/complete_onboarding_usecase.dart';
 import '../../domain/usecases/validate_iban_usecase.dart';
@@ -16,16 +18,19 @@ class OnboardingCubit extends Cubit<OnboardingDraft> {
     required ValidateIbanUseCase validateIban,
     required CompleteOnboardingUseCase completeOnboarding,
     required AuthRepository authRepository,
+    required OnboardingProgressStore progressStore,
   })  : _verifyOtp = verifyOtp,
         _validateIban = validateIban,
         _completeOnboarding = completeOnboarding,
         _auth = authRepository,
+        _progressStore = progressStore,
         super(const OnboardingDraft());
 
   final VerifyOtpUseCase _verifyOtp;
   final ValidateIbanUseCase _validateIban;
   final CompleteOnboardingUseCase _completeOnboarding;
   final AuthRepository _auth;
+  final OnboardingProgressStore _progressStore;
 
   String? lastError;
   bool isLoading = false;
@@ -46,6 +51,41 @@ class OnboardingCubit extends Cubit<OnboardingDraft> {
 
   /// Marks the phone verified after a successful real (Firebase) SMS check.
   void markPhoneVerified() => emit(state.copyWith(otpVerified: true));
+
+  /// Persists the current phone step so the OTP screen can be restored after an
+  /// app restart triggered by the external reCAPTCHA flow.
+  Future<void> savePhoneProgress({
+    String? verificationId,
+    required bool codeSent,
+  }) {
+    return _progressStore.save(
+      OnboardingProgress(
+        countryCode: state.countryCode,
+        phone: state.phone,
+        displayName: state.displayName,
+        verificationId: verificationId,
+        codeSent: codeSent,
+        savedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  /// Rehydrates the draft from a persisted in-progress verification on cold
+  /// start. Returns the loaded progress (with [OnboardingProgress.verificationId])
+  /// or null when there is nothing valid to restore.
+  Future<OnboardingProgress?> restorePhoneProgress() async {
+    final progress = await _progressStore.load();
+    if (progress == null) return null;
+    emit(state.copyWith(
+      countryCode: progress.countryCode,
+      phone: progress.phone,
+      displayName: progress.displayName,
+    ));
+    return progress;
+  }
+
+  /// Drops any persisted phone progress (after success or explicit back/cancel).
+  Future<void> clearPhoneProgress() => _progressStore.clear();
 
   /// Creates a Payspin session from the verified phone (no email step in UI).
   Future<bool> ensureAccountFromPhone(PhoneAuthService phoneAuth) async {

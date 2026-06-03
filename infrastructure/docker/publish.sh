@@ -13,6 +13,18 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
+# Optional: pause other local Docker stacks before a heavy build.
+# Set EVOLMS_PRE_BUILD=0 to skip (e.g. when the hook hangs).
+if [[ -z "${EVOLMS_PRE_BUILD+set}" ]]; then
+  EVOLMS_PRE_BUILD="${HOME}/Desktop/evo-lms/scripts/lib/pre-docker-build.sh"
+fi
+if [[ -n "$EVOLMS_PRE_BUILD" && "$EVOLMS_PRE_BUILD" != "0" && -f "$EVOLMS_PRE_BUILD" ]]; then
+  # shellcheck source=/dev/null
+  source "$EVOLMS_PRE_BUILD"
+  pre_docker_build_pause
+  trap pre_docker_build_restore EXIT
+fi
+
 cd "$ROOT"
 
 echo "==> Building ${API_IMAGE} (${DOCKER_PLATFORM})"

@@ -13,7 +13,7 @@ EXPORT_PLIST="$MOBILE/ios/ExportOptions.plist"
 TEAM_ID="5HNF7DY6G7"
 BUNDLE_ID="payspin.app"
 
-API_URL="${API_URL:-http://178.105.118.225/v1}"
+API_URL="${API_URL:-https://pay.payspin.io/v1}"
 
 SERIAL="$("$BUMP" current)"
 BUILD_NUM="$(grep "static const int buildNumber" "$MOBILE/lib/core/config/app_version.dart" \

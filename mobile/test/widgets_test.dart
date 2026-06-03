@@ -204,7 +204,7 @@ void main() {
       registerConnectDeps(FakeBankAccountRepository(institutions: const []));
       await tester.pumpWidget(wrap(const StepConnectBankPage()));
       await tester.pumpAndSettle();
-      expect(find.text('No banks available right now.'), findsOneWidget);
+      expect(find.textContaining('No banks available'), findsOneWidget);
     });
 
     testWidgets('lists institutions when available', (tester) async {

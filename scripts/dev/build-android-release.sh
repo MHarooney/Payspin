@@ -16,7 +16,7 @@ MOBILE="$ROOT/mobile"
 DIST="$MOBILE/dist"
 BUMP="$ROOT/scripts/dev/bump-mobile-version.sh"
 
-API_URL="${API_URL:-http://178.105.118.225/v1}"
+API_URL="${API_URL:-https://pay.payspin.io/v1}"
 
 # integration_test is dev-only; strip it if a prior debug build left it in the registrant.
 sanitize_android_plugins() {

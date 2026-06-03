@@ -72,4 +72,51 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Belgium'), findsNothing);
   });
+
+  Finder searchField() => find.ancestor(
+        of: find.byIcon(Icons.search_rounded),
+        matching: find.byType(TextField),
+      );
+
+  testWidgets('search filters the country list by name', (tester) async {
+    await pumpRow(tester, onDialCodeChanged: (_) {});
+
+    await tester.tap(find.text('+31'));
+    await tester.pumpAndSettle();
+    expect(find.text('Germany'), findsOneWidget);
+
+    await tester.enterText(searchField(), 'egypt');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Egypt'), findsOneWidget);
+    expect(find.text('Germany'), findsNothing);
+  });
+
+  testWidgets('search by dial code, then selecting updates the code', (tester) async {
+    String? picked;
+    await pumpRow(tester, onDialCodeChanged: (v) => picked = v);
+
+    await tester.tap(find.text('+31'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(searchField(), '+20');
+    await tester.pumpAndSettle();
+    expect(find.text('Egypt'), findsOneWidget);
+
+    await tester.tap(find.text('Egypt'));
+    await tester.pumpAndSettle();
+    expect(picked, '+20');
+  });
+
+  testWidgets('shows an empty state when nothing matches', (tester) async {
+    await pumpRow(tester, onDialCodeChanged: (_) {});
+
+    await tester.tap(find.text('+31'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(searchField(), 'zzzzz');
+    await tester.pumpAndSettle();
+
+    expect(find.text('No countries found'), findsOneWidget);
+  });
 }
