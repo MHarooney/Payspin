@@ -87,26 +87,47 @@ class OnboardingCubit extends Cubit<OnboardingDraft> {
   /// Drops any persisted phone progress (after success or explicit back/cancel).
   Future<void> clearPhoneProgress() => _progressStore.clear();
 
-  /// Creates a Payspin session from the verified phone (no email step in UI).
+  /// Creates (or resumes) a Payspin session from the verified phone.
+  ///
+  /// The verified Firebase E.164 number is the account identity: the backend
+  /// `/auth/phone` endpoint logs into the existing account when the number is
+  /// already registered, so re-onboarding the same phone never spawns a
+  /// duplicate account. Falls back to the legacy synthetic-email register only
+  /// when Firebase is unavailable (e.g. local dev without phone auth).
   Future<bool> ensureAccountFromPhone(PhoneAuthService phoneAuth) async {
     isLoading = true;
     lastError = null;
     try {
-      if (!await _auth.hasSession()) {
-        final digits = state.phone.replaceAll(RegExp(r'\D'), '');
-        if (digits.length < 6) {
-          lastError = 'Enter a valid phone number';
-          return false;
-        }
-        final email = '$digits@phone.payspin.app';
-        final password = _generatePassword();
-        await _auth.register(
-          email: email,
-          password: password,
+      if (await _auth.hasSession()) {
+        await phoneAuth.syncVerifiedPhone();
+        return true;
+      }
+
+      final idToken = await phoneAuth.currentIdToken();
+      if (idToken != null) {
+        await _auth.phoneSignIn(
+          idToken: idToken,
           displayName: state.displayName.trim().isEmpty ? null : state.displayName.trim(),
         );
-        emit(state.copyWith(email: email, password: password));
+        return true;
       }
+
+      // Firebase unavailable: legacy path keeps local dev / demo onboarding
+      // working. Identity here is the typed digits, which is acceptable only
+      // because real (Firebase-backed) builds always take the path above.
+      final digits = state.phone.replaceAll(RegExp(r'\D'), '');
+      if (digits.length < 6) {
+        lastError = 'Enter a valid phone number';
+        return false;
+      }
+      final email = '$digits@phone.payspin.app';
+      final password = _generatePassword();
+      await _auth.register(
+        email: email,
+        password: password,
+        displayName: state.displayName.trim().isEmpty ? null : state.displayName.trim(),
+      );
+      emit(state.copyWith(email: email, password: password));
       await phoneAuth.syncVerifiedPhone();
       return true;
     } catch (e) {

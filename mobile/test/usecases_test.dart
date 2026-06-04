@@ -37,6 +37,9 @@ class _FakeAuthRepo implements AuthRepository {
   Future<AuthSession> login({required String email, required String password}) =>
       throw UnimplementedError();
   @override
+  Future<AuthSession> phoneSignIn({required String idToken, String? displayName}) =>
+      throw UnimplementedError();
+  @override
   Future<void> signOut() async {}
 }
 

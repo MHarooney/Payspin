@@ -9,12 +9,15 @@ import '../../core/design_system/widgets/payspin_gradient_text.dart';
 import '../../core/design_system/widgets/payspin_logo.dart';
 import '../../core/design_system/widgets/payspin_radial_glow.dart';
 import '../../core/onboarding/onboarding_progress_store.dart';
+import '../../domain/repositories/auth_repository.dart';
 
 /// Animated brand splash shown on cold start. Plays a short logo/wordmark
-/// entrance over the dark glow, then routes to the next screen — restoring an
-/// in-progress phone verification (see [OnboardingProgressStore]) so an app
-/// restart during Firebase reCAPTCHA returns the user to the OTP step instead
-/// of Welcome.
+/// entrance over the dark glow, then routes to the next screen:
+///   1. an in-progress phone verification (see [OnboardingProgressStore]) so an
+///      app restart during Firebase reCAPTCHA returns to the OTP step, else
+///   2. `/home` when a stored session exists (returning user — the router then
+///      sorts out empty banks), else
+///   3. `/welcome` for first-time/logged-out users.
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key, this.minimumDuration = const Duration(milliseconds: 1900)});
 
@@ -66,6 +69,13 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
         next = '/onboarding/otp';
       } else if (progress?.shouldRestorePhone == true) {
         next = '/onboarding/phone';
+      } else {
+        // Returning user: a persisted JWT means we should land on home, not
+        // Welcome. Bound the keychain read like above so a hang can't block.
+        final hasSession = await sl<AuthRepository>()
+            .hasSession()
+            .timeout(const Duration(seconds: 2), onTimeout: () => false);
+        if (hasSession) next = '/home';
       }
     } catch (_) {
       // Storage unavailable — fall back to the default route.

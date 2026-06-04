@@ -54,6 +54,53 @@ shorebird release ios \
 
 The `--release-version` is taken from `pubspec.yaml` (`0.1.0+1`).
 
+## iOS TestFlight (external testers, all CLI)
+
+For friends/beta users who are **not** on the dev provisioning profile. Requires a
+one-time App Store Connect app for `payspin.app` and an **Apple Distribution**
+certificate (Xcode → Accounts → payspin.app@gmail.com).
+
+**App-specific password** (for upload — never commit):
+
+```bash
+# appleid.apple.com → App-Specific Passwords
+security add-generic-password -a payspin.app@gmail.com -s AC_PASSWORD -w 'xxxx-xxxx-xxxx-xxxx'
+```
+
+**Build + upload in one command:**
+
+```bash
+./scripts/dev/build-ios-testflight.sh
+```
+
+Build only (no upload):
+
+```bash
+SKIP_UPLOAD=1 ./scripts/dev/build-ios-testflight.sh
+```
+
+Force upload with env var instead of Keychain:
+
+```bash
+UPLOAD=1 APPLE_UPLOAD_PASSWORD='xxxx-xxxx-xxxx-xxxx' ./scripts/dev/build-ios-testflight.sh
+```
+
+Output: `mobile/dist/payspin-{SERIAL}-testflight.ipa` → symlink `payspin-latest-testflight.ipa`.
+
+After upload, wait ~5–15 min for processing, then in [App Store Connect → TestFlight](https://appstoreconnect.apple.com):
+- **Internal testing** — team members (fast)
+- **External testing** — add tester emails; Apple beta review required once per build
+
+Optional — invite testers via fastlane:
+
+```bash
+brew install fastlane
+cd mobile/ios && fastlane pilot add tester@example.com
+```
+
+**Dev-only sideload** (your registered device): `./scripts/dev/build-ios-release.sh`
+(uses `ExportOptions.plist` / `development`).
+
 ## Pushing an OTA patch
 
 After a Dart-only change (e.g. notification copy, inbox layout):

@@ -2,6 +2,50 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:payspin_mobile/data/mappers/api_mappers.dart';
 
 void main() {
+  group('mapUser', () {
+    test('maps the verified phone number and flag from /users/me', () {
+      final user = mapUser({
+        'id': 'u1',
+        'email': '31612345678@phone.payspin.app',
+        'displayName': 'Jane Doe',
+        'phoneE164': '+31612345678',
+        'phoneVerified': true,
+        'createdAt': '2026-01-01T10:00:00.000Z',
+      });
+      expect(user.phoneE164, '+31612345678');
+      expect(user.phoneVerified, isTrue);
+      expect(user.isPhoneAccount, isTrue);
+      // The profile must show the real phone, never the synthetic login email
+      // (which is just raw digits and gets mistaken for the IBAN).
+      expect(user.contactLabel, '+31612345678');
+    });
+
+    test('defaults phone fields when the API omits them', () {
+      final user = mapUser({
+        'id': 'u2',
+        'email': 'real@example.com',
+        'displayName': 'Real User',
+        'createdAt': '2026-01-01T10:00:00.000Z',
+      });
+      expect(user.phoneE164, isNull);
+      expect(user.phoneVerified, isFalse);
+      expect(user.isPhoneAccount, isFalse);
+      // Email-registered users still see their email under the name.
+      expect(user.contactLabel, 'real@example.com');
+    });
+
+    test('hides the synthetic phone-login email when no E.164 is present', () {
+      final user = mapUser({
+        'id': 'u3',
+        'email': '31600000000@phone.payspin.app',
+        'createdAt': '2026-01-01T10:00:00.000Z',
+      });
+      expect(user.isPhoneAccount, isTrue);
+      expect(user.contactLabel, isEmpty);
+    });
+  });
+
+
   group('mapPaymentLink', () {
     test('maps all fields including the new MULTI/expiry parity fields', () {
       final link = mapPaymentLink({

@@ -45,6 +45,14 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<AuthSession> phoneSignIn({required String idToken, String? displayName}) async {
+    final json = await _api.phoneSignIn(idToken: idToken, displayName: displayName);
+    final session = mapAuthSession(json);
+    _cachedUser = session.user;
+    return session;
+  }
+
+  @override
   Future<void> signOut() async {
     await _api.signOut();
     _cachedUser = null;

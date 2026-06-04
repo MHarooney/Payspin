@@ -9,6 +9,8 @@ User mapUser(Map<String, dynamic> json) => User(
       id: json['id'] as String,
       email: json['email'] as String,
       displayName: json['displayName'] as String?,
+      phoneE164: json['phoneE164'] as String?,
+      phoneVerified: json['phoneVerified'] as bool? ?? false,
       createdAt: json['createdAt'] as String,
     );
 

@@ -14,11 +14,14 @@ void main() {
     await tester.pump(); // splash first frame
     expect(find.text('Payspin'), findsWidgets); // brand splash on screen
 
-    // No persisted onboarding progress → after the storage check and the
-    // minimum on-screen duration, the splash routes on to Welcome. Use fixed
-    // pumps (not pumpAndSettle): the splash glow animates forever.
-    await tester.pump(const Duration(milliseconds: 100)); // storage check
-    await tester.pump(const Duration(seconds: 2)); // minimum splash duration
+    // No persisted onboarding progress and no stored session → after the
+    // storage checks and the minimum on-screen duration, the splash routes on
+    // to Welcome. Use fixed pumps (not pumpAndSettle): the splash glow animates
+    // forever. Pump past the keychain read timeout used by the session check so
+    // no secure-storage timer is left pending when the tree is torn down.
+    await tester.pump(const Duration(milliseconds: 100)); // onboarding store check
+    await tester.pump(const Duration(seconds: 2)); // minimum splash + session check
+    await tester.pump(const Duration(seconds: 2)); // let the keychain read settle
     await tester.pump(const Duration(milliseconds: 500)); // build Welcome
 
     expect(find.text('Get started'), findsOneWidget);

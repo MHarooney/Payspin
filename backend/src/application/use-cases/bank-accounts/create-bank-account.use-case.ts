@@ -15,11 +15,24 @@ export class CreateBankAccountUseCase {
 
   async execute(userId: string, body: unknown): Promise<BankAccountSummary> {
     const parsed = createBankAccountSchema.parse(body);
+
+    // Idempotent on (user, IBAN): re-adding the same IBAN (e.g. an onboarding
+    // retry or re-run) returns the existing account instead of inserting a
+    // duplicate. IBANs are encrypted with a random IV so we can't match on
+    // ciphertext — decrypt the user's accounts and compare the normalized value.
+    const userAccounts = await this.prisma.bankAccount.findMany({ where: { userId } });
+    const duplicate = userAccounts.find(
+      (a) => this.encryption.decrypt(a.ibanEncrypted, a.ibanIv) === parsed.iban,
+    );
+    if (duplicate) {
+      return BankAccountsMapper.toSummary(duplicate);
+    }
+
     const { ciphertext, iv } = this.encryption.encrypt(parsed.iban);
 
     // The very first account a user adds becomes their primary; later additions
     // don't displace an existing primary (the user switches it explicitly).
-    const existingCount = await this.prisma.bankAccount.count({ where: { userId } });
+    const existingCount = userAccounts.length;
 
     const account = await this.prisma.bankAccount.create({
       data: {

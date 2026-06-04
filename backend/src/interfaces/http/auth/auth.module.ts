@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoginUserUseCase } from '../../../application/use-cases/auth/login-user.use-case';
+import { PhoneSignInUseCase } from '../../../application/use-cases/auth/phone-sign-in.use-case';
 import { RegisterUserUseCase } from '../../../application/use-cases/auth/register-user.use-case';
 import { VerifyPhoneUseCase } from '../../../application/use-cases/auth/verify-phone.use-case';
 import { AuthController } from './auth.controller';
@@ -31,7 +32,7 @@ import { AuthController } from './auth.controller';
     }),
   ],
   controllers: [AuthController],
-  providers: [RegisterUserUseCase, LoginUserUseCase, VerifyPhoneUseCase],
+  providers: [RegisterUserUseCase, LoginUserUseCase, VerifyPhoneUseCase, PhoneSignInUseCase],
   exports: [JwtModule],
 })
 export class AuthModule {}

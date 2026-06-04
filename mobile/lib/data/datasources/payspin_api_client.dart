@@ -80,6 +80,27 @@ class PayspinApiClient {
     return json;
   }
 
+  /// Phone-first sign-in/registration. The backend resolves the verified E.164
+  /// number in [idToken] to a single account (logging in if it already exists),
+  /// so re-onboarding the same phone never creates a duplicate.
+  Future<Map<String, dynamic>> phoneSignIn({
+    required String idToken,
+    String? displayName,
+  }) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/phone'),
+      headers: await _headers(auth: false),
+      body: jsonEncode({
+        'idToken': idToken,
+        if (displayName != null && displayName.isNotEmpty) 'displayName': displayName,
+      }),
+    ));
+    _ensureOk(res);
+    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    await _storage.write(json['accessToken'] as String);
+    return json;
+  }
+
   Future<void> signOut() => _storage.delete();
 
   Future<bool> hasToken() => _storage.hasToken();

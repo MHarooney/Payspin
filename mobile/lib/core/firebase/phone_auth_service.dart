@@ -99,6 +99,21 @@ class PhoneAuthService {
     }
   }
 
+  /// The Firebase ID token for the currently phone-verified user, or null when
+  /// Firebase is unavailable or no phone sign-in has happened. Used to exchange
+  /// the verified phone for a Payspin session via `/auth/phone`.
+  Future<String?> currentIdToken() async {
+    if (!available) return null;
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user?.phoneNumber == null) return null;
+      return await user!.getIdToken();
+    } catch (e) {
+      debugPrint('currentIdToken failed: $e');
+      return null;
+    }
+  }
+
   /// Best-effort: if the user is both Payspin-authenticated and Firebase
   /// phone-verified, persist the verified phone on their profile. Safe to call
   /// repeatedly (e.g. on app start after onboarding created the account).

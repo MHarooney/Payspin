@@ -80,7 +80,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   Future<void> _manageLock() async {
     if (!_lockEnabled) {
-      final name = _user?.displayName ?? _user?.email.split('@').first;
+      final displayName = _user?.displayName?.trim();
+      final name = (displayName != null && displayName.isNotEmpty)
+          ? displayName
+          : (_user != null && !_user!.isPhoneAccount)
+              ? _user!.email.split('@').first
+              : null;
       context.go('/security/setup', extra: name);
       return;
     }
@@ -284,8 +289,16 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator(color: PayspinTokens.pink));
 
-    final name = _user?.displayName ?? _user?.email.split('@').first ?? 'Payspin user';
+    final displayName = _user?.displayName?.trim();
+    // For phone accounts the email local-part is just raw digits, so fall back
+    // to a friendly default rather than showing a number where a name belongs.
+    final name = (displayName != null && displayName.isNotEmpty)
+        ? displayName
+        : (_user != null && !_user!.isPhoneAccount)
+            ? _user!.email.split('@').first
+            : 'Payspin user';
     final initial = name.isNotEmpty ? name[0].toUpperCase() : 'P';
+    final contact = _user?.contactLabel ?? '';
 
     return CustomScrollView(
       slivers: [
@@ -327,7 +340,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   ),
                   const SizedBox(height: 14),
                   Text(name, style: GoogleFonts.raleway(fontSize: 22, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
-                  Text(_user?.email ?? '', style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted)),
+                  if (contact.isNotEmpty)
+                    Text(contact, style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted)),
                 ],
               ),
               const SizedBox(height: 28),

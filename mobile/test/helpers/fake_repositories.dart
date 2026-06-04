@@ -122,6 +122,14 @@ class FakeAuthRepository implements AuthRepository {
   Future<AuthSession> login({required String email, required String password}) async =>
       AuthSession(accessToken: 't', user: User(id: 'u', email: email, displayName: null, createdAt: 'now'));
   @override
+  Future<AuthSession> phoneSignIn({required String idToken, String? displayName}) async {
+    session = true;
+    return AuthSession(
+      accessToken: 't',
+      user: User(id: 'u', email: 'phone@phone.payspin.app', displayName: displayName, createdAt: 'now'),
+    );
+  }
+  @override
   Future<void> signOut() async {}
   @override
   Future<User> updateDisplayName(String name) async =>

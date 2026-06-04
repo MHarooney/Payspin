@@ -43,6 +43,17 @@ export const verifyPhoneSchema = z.object({
   idToken: z.string().min(10).max(8192),
 });
 
+/**
+ * Sign in (or auto-register) using a Firebase Phone Auth ID token. The verified
+ * E.164 number inside the token is the account identity, so the same phone
+ * always resolves to the same Payspin account — no duplicate accounts when a
+ * user re-onboards. [displayName] is only applied when creating a new account.
+ */
+export const phoneSignInSchema = z.object({
+  idToken: z.string().min(10).max(8192),
+  displayName: z.string().min(1).max(100).optional(),
+});
+
 export const MAX_AMOUNT_CENTS = 999_999_999;
 
 export const createPaymentLinkSchema = z.object({
@@ -107,6 +118,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterDeviceTokenInput = z.infer<typeof registerDeviceTokenSchema>;
 export type ListNotificationsInput = z.infer<typeof listNotificationsSchema>;
 export type VerifyPhoneInput = z.infer<typeof verifyPhoneSchema>;
+export type PhoneSignInInput = z.infer<typeof phoneSignInSchema>;
 export type CreateBankAccountInput = z.infer<typeof createBankAccountSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type CreatePaymentLinkInput = z.infer<typeof createPaymentLinkSchema>;
