@@ -99,6 +99,42 @@ keytool -list -v -keystore ~/.android/debug.keystore \
 verification, so onboarding works on any APK/emulator immediately. Use these
 for QA builds; real numbers need the SHA + Play Integrity steps above.
 
+## 2b. iOS Phone Auth — reCAPTCHA "Verifying you're not a robot" ⚠️
+
+**Symptom:** After tapping **Next** on the phone step, Safari opens
+`payspin-mobile.firebaseapp.com` with *"Verifying you're not a robot…"*.
+
+**Why:** Firebase Phone Auth tries **silent device verification** first (APNs
+push to the app). When that fails, it falls back to a **reCAPTCHA web view**.
+Moving SMS off the OTP screen only changes *when* this runs — it does not remove
+reCAPTCHA unless silent verification succeeds.
+
+**Root cause in this repo (fixed in code):** The iOS target had
+`registerForRemoteNotifications()` in `AppDelegate` but **no Push Notifications
+entitlement** (`aps-environment`). Without it, iOS never delivers a usable APNs
+token → silent auth always fails → reCAPTCHA every time on TestFlight.
+
+**Fix checklist (`payspin.app@gmail.com`):**
+
+1. **Entitlements in Xcode** — `Runner/Runner.entitlements` (`production`) and
+   `RunnerDebug.entitlements` (`development`) are wired in the Runner target.
+   Re-open the project in Xcode once so **Signing & Capabilities** shows
+   **Push Notifications** (automatic signing adds it to the App ID).
+2. **Regenerate provisioning profiles** if you use manual Debug signing — the
+   profile must include the Push Notifications capability.
+3. **Firebase Console → Project settings → Cloud Messaging → Apple app
+   configuration** — upload the **APNs Authentication Key** (.p8) from Apple
+   Developer → Keys. Without this, Firebase cannot send the silent verification
+   push even when the app registers for notifications.
+4. **Rebuild and re-upload TestFlight** — entitlements are baked into the IPA;
+   V1.7f and earlier builds cannot pick this up retroactively.
+5. **QA bypass:** same **test phone numbers** as Android (step 2a) skip
+   reCAPTCHA entirely.
+
+**Expected after fix:** On a physical iPhone with Push enabled, tapping **Next**
+should send SMS with **no** Safari/reCAPTCHA sheet (you may see a brief system
+notification permission prompt on first launch).
+
 ### Stable distribution (recommended follow-up)
 
 The debug keystore is per-machine and not Play-Store valid. Create a dedicated
