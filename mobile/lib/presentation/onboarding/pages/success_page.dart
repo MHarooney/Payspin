@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/design_system/theme/payspin_motion.dart';
 import '../../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
+import '../../../core/design_system/widgets/payspin_ambient_background.dart';
 import '../../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../../core/design_system/widgets/payspin_gradient_text.dart';
 import '../../../core/design_system/widgets/payspin_radial_glow.dart';
@@ -64,7 +65,8 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
 
     return Scaffold(
       backgroundColor: colors.bg,
-      body: Stack(
+      body: PayspinAmbientBackground(
+        child: Stack(
         children: [
           const Positioned.fill(child: PayspinRadialGlow(size: 420)),
           if (!reduced)
@@ -145,6 +147,7 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
             ),
           ),
         ],
+        ),
       ),
     );
   }

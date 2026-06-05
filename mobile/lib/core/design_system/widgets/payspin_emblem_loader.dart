@@ -1,13 +1,13 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../theme/payspin_motion.dart';
-import '../theme/payspin_semantic_colors.dart';
 import 'payspin_emblem_assemble.dart';
 
-/// Branded loading indicator — gradient arrow layers spinning together (2.4s loop).
+/// Branded loading indicator — loops the splash emblem assemble + breathing pulse.
 ///
-/// Uses the split arc + loop assets so motion reads as “transaction flow”, not a
-/// flat bitmap spin. Reduced motion → static assembled emblem.
+/// Reduced motion → static assembled emblem.
 class PayspinEmblemLoader extends StatefulWidget {
   const PayspinEmblemLoader({super.key, this.size = 48});
 
@@ -17,16 +17,29 @@ class PayspinEmblemLoader extends StatefulWidget {
   State<PayspinEmblemLoader> createState() => _PayspinEmblemLoaderState();
 }
 
-class _PayspinEmblemLoaderState extends State<PayspinEmblemLoader>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: PayspinMotion.loop,
-  );
+class _PayspinEmblemLoaderState extends State<PayspinEmblemLoader> with TickerProviderStateMixin {
+  AnimationController? _assemble;
+  AnimationController? _ambient;
+
+  @override
+  void initState() {
+    super.initState();
+    _assemble = AnimationController(vsync: this, duration: PayspinMotion.splashAssemble);
+    _ambient = AnimationController(vsync: this, duration: const Duration(seconds: 6));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startMotion());
+  }
+
+  void _startMotion() {
+    if (!mounted) return;
+    if (PayspinMotion.reduced(context)) return;
+    _assemble?.repeat();
+    _ambient?.repeat();
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _assemble?.dispose();
+    _ambient?.dispose();
     super.dispose();
   }
 
@@ -35,29 +48,46 @@ class _PayspinEmblemLoaderState extends State<PayspinEmblemLoader>
     final reduced = PayspinMotion.reduced(context);
 
     if (reduced) {
-      if (_controller.isAnimating) _controller.stop();
       return Semantics(
         label: 'Loading',
-        child: PayspinEmblemAssembleStatic(
+        child: payspinEmblemAssembleForContext(
+          context,
           size: widget.size,
-          style: PayspinEmblemStyle.gradient,
+          progress: 1,
+          glow: widget.size >= 40,
         ),
       );
     }
 
-    if (!_controller.isAnimating) {
-      _controller.repeat();
-    }
-
     return Semantics(
       label: 'Loading',
-      child: RotationTransition(
-        turns: _controller,
-        child: PayspinEmblemAssembleStatic(
-          size: widget.size,
-          style: PayspinEmblemStyle.gradient,
-        ),
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_assemble!, _ambient!]),
+        builder: (context, _) {
+          final breath = 1 + 0.02 * math.sin(_ambient!.value * 2 * math.pi);
+          return Transform.scale(
+            scale: breath,
+            child: payspinEmblemAssembleForContext(
+              context,
+              size: widget.size,
+              progress: _assemble!.value,
+              glow: widget.size >= 40,
+            ),
+          );
+        },
       ),
     );
+  }
+}
+
+/// Full-screen or section loading placeholder using the splash-style loader.
+class PayspinPageLoader extends StatelessWidget {
+  const PayspinPageLoader({super.key, this.size = 56});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: PayspinEmblemLoader(size: size));
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
 import '../../../core/design_system/widgets/payspin_onboarding_shell.dart';
 import '../../../core/design_system/widgets/payspin_underline_field.dart';
@@ -33,6 +34,7 @@ class _StepIbanPageState extends State<StepIbanPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     final cubit = context.read<OnboardingCubit>();
     return PayspinOnboardingShell(
       step: 4,
@@ -75,7 +77,7 @@ class _StepIbanPageState extends State<StepIbanPage> {
             style: TextButton.styleFrom(alignment: Alignment.centerLeft, padding: EdgeInsets.zero),
             child: Text(
               'Foreign IBAN?',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: PayspinTokens.textPrimary, decoration: TextDecoration.underline),
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: colors.textPrimary, decoration: TextDecoration.underline),
             ),
           ),
         ],

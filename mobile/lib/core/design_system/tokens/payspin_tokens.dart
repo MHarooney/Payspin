@@ -23,6 +23,11 @@ abstract final class PayspinTokens {
   /// Success / "paid" green — distinct from the teal `mint` brand accent.
   static const Color green = Color(0xFF22C55E);
 
+  /// Destructive red — for irreversible actions (delete, cancel, sign out).
+  /// Distinct from brand [error] (pink) so destructive CTAs don't read as
+  /// primary. Tuned to stay legible on light and dark glass.
+  static const Color danger = Color(0xFFFF4D6A);
+
   /// Icons and labels on gradient CTAs (prototype `#fff` on pink/mint buttons).
   static const Color onBrand = textPrimary;
 

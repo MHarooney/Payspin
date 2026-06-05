@@ -5,6 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app/di/injection.dart';
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
+import '../../core/design_system/widgets/payspin_glass_surface.dart';
+import '../../core/design_system/widgets/payspin_emblem_loader.dart';
+import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/l10n/payspin_localizations.dart';
 import '../../core/errors/api_exception.dart';
@@ -108,18 +111,28 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Widget _body() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: PayspinTokens.pink));
+      return const PayspinPageLoader();
     }
     if (_error != null) {
       return ListView(children: [
         const SizedBox(height: 120),
-        Center(child: Text(_error!, style: TextStyle(color: context.psColors.textMuted))),
+        Center(child: Text(_error!, textAlign: TextAlign.center, style: TextStyle(color: context.psColors.textMuted))),
+        const SizedBox(height: 20),
+        Center(
+          child: SizedBox(
+            width: 180,
+            child: PayspinGradientPillButton(label: context.l10n.tryAgain, onPressed: _load),
+          ),
+        ),
       ]);
     }
     if (_items.isEmpty) {
       return ListView(children: [
         const SizedBox(height: 140),
-        const Center(child: Text('🔔', style: TextStyle(fontSize: 40))),
+        Semantics(
+          label: context.l10n.noNotifications,
+          child: const Center(child: Text('🔔', style: TextStyle(fontSize: 40))),
+        ),
         const SizedBox(height: 12),
         Center(
           child: Text(context.l10n.noNotifications,
@@ -137,12 +150,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Widget _row(AppNotification n) {
     final colors = context.psColors;
-    return Material(
-      color: n.isUnread ? colors.bgElevated : colors.glassFill,
-      borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-      child: InkWell(
+    return Semantics(
+      button: true,
+      label: '${n.isUnread ? "Unread. " : ""}${n.title}. ${n.body}',
+      child: PayspinGlassSurface(
+        tier: PayspinGlassTier.flat,
+        borderRadius: PayspinTokens.radiusCard,
         onTap: () => _open(n),
-        borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+        border: n.isUnread
+            ? Border.all(color: PayspinTokens.pink.withValues(alpha: 0.35), width: 1)
+            : null,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/design_system/motion/payspin_motion_scope.dart';
 import '../core/design_system/theme/payspin_system_chrome.dart';
 import '../core/design_system/theme/payspin_theme.dart';
 import '../core/design_system/theme/payspin_theme_transition.dart';
@@ -39,13 +40,15 @@ class PayspinApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         routerConfig: router,
-        builder: (context, child) => PayspinThemeTransition(
-          themeMode: _themeController.mode,
-          child: PayspinSystemChrome(
+        builder: (context, child) => PayspinMotionScope(
+          child: PayspinThemeTransition(
             themeMode: _themeController.mode,
-            child: _AppLockGate(
-              router: router,
-              child: child ?? const SizedBox.shrink(),
+            child: PayspinSystemChrome(
+              themeMode: _themeController.mode,
+              child: _AppLockGate(
+                router: router,
+                child: child ?? const SizedBox.shrink(),
+              ),
             ),
           ),
         ),

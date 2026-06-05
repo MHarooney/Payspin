@@ -13,7 +13,10 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
     required this.bgElevated,
     required this.surfaceRaised,
     required this.glassFill,
+    required this.glassFillStrong,
     required this.glassBorder,
+    required this.glassHighlight,
+    required this.glassShadow,
     required this.border,
     required this.borderActive,
     required this.textPrimary,
@@ -29,8 +32,23 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
   final Color bg;
   final Color bgElevated;
   final Color surfaceRaised;
+
+  /// Base translucent fill for `glass.raised` / `glass.flat` tiers.
   final Color glassFill;
+
+  /// Denser fill for `glass.overlay` surfaces (sheets, nav bar, dialogs) where
+  /// content must stay legible over busy backdrops.
+  final Color glassFillStrong;
+
   final Color glassBorder;
+
+  /// Top-edge inner reflection that sells real glass (brighter at the top).
+  final Color glassHighlight;
+
+  /// Soft drop shadow under glass panels — deep + neutral in dark, soft +
+  /// slightly cool in light.
+  final Color glassShadow;
+
   final Color border;
   final Color borderActive;
   final Color textPrimary;
@@ -47,7 +65,10 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
     bgElevated: Color(0xFF15141F),
     surfaceRaised: Color(0x0AFFFFFF),
     glassFill: Color(0x0FFFFFFF),
-    glassBorder: Color(0x1AFFFFFF),
+    glassFillStrong: Color(0xB815141F),
+    glassBorder: Color(0x24FFFFFF),
+    glassHighlight: Color(0x3DFFFFFF),
+    glassShadow: Color(0x66050509),
     border: Color(0x14FFFFFF),
     borderActive: Color(0x73FC00FF),
     textPrimary: Color(0xFFFFFFFF),
@@ -64,8 +85,11 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
     bg: Color(0xFFF9F9F9),
     bgElevated: Color(0xFFFFFFFF),
     surfaceRaised: Color(0xFFF5F5F5),
-    glassFill: Color(0xB8FFFFFF),
-    glassBorder: Color(0x140A0D13),
+    glassFill: Color(0x80FFFFFF),
+    glassFillStrong: Color(0xCCFFFFFF),
+    glassBorder: Color(0x660A0D13),
+    glassHighlight: Color(0xB3FFFFFF),
+    glassShadow: Color(0x1F2A2440),
     border: Color(0x140A0D13),
     borderActive: Color(0xCCFC00FF),
     textPrimary: Color(0xFF0A0D13),
@@ -84,7 +108,10 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
     Color? bgElevated,
     Color? surfaceRaised,
     Color? glassFill,
+    Color? glassFillStrong,
     Color? glassBorder,
+    Color? glassHighlight,
+    Color? glassShadow,
     Color? border,
     Color? borderActive,
     Color? textPrimary,
@@ -101,7 +128,10 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
       bgElevated: bgElevated ?? this.bgElevated,
       surfaceRaised: surfaceRaised ?? this.surfaceRaised,
       glassFill: glassFill ?? this.glassFill,
+      glassFillStrong: glassFillStrong ?? this.glassFillStrong,
       glassBorder: glassBorder ?? this.glassBorder,
+      glassHighlight: glassHighlight ?? this.glassHighlight,
+      glassShadow: glassShadow ?? this.glassShadow,
       border: border ?? this.border,
       borderActive: borderActive ?? this.borderActive,
       textPrimary: textPrimary ?? this.textPrimary,
@@ -123,7 +153,10 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
       bgElevated: Color.lerp(bgElevated, other.bgElevated, t)!,
       surfaceRaised: Color.lerp(surfaceRaised, other.surfaceRaised, t)!,
       glassFill: Color.lerp(glassFill, other.glassFill, t)!,
+      glassFillStrong: Color.lerp(glassFillStrong, other.glassFillStrong, t)!,
       glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
+      glassHighlight: Color.lerp(glassHighlight, other.glassHighlight, t)!,
+      glassShadow: Color.lerp(glassShadow, other.glassShadow, t)!,
       border: Color.lerp(border, other.border, t)!,
       borderActive: Color.lerp(borderActive, other.borderActive, t)!,
       textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,

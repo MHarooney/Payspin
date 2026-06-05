@@ -1,12 +1,15 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../l10n/payspin_localizations.dart';
+import '../theme/payspin_motion.dart';
 import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
+import 'payspin_glass_surface.dart';
 
+/// Floating glass navigation bar — a rounded `glass.overlay` pill with an
+/// animated active highlight and brand glow on the selected item.
 class PayspinBottomNav extends StatelessWidget {
   const PayspinBottomNav({super.key, required this.currentIndex, required this.onTap});
 
@@ -15,25 +18,21 @@ class PayspinBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.psColors;
     final l10n = context.l10n;
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: colors.navBarScrim,
-            border: Border(top: BorderSide(color: colors.border)),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Row(
-              children: [
-                _item(context, 0, l10n.navHome, Icons.home_rounded),
-                _item(context, 1, l10n.navScanQr, Icons.qr_code_scanner_rounded),
-                _item(context, 2, l10n.navProfile, Icons.person_rounded),
-              ],
-            ),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+        child: PayspinGlassSurface(
+          tier: PayspinGlassTier.overlay,
+          borderRadius: 26,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            children: [
+              _item(context, 0, l10n.navHome, Icons.home_rounded),
+              _item(context, 1, l10n.navScanQr, Icons.qr_code_scanner_rounded),
+              _item(context, 2, l10n.navProfile, Icons.person_rounded),
+            ],
           ),
         ),
       ),
@@ -45,32 +44,51 @@ class PayspinBottomNav extends StatelessWidget {
     final selected = currentIndex == index;
     final color = selected ? colors.textPrimary : colors.textMuted;
     return Expanded(
-      child: InkWell(
-        onTap: () => onTap(index),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 22, color: color),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: color,
-                ),
-              ),
-              if (selected) ...[
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticFeedback.selectionClick();
+            onTap(index);
+          },
+          child: AnimatedContainer(
+            duration: PayspinMotion.fast,
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: selected
+                  ? LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        PayspinTokens.pink.withValues(alpha: 0.16),
+                        PayspinTokens.mint.withValues(alpha: 0.10),
+                      ],
+                    )
+                  : null,
+              border: selected
+                  ? Border.all(color: PayspinTokens.pink.withValues(alpha: 0.28))
+                  : Border.all(color: Colors.transparent),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 22, color: color),
                 const SizedBox(height: 4),
-                Container(
-                  width: 4,
-                  height: 4,
-                  decoration: const BoxDecoration(color: PayspinTokens.mint, shape: BoxShape.circle),
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: color,
+                  ),
                 ),
               ],
-            ],
+            ),
           ),
         ),
       ),

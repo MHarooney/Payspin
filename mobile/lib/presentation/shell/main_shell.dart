@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/di/injection.dart';
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
+import '../../core/design_system/widgets/payspin_ambient_background.dart';
 import '../../core/design_system/widgets/payspin_bottom_nav.dart';
 import '../../core/notifications/push_service.dart';
 import '../home/groepies_page.dart';
@@ -74,10 +75,11 @@ class _MainShellState extends State<MainShell> {
 
     return Scaffold(
       backgroundColor: context.psColors.bg,
-      body: body,
+      extendBody: true,
+      body: PayspinAmbientBackground(child: body),
       floatingActionButton: _index == 0 && _homeTab != HomeTab.groepies && !location.contains('groepies')
           ? Padding(
-              padding: const EdgeInsets.only(bottom: 72),
+              padding: const EdgeInsets.only(bottom: 84),
               child: PayspinGradientFab(onPressed: () => context.push('/send/amount')),
             )
           : null,

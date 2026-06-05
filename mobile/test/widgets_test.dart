@@ -175,6 +175,8 @@ void main() {
         ),
       );
       await tester.tap(find.text('Cancel this link'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel link'));
       await tester.pump(); // start cancel
       await tester.pump(const Duration(milliseconds: 50)); // let snackbar appear
       expect(find.textContaining('conflicts'), findsOneWidget);

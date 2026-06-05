@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'payspin_emblem_loader.dart';
 import '../tokens/payspin_tokens.dart';
 
 class PayspinGradientCircleButton extends StatelessWidget {
@@ -36,11 +37,7 @@ class PayspinGradientCircleButton extends StatelessWidget {
           customBorder: const CircleBorder(),
           child: Center(
             child: loading
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: PayspinTokens.onBrand),
-                  )
+                ? const PayspinEmblemLoader(size: 22)
                 : Icon(icon, color: PayspinTokens.onBrand, size: size * 0.4),
           ),
         ),

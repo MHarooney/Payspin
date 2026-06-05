@@ -10,7 +10,10 @@ import '../../core/l10n/locale_controller.dart';
 import '../../core/l10n/payspin_localizations.dart';
 import '../../core/preferences/payspin_preferences_sheets.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
+import '../../core/design_system/widgets/payspin_confirm_dialog.dart';
+import '../../core/design_system/widgets/payspin_glass_surface.dart';
 import '../../core/design_system/widgets/payspin_iban_tile.dart';
+import '../../core/design_system/widgets/payspin_emblem_loader.dart';
 import '../../core/design_system/widgets/payspin_settings_group.dart';
 import '../../core/design_system/widgets/payspin_snackbar.dart';
 import '../../core/errors/api_exception.dart';
@@ -131,6 +134,24 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
       sl<AppLockController>().markDisabled();
       await _load();
     }
+  }
+
+  Future<void> _confirmLogout() async {
+    final confirmed = await showPayspinConfirmDialog(
+      context,
+      title: 'Log out?',
+      message: 'You can sign back in anytime. App lock will be turned off on this device.',
+      confirmLabel: 'Log out',
+      destructive: true,
+      icon: Icons.logout,
+    );
+    if (!confirmed) return;
+    // Clear the lock so the next account doesn't inherit this user's
+    // passcode/biometric preference.
+    await sl<AppLockService>().disableLock();
+    sl<AppLockController>().markDisabled();
+    await sl<AuthRepository>().signOut();
+    if (mounted) context.go('/welcome');
   }
 
   Future<void> _openBankAccounts() async {
@@ -280,12 +301,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             ],
           ),
         ),
-        Container(
-          decoration: BoxDecoration(
-            color: colors.surfaceRaised,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: colors.border),
-          ),
+        PayspinGlassSurface(
+          tier: PayspinGlassTier.raised,
+          borderRadius: 18,
           child: Column(
             children: [
               for (var i = 0; i < accounts.length; i++) ...[
@@ -320,7 +338,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Center(child: CircularProgressIndicator(color: PayspinTokens.pink));
+    if (_loading) return const PayspinPageLoader();
 
     final colors = context.psColors;
     final displayName = _user?.displayName?.trim();
@@ -343,7 +361,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
               child: Row(
                 children: [
-                  IconButton(onPressed: widget.onGoHome, icon: Icon(Icons.arrow_back, color: colors.textPrimary)),
+                  IconButton(onPressed: widget.onGoHome, tooltip: 'Back', icon: Icon(Icons.arrow_back, color: colors.textPrimary)),
                   Expanded(child: Text('Profile', textAlign: TextAlign.center, style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 17))),
                   const SizedBox(width: 48),
                 ],
@@ -379,21 +397,23 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 ],
               ),
               const SizedBox(height: 28),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: _openBankAccounts,
+              Semantics(
+                button: true,
+                label: _primaryAccount != null
+                    ? 'Primary IBAN ending ${_primaryAccount!.ibanLast4}. Tap to manage bank accounts.'
+                    : 'No IBAN linked. Tap to add one.',
+                child: PayspinGlassSurface(
+                  tier: PayspinGlassTier.hero,
+                  borderRadius: 18,
+                  gradientBorder: true,
+                  glow: true,
+                  onTap: _openBankAccounts,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
                     child: Stack(
                       children: [
-                        Container(
+                        Padding(
                           padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(colors: [PayspinTokens.pink.withValues(alpha: 0.12), PayspinTokens.mint.withValues(alpha: 0.08)]),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: colors.border),
-                          ),
                           child: Row(
                             children: [
                               Expanded(
@@ -402,7 +422,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                   children: [
                                     Text('PRIMARY IBAN', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: colors.textMuted, letterSpacing: 1)),
                                     const SizedBox(height: 8),
-                                    Text(_primaryAccount != null ? '•••• ${_primaryAccount!.ibanLast4}' : 'Not linked', style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 18)),
+                                    Text(_primaryAccount != null ? '•••• ${_primaryAccount!.ibanLast4}' : 'Not linked', style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 18, color: colors.textPrimary)),
                                   ],
                                 ),
                               ),
@@ -416,6 +436,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                             builder: (context, _) {
                               if (_shine.isDismissed || _shine.isCompleted) return const SizedBox.shrink();
                               final t = Curves.easeInOut.transform(_shine.value);
+                              final streak = colors.bg.computeLuminance() < 0.5
+                                  ? Colors.white.withValues(alpha: 0.16)
+                                  : PayspinTokens.pink.withValues(alpha: 0.12);
                               return IgnorePointer(
                                 child: FractionallySizedBox(
                                   widthFactor: 0.4,
@@ -423,11 +446,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                   child: Container(
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
-                                        colors: [
-                                          Colors.transparent,
-                                          Colors.white.withValues(alpha: 0.14),
-                                          Colors.transparent,
-                                        ],
+                                        colors: [Colors.transparent, streak, Colors.transparent],
                                       ),
                                     ),
                                   ),
@@ -446,16 +465,6 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               const SizedBox(height: 24),
               PayspinSettingsGroup(
                 rows: [
-                  PayspinSettingsRow(
-                    icon: Icons.account_balance_outlined,
-                    label: 'Bank accounts',
-                    detail: _accounts.isEmpty
-                        ? 'Add an IBAN'
-                        : _accounts.length == 1
-                            ? '1 IBAN'
-                            : '${_accounts.length} IBANs',
-                    onTap: _openBankAccounts,
-                  ),
                   PayspinSettingsRow(icon: Icons.lock_outline, label: 'App lock', detail: _lockDetail, onTap: _manageLock),
                   PayspinSettingsRow(
                     icon: Icons.brightness_6_outlined,
@@ -480,17 +489,10 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               ),
               const SizedBox(height: 16),
               Material(
-                color: PayspinTokens.pink.withValues(alpha: 0.08),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: PayspinTokens.pink.withValues(alpha: 0.2))),
+                color: PayspinTokens.danger.withValues(alpha: 0.08),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: PayspinTokens.danger.withValues(alpha: 0.2))),
                 child: InkWell(
-                  onTap: () async {
-                    // Clear the lock so the next account doesn't inherit this
-                    // user's passcode/biometric preference.
-                    await sl<AppLockService>().disableLock();
-                    sl<AppLockController>().markDisabled();
-                    await sl<AuthRepository>().signOut();
-                    if (context.mounted) context.go('/welcome');
-                  },
+                  onTap: _confirmLogout,
                   borderRadius: BorderRadius.circular(14),
                   child: SizedBox(
                     width: double.infinity,
@@ -498,9 +500,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.logout, color: PayspinTokens.pink, size: 18),
+                        const Icon(Icons.logout, color: PayspinTokens.danger, size: 18),
                         const SizedBox(width: 10),
-                        Text('Log out', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: PayspinTokens.pink)),
+                        Text('Log out', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: PayspinTokens.danger)),
                       ],
                     ),
                   ),

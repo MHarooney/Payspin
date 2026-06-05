@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_system/theme/payspin_motion.dart';
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
+import '../../core/design_system/widgets/payspin_finance_particles.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_radial_glow.dart';
@@ -69,12 +70,14 @@ class _PayspinIntroFlowState extends State<PayspinIntroFlow> {
     final colors = context.psColors;
     final l10n = context.l10n;
     final isLast = _page == PayspinIntroFlow.sceneCount - 1;
+    final isLight = Theme.of(context).brightness == Brightness.light;
 
     return Scaffold(
       backgroundColor: colors.bg,
       body: Stack(
         children: [
           const Positioned.fill(child: PayspinRadialGlow(size: 420, animate: false)),
+          Positioned.fill(child: PayspinFinanceParticles(intensity: isLight ? 0.75 : 0.5)),
           SafeArea(
             child: Column(
               children: [
@@ -114,6 +117,7 @@ class _PayspinIntroFlowState extends State<PayspinIntroFlow> {
                   padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
                   child: PayspinGradientPillButton(
                     label: isLast ? l10n.introGetStarted : l10n.introNext,
+                    shimmer: isLast,
                     onPressed: _next,
                     icon: Icon(
                       isLast ? Icons.arrow_forward_rounded : Icons.chevron_right_rounded,

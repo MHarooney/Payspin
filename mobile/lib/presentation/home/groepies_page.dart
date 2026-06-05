@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_empty_state.dart';
 import '../../core/design_system/widgets/payspin_explainer_sheet.dart';
@@ -115,7 +116,7 @@ class _GroepiesTabContentState extends State<GroepiesTabContent> {
       ),
       tertiary: TextButton(
         onPressed: () => context.push('/circles/join'),
-        child: Text('Join with invite code', style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: PayspinTokens.textMuted)),
+        child: Text('Join with invite code', style: GoogleFonts.inter(fontWeight: FontWeight.w500, color: context.psColors.textMuted)),
       ),
     );
   }

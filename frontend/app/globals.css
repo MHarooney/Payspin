@@ -18,6 +18,14 @@
   --ps-card-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
   --ps-error-text: #fca5a5;
   --ps-spinner-track: rgba(255, 255, 255, 0.12);
+
+  /* Glassmorphism system */
+  --ps-glass-bg: rgba(22, 21, 32, 0.55);
+  --ps-glass-bg-soft: rgba(255, 255, 255, 0.05);
+  --ps-glass-border: rgba(255, 255, 255, 0.12);
+  --ps-glass-highlight: rgba(255, 255, 255, 0.14);
+  --ps-glass-blur: 22px;
+  --ps-glass-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
 }
 
@@ -41,6 +49,14 @@
   --ps-card-shadow: 0 18px 50px rgba(10, 13, 19, 0.12);
   --ps-error-text: #dc2626;
   --ps-spinner-track: rgba(10, 13, 19, 0.12);
+
+  /* Glassmorphism system */
+  --ps-glass-bg: rgba(255, 255, 255, 0.7);
+  --ps-glass-bg-soft: rgba(255, 255, 255, 0.55);
+  --ps-glass-border: rgba(10, 13, 19, 0.08);
+  --ps-glass-highlight: rgba(255, 255, 255, 0.9);
+  --ps-glass-blur: 22px;
+  --ps-glass-shadow: 0 20px 50px rgba(42, 36, 64, 0.14);
   color-scheme: light;
 }
 
@@ -84,9 +100,40 @@ body {
   inset: 0;
   background:
     radial-gradient(60% 40% at 50% 0%, rgba(252, 0, 255, 0.16), transparent 70%),
-    radial-gradient(50% 35% at 80% 20%, rgba(7, 216, 221, 0.12), transparent 70%);
+    radial-gradient(50% 35% at 80% 20%, rgba(7, 216, 221, 0.12), transparent 70%),
+    radial-gradient(55% 40% at 15% 95%, rgba(7, 216, 221, 0.1), transparent 72%);
   pointer-events: none;
   z-index: 0;
+}
+
+/* Frosted glass surface — frosted fill + blur + hairline + top reflection.
+   Apply to cards, sheets, pills, inputs. Degrades gracefully when the browser
+   lacks backdrop-filter (falls back to the more opaque elevated surface). */
+.ps-glass {
+  position: relative;
+  background: var(--ps-bg-elevated);
+  border: 1px solid var(--ps-glass-border);
+  box-shadow: var(--ps-glass-shadow);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ps-glass {
+    background: var(--ps-glass-bg);
+    -webkit-backdrop-filter: blur(var(--ps-glass-blur)) saturate(140%);
+    backdrop-filter: blur(var(--ps-glass-blur)) saturate(140%);
+  }
+}
+
+/* Top-edge reflection that sells real glass. */
+.ps-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 50%;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, var(--ps-glass-highlight), transparent);
+  pointer-events: none;
+  opacity: 0.7;
 }
 
 .ps-shell {
@@ -124,21 +171,43 @@ body {
 
 /* Card */
 .ps-card {
+  position: relative;
   background: var(--ps-bg-elevated);
-  border: 1px solid var(--ps-border);
+  border: 1px solid var(--ps-glass-border);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: var(--ps-card-shadow);
+  box-shadow: var(--ps-glass-shadow);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ps-card {
+    background: var(--ps-glass-bg);
+    -webkit-backdrop-filter: blur(var(--ps-glass-blur)) saturate(140%);
+    backdrop-filter: blur(var(--ps-glass-blur)) saturate(140%);
+  }
 }
 
 .ps-card__band {
+  position: relative;
   background:
-    linear-gradient(135deg, rgba(252, 0, 255, 0.18), rgba(7, 216, 221, 0.1));
+    linear-gradient(135deg, rgba(252, 0, 255, 0.2), rgba(7, 216, 221, 0.12));
   padding: 24px 24px 20px;
-  border-bottom: 1px solid var(--ps-border);
+  border-bottom: 1px solid var(--ps-glass-border);
+}
+
+/* Top reflection on the card band. */
+.ps-card__band::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 60%;
+  background: linear-gradient(to bottom, var(--ps-glass-highlight), transparent);
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 .ps-card__body {
+  position: relative;
   padding: 20px 24px 24px;
 }
 
@@ -214,11 +283,13 @@ body {
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.12s ease, opacity 0.2s ease;
+  box-shadow: 0 10px 30px rgba(252, 0, 255, 0.32), 0 4px 14px rgba(7, 216, 221, 0.2);
+  transition: transform 0.12s ease, opacity 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ps-cta:hover {
   opacity: 0.96;
+  box-shadow: 0 14px 38px rgba(252, 0, 255, 0.4), 0 6px 18px rgba(7, 216, 221, 0.26);
 }
 
 .ps-cta:active {
@@ -270,9 +341,16 @@ body {
   padding: 16px;
   font-size: 14px;
   text-align: center;
-  background: var(--ps-surface-raised);
-  border: 1px solid var(--ps-border);
+  background: var(--ps-glass-bg-soft);
+  border: 1px solid var(--ps-glass-border);
   color: var(--ps-text-body);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ps-notice {
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+    backdrop-filter: blur(14px) saturate(130%);
+  }
 }
 
 .ps-notice--error {
@@ -296,16 +374,18 @@ body {
 .ps-input {
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid var(--ps-border);
+  border: 1px solid var(--ps-glass-border);
   border-radius: 12px;
-  background: var(--ps-surface-raised);
+  background: var(--ps-glass-bg-soft);
   color: var(--ps-text-primary);
   font-size: 18px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .ps-input:focus {
   outline: none;
   border-color: rgba(252, 0, 255, 0.6);
+  box-shadow: 0 0 0 3px rgba(252, 0, 255, 0.12);
 }
 
 .ps-input::placeholder {
@@ -320,12 +400,17 @@ body {
   margin-bottom: 16px;
   padding: 8px 14px;
   border-radius: 100px;
-  border: 1px solid var(--ps-border);
-  background: var(--ps-surface-raised);
+  border: 1px solid var(--ps-glass-border);
+  background: var(--ps-glass-bg-soft);
   color: var(--ps-text-body);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.12s ease;
+}
+
+.ps-message-toggle:hover {
+  border-color: rgba(252, 0, 255, 0.4);
 }
 
 .ps-message-wrap {
@@ -336,18 +421,20 @@ body {
   width: 100%;
   min-height: 64px;
   padding: 12px 14px;
-  border: 1px solid var(--ps-border);
+  border: 1px solid var(--ps-glass-border);
   border-radius: 12px;
-  background: var(--ps-surface-raised);
+  background: var(--ps-glass-bg-soft);
   color: var(--ps-text-primary);
   font-size: 14px;
   font-family: inherit;
   resize: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .ps-textarea:focus {
   outline: none;
   border-color: rgba(252, 0, 255, 0.6);
+  box-shadow: 0 0 0 3px rgba(252, 0, 255, 0.12);
 }
 
 .ps-charcount {
@@ -380,10 +467,22 @@ body {
 }
 
 .ps-faq__item {
-  border: 1px solid var(--ps-border);
+  border: 1px solid var(--ps-glass-border);
   border-radius: 14px;
-  background: var(--ps-bg-elevated);
+  background: var(--ps-glass-bg-soft);
   overflow: hidden;
+  transition: border-color 0.18s ease;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ps-faq__item {
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+    backdrop-filter: blur(14px) saturate(130%);
+  }
+}
+
+.ps-faq__item:hover {
+  border-color: rgba(7, 216, 221, 0.35);
 }
 
 .ps-faq__button {
@@ -439,12 +538,25 @@ body {
   gap: 8px;
   padding: 12px 22px;
   border-radius: 100px;
-  border: 1px solid var(--ps-border);
-  background: var(--ps-surface-raised);
+  border: 1px solid var(--ps-glass-border);
+  background: var(--ps-glass-bg-soft);
   color: var(--ps-text-body);
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
+  transition: border-color 0.18s ease, transform 0.12s ease;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ps-support__btn {
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+    backdrop-filter: blur(14px) saturate(130%);
+  }
+}
+
+.ps-support__btn:hover {
+  border-color: rgba(7, 216, 221, 0.4);
+  transform: translateY(-1px);
 }
 
 .ps-footer {
@@ -581,11 +693,18 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  border: 1px solid var(--ps-border);
-  background: var(--ps-surface-raised);
+  border: 1px solid var(--ps-glass-border);
+  background: var(--ps-glass-bg-soft);
   color: var(--ps-text-body);
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ps-theme-toggle {
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
+    backdrop-filter: blur(14px) saturate(130%);
+  }
 }
 
 .ps-theme-toggle:hover {
@@ -680,6 +799,9 @@ body {
     animation: none;
   }
   .ps-cta:active {
+    transform: none;
+  }
+  .ps-support__btn:hover {
     transform: none;
   }
   .ps-faq__chevron {

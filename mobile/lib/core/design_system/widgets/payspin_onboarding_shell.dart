@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/payspin_semantic_colors.dart';
+import 'payspin_ambient_background.dart';
 import 'payspin_gradient_circle_button.dart';
 import 'payspin_progress_bar.dart';
 import 'payspin_quick_settings.dart';
@@ -37,7 +38,9 @@ class PayspinOnboardingShell extends StatelessWidget {
     final colors = context.psColors;
     return Scaffold(
       backgroundColor: colors.bg,
-      body: SafeArea(
+      body: PayspinAmbientBackground(
+        intensity: 0.7,
+        child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -89,7 +92,7 @@ class PayspinOnboardingShell extends StatelessWidget {
                         subtitle!,
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: colors.textMuted,
+                          color: colors.textBody,
                           height: 1.6,
                         ),
                       ),
@@ -110,6 +113,7 @@ class PayspinOnboardingShell extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

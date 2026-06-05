@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:payspin_mobile/core/design_system/theme/payspin_semantic_colors.dart';
 import 'package:payspin_mobile/core/design_system/theme/payspin_theme.dart';
 import 'package:payspin_mobile/core/design_system/theme/theme_mode_controller.dart';
+import 'package:payspin_mobile/core/design_system/widgets/payspin_brand_mark.dart';
 import 'package:payspin_mobile/core/design_system/widgets/payspin_emblem_assemble.dart';
 import 'package:payspin_mobile/core/design_system/widgets/payspin_emblem_vector.dart';
 import 'package:payspin_mobile/core/design_system/widgets/payspin_emblem_loader.dart';
@@ -93,6 +94,23 @@ void main() {
     });
   });
 
+  group('PayspinBrandMark', () {
+    testWidgets('auth preset renders emblem vector', (tester) async {
+      for (final theme in [PayspinTheme.light(), PayspinTheme.dark()]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: theme,
+            home: Scaffold(body: Center(child: PayspinBrandMark.auth())),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.byType(PayspinBrandMark), findsOneWidget);
+        expect(find.byType(PayspinEmblemVector), findsWidgets);
+        expect(tester.takeException(), isNull);
+      }
+    });
+  });
+
   group('PayspinEmblemLoader reduced motion', () {
     Widget wrap({required bool disableAnimations}) => MaterialApp(
           theme: PayspinTheme.dark(),
@@ -102,21 +120,22 @@ void main() {
           ),
         );
 
-    Finder loaderSpin() => find.descendant(
+    Finder assembleMotion() => find.descendant(
           of: find.byType(PayspinEmblemLoader),
-          matching: find.byType(RotationTransition),
+          matching: find.byType(AnimatedBuilder),
         );
 
-    testWidgets('spins when motion is allowed', (tester) async {
+    testWidgets('loops assemble when motion is allowed', (tester) async {
       await tester.pumpWidget(wrap(disableAnimations: false));
-      expect(loaderSpin(), findsOneWidget);
-      await tester.pump(const Duration(milliseconds: 100));
+      expect(assembleMotion(), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 800));
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('is static when reduced motion is requested', (tester) async {
       await tester.pumpWidget(wrap(disableAnimations: true));
-      expect(loaderSpin(), findsNothing);
-      expect(find.byType(PayspinEmblemAssembleStatic), findsOneWidget);
+      expect(assembleMotion(), findsNothing);
+      expect(find.byType(PayspinEmblemVector), findsOneWidget);
     });
   });
 }

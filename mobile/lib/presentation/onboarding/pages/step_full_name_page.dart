@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/design_system/tokens/payspin_tokens.dart';
+import '../../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../../core/design_system/widgets/payspin_onboarding_shell.dart';
 import '../../../core/design_system/widgets/payspin_underline_field.dart';
 import '../onboarding_cubit.dart';
@@ -32,6 +32,7 @@ class _StepFullNamePageState extends State<StepFullNamePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     final cubit = context.read<OnboardingCubit>();
     final iban = cubit.state.ibanDisplay;
     final filled = _name.text.trim().contains(' ');
@@ -76,7 +77,7 @@ class _StepFullNamePageState extends State<StepFullNamePage> {
             controller: _name,
             hintText: 'First and last name',
             textCapitalization: TextCapitalization.words,
-            filledTextColor: PayspinTokens.textPrimary,
+            filledTextColor: colors.textPrimary,
             onChanged: (v) {
               cubit.updateFullName(v);
               setState(() {});
@@ -85,10 +86,10 @@ class _StepFullNamePageState extends State<StepFullNamePage> {
           const SizedBox(height: 16),
           Text.rich(
             TextSpan(
-              style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted, height: 1.6),
+              style: GoogleFonts.inter(fontSize: 13, color: colors.textBody, height: 1.6),
               children: [
                 const TextSpan(text: 'We will use this to check whether '),
-                TextSpan(text: iban, style: const TextStyle(color: PayspinTokens.textPrimary, fontWeight: FontWeight.w700)),
+                TextSpan(text: iban, style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w700)),
                 const TextSpan(text: ' is in your name, so we can keep Payspin safe.'),
               ],
             ),

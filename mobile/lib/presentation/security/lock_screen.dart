@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
+import '../../core/design_system/widgets/payspin_ambient_background.dart';
+import '../../core/design_system/widgets/payspin_confirm_dialog.dart';
 import '../../core/design_system/widgets/payspin_lock_keypad.dart';
 import '../../core/design_system/widgets/payspin_passcode_dots.dart';
 import '../../core/design_system/widgets/payspin_quick_settings.dart';
@@ -151,7 +153,8 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
     final colors = context.psColors;
     return Scaffold(
       backgroundColor: colors.bg,
-      body: Stack(
+      body: PayspinAmbientBackground(
+        child: Stack(
         children: [
           const Positioned.fill(
             child: PayspinRadialGlow(size: 360, animate: false, alignment: Alignment(0, -0.7)),
@@ -231,7 +234,7 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                 ),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: _busy ? null : widget.onForgot,
+                  onPressed: _busy ? null : _confirmForgot,
                   style: TextButton.styleFrom(
                     backgroundColor: PayspinTokens.pink.withValues(alpha: 0.12),
                     shape: RoundedRectangleBorder(
@@ -253,8 +256,22 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
             ),
           ),
         ],
+        ),
       ),
     );
+  }
+
+  Future<void> _confirmForgot() async {
+    final confirmed = await showPayspinConfirmDialog(
+      context,
+      title: 'Forgot your passcode?',
+      message: 'To reset it, you\'ll be signed out and need to log in again. '
+          'Your data stays safe.',
+      confirmLabel: 'Sign out & reset',
+      destructive: true,
+      icon: Icons.lock_reset,
+    );
+    if (confirmed) widget.onForgot();
   }
 
   /// Damped horizontal oscillation for the wrong-passcode shake.

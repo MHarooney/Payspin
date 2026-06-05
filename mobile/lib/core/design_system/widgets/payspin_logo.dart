@@ -4,7 +4,10 @@ import '../theme/payspin_semantic_colors.dart';
 
 enum PayspinLogoVariant { mark, wordmark }
 
-/// Official Payspin emblem — white on dark surfaces, gradient on light / QR.
+/// Official Payspin emblem — static bitmap for QR and legacy surfaces.
+///
+/// Prefer [PayspinBrandMark] on branded screens (welcome, login, splash) for the
+/// animated vector emblem that matches splash motion.
 class PayspinLogo extends StatelessWidget {
   const PayspinLogo({
     super.key,

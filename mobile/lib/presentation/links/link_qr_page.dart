@@ -7,6 +7,7 @@ import '../../core/design_system/theme/payspin_motion.dart';
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_branded_qr.dart';
+import '../../core/design_system/widgets/payspin_emblem_loader.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_snackbar.dart';
@@ -101,7 +102,7 @@ class _LinkQrPageState extends State<LinkQrPage> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: PayspinTokens.pink))
+          ? const PayspinPageLoader()
           : link == null
               ? const SizedBox.shrink()
               : SingleChildScrollView(

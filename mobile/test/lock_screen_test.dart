@@ -87,7 +87,9 @@ void main() {
     await pumpLock(tester, onUnlocked: () {}, onForgot: () => forgot = true);
 
     await tester.tap(find.text('Forgot your passcode?'));
-    await tester.pump();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sign out & reset'));
+    await tester.pumpAndSettle();
     expect(forgot, isTrue);
   });
 }

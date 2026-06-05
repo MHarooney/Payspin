@@ -8,10 +8,12 @@ import '../../core/l10n/payspin_localizations.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_deals_placeholder.dart';
 import '../../core/design_system/widgets/payspin_empty_state.dart';
+import '../../core/design_system/widgets/payspin_glass_icon_button.dart';
+import '../../core/design_system/widgets/payspin_glass_surface.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_gradient_text.dart';
 import '../../core/design_system/widgets/payspin_groepies_promo_card.dart';
-import '../../core/design_system/widgets/payspin_logo.dart';
+import '../../core/design_system/widgets/payspin_brand_mark.dart';
 import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_skeleton.dart';
 import '../../core/design_system/widgets/payspin_tab_strip.dart';
@@ -132,18 +134,26 @@ class _HomePageState extends State<HomePage> {
           children: [
             Row(
               children: [
-                _glassIcon(Icons.qr_code_2, () => context.push('/scan')),
+                PayspinGlassIconButton(
+                  icon: Icons.qr_code_2,
+                  semanticLabel: l10n.navScanQr,
+                  onPressed: () => context.push('/scan'),
+                ),
                 Expanded(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const PayspinLogo(size: 22),
+                      PayspinBrandMark.inline(size: 22),
                       const SizedBox(width: 8),
                       PayspinGradientText('Payspin', style: GoogleFonts.raleway(fontSize: 18, fontWeight: FontWeight.w800)),
                     ],
                   ),
                 ),
-                _glassIcon(Icons.search, () => setState(() => _searchOpen = !_searchOpen)),
+                PayspinGlassIconButton(
+                  icon: _searchOpen ? Icons.close_rounded : Icons.search,
+                  semanticLabel: l10n.searchTikkies,
+                  onPressed: () => setState(() => _searchOpen = !_searchOpen),
+                ),
                 const SizedBox(width: 8),
                 const PayspinQuickSettings(rounded: true),
                 const SizedBox(width: 8),
@@ -157,30 +167,29 @@ class _HomePageState extends State<HomePage> {
               child: _searchOpen
                   ? Padding(
                       padding: const EdgeInsets.only(top: 12),
-                      child: TextField(
-                        autofocus: true,
-                        onChanged: (v) => setState(() => _query = v),
-                        style: GoogleFonts.inter(color: context.psColors.textPrimary),
-                        decoration: InputDecoration(hintText: l10n.searchTikkies),
+                      child: PayspinGlassSurface(
+                        tier: PayspinGlassTier.raised,
+                        borderRadius: 14,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: TextField(
+                          autofocus: true,
+                          onChanged: (v) => setState(() => _query = v),
+                          style: GoogleFonts.inter(color: context.psColors.textPrimary),
+                          decoration: InputDecoration(
+                            hintText: l10n.searchTikkies,
+                            prefixIcon: Icon(Icons.search, color: context.psColors.textMuted, size: 20),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            filled: false,
+                          ),
+                        ),
                       ),
                     )
                   : const SizedBox(width: double.infinity),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _glassIcon(IconData icon, VoidCallback onTap) {
-    final colors = context.psColors;
-    return Material(
-      color: colors.glassFill,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: colors.glassBorder)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: SizedBox(width: 40, height: 40, child: Icon(icon, color: colors.textPrimary, size: 20)),
       ),
     );
   }
