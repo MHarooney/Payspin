@@ -4,9 +4,9 @@
 /// [buildNumber] increments on every `./scripts/dev/build-android-release.sh` run
 /// and stays in sync with pubspec `version: x.y.z+N`.
 abstract final class AppVersion {
-  static const String serial = 'V1.7g';
+  static const String serial = 'V1.7h';
   static const String semver = '1.7.0';
-  static const int buildNumber = 13;
+  static const int buildNumber = 14;
 
   /// Full label for About / debug surfaces.
   static String get label => '$serial ($semver+$buildNumber)';
