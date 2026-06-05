@@ -75,57 +75,54 @@ export default function CallbackStatusPoller({
 
   if (phase === 'failed') {
     return (
-      <>
-        <p style={styles.error}>Payment failed</p>
-        <Link href={`/${code}`} style={styles.link}>
+      <div className="ps-status">
+        <div className="ps-status__icon ps-status__icon--error" aria-hidden>
+          !
+        </div>
+        <h1 className="ps-status__title">Payment failed</h1>
+        <Link href={`/${code}`} className="ps-link-btn">
           Back to payment
         </Link>
-      </>
+      </div>
     );
   }
 
   if (phase === 'completed') {
-    return <p style={styles.success}>Payment sent</p>;
+    return (
+      <div className="ps-status">
+        <div className="ps-status__icon ps-status__icon--success" aria-hidden>
+          ✓
+        </div>
+        <h1 className="ps-status__title">Payment sent</h1>
+      </div>
+    );
   }
 
   if (phase === 'timeout') {
     return (
-      <>
-        <p style={styles.success}>Still processing</p>
-        <p style={styles.muted}>
+      <div className="ps-status">
+        <div className="ps-status__icon ps-status__icon--success" aria-hidden>
+          ⧖
+        </div>
+        <h1 className="ps-status__title">Still processing</h1>
+        <p className="ps-status__sub">
           Your bank is taking longer than usual. The requester is notified
           automatically once it settles — you can safely close this page.
         </p>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <style>{'@keyframes payspin-spin{to{transform:rotate(360deg)}}'}</style>
-      <p style={styles.success}>Payment is being processed</p>
-      <p style={styles.muted}>
+    <div className="ps-status">
+      <span className="ps-spinner" aria-hidden />
+      <h1 className="ps-status__title" style={{ marginTop: 16 }}>
+        Payment is being processed
+      </h1>
+      <p className="ps-status__sub">
         Your bank is confirming the transfer. This page updates automatically —
         you can safely close it.
       </p>
-      <span style={styles.spinner} aria-hidden />
-    </>
+    </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  success: { color: '#10b981', fontWeight: 700, fontSize: 20 },
-  error: { color: '#ef4444', fontWeight: 700, fontSize: 20 },
-  muted: { color: '#6b7280', fontSize: 14, marginTop: 8 },
-  link: { color: '#07D8DD', display: 'block', marginTop: 16 },
-  spinner: {
-    display: 'inline-block',
-    width: 20,
-    height: 20,
-    marginTop: 16,
-    border: '3px solid #e5e7eb',
-    borderTopColor: '#07D8DD',
-    borderRadius: '50%',
-    animation: 'payspin-spin 0.8s linear infinite',
-  },
-};

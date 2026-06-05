@@ -173,6 +173,31 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
     );
   }
 
+  Widget _showQrButton() {
+    return Material(
+      color: PayspinTokens.surfaceRaised,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
+        side: const BorderSide(color: PayspinTokens.border),
+      ),
+      child: InkWell(
+        onTap: () => context.push('/links/${widget.linkId}/qr'),
+        borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
+        child: SizedBox(
+          height: 48,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.qr_code_2, color: PayspinTokens.textBody, size: 18),
+              const SizedBox(width: 10),
+              Text('Show QR', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: PayspinTokens.textBody)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _noPaymentsYet() {
     return Container(
       padding: const EdgeInsets.all(18),
@@ -272,6 +297,8 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
                         ),
                         const SizedBox(height: 12),
                         _copyLinkButton(link.payUrl),
+                        const SizedBox(height: 12),
+                        _showQrButton(),
                       ],
                       if (link.canCancel) ...[
                         const SizedBox(height: 4),

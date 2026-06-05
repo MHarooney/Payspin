@@ -1,5 +1,6 @@
 import { completePayment, fetchPaymentStatus } from '@/lib/api';
 import Link from 'next/link';
+import WebShell from '../../components/WebShell';
 import CallbackStatusPoller from './CallbackStatusPoller';
 
 export default async function CallbackPage({
@@ -24,13 +25,14 @@ export default async function CallbackPage({
   // The bank redirected back without authorising (user cancelled / declined).
   if (cancelled) {
     return (
-      <Shell>
-        <p style={styles.error}>Payment was not completed</p>
-        <p style={styles.muted}>You cancelled or your bank declined the authorisation.</p>
-        <Link href={`/${code}`} style={styles.link}>
+      <ResultCard variant="error" title="Payment was not completed">
+        <p className="ps-status__sub">
+          You cancelled or your bank declined the authorisation.
+        </p>
+        <Link href={`/${code}`} className="ps-link-btn">
           Try again
         </Link>
-      </Shell>
+      </ResultCard>
     );
   }
 
@@ -41,77 +43,93 @@ export default async function CallbackPage({
 
       if (status.status === 'COMPLETED') {
         return (
-          <Shell>
-            <p style={styles.success}>Payment sent</p>
-            <Link href={`/${code}/success`} style={styles.link}>
+          <ResultCard variant="success" title="Payment sent">
+            <Link href={`/${code}/success`} className="ps-link-btn">
               View confirmation
             </Link>
-          </Shell>
+          </ResultCard>
         );
       }
       if (status.status === 'FAILED' || status.status === 'CANCELLED') {
         return (
-          <Shell>
-            <p style={styles.error}>Payment failed</p>
-            <Link href={`/${code}`} style={styles.link}>
+          <ResultCard variant="error" title="Payment failed">
+            <Link href={`/${code}`} className="ps-link-btn">
               Back to payment
             </Link>
-          </Shell>
+          </ResultCard>
         );
       }
       // PENDING / PROCESSING / AWAITING_AUTHORIZATION: the bank is still
       // settling. Webhooks finalise it server-side; the client poller below
       // auto-advances to success without a manual refresh.
       return (
-        <Shell>
-          <CallbackStatusPoller code={code} paymentId={paymentId} />
-        </Shell>
+        <WebShell showFooter={false}>
+          <div className="ps-card">
+            <div className="ps-card__body">
+              <CallbackStatusPoller code={code} paymentId={paymentId} />
+            </div>
+          </div>
+        </WebShell>
       );
     } catch {
       return (
-        <Shell>
-          <p style={styles.error}>We couldn’t confirm your payment</p>
-          <p style={styles.muted}>
+        <ResultCard variant="error" title="We couldn’t confirm your payment">
+          <p className="ps-status__sub">
             If money left your account, it is still being processed. Please do
             not pay again — contact the requester if unsure.
           </p>
-          <Link href={`/${code}`} style={styles.link}>
+          <Link href={`/${code}`} className="ps-link-btn">
             Back to payment
           </Link>
-        </Shell>
+        </ResultCard>
       );
     }
   }
 
   return (
-    <Shell>
-      <p style={styles.muted}>Confirming with your bank…</p>
-      <Link href={`/${code}`} style={styles.link}>
-        Back to payment
-      </Link>
-    </Shell>
+    <WebShell showFooter={false}>
+      <div className="ps-card">
+        <div className="ps-card__body">
+          <div className="ps-status">
+            <span className="ps-spinner" aria-hidden />
+            <p className="ps-status__sub">Confirming with your bank…</p>
+          </div>
+          <div style={{ textAlign: 'center' }}>
+            <Link href={`/${code}`} className="ps-link-btn">
+              Back to payment
+            </Link>
+          </div>
+        </div>
+      </div>
+    </WebShell>
   );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+function ResultCard({
+  variant,
+  title,
+  children,
+}: {
+  variant: 'success' | 'error';
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <main style={styles.main}>
-      <div style={styles.card}>{children}</div>
-    </main>
+    <WebShell showFooter={false}>
+      <div className="ps-card">
+        <div className="ps-card__body">
+          <div className="ps-status">
+            <div
+              className={`ps-status__icon ps-status__icon--${variant}`}
+              aria-hidden
+            >
+              {variant === 'success' ? '✓' : '!'}
+            </div>
+            <h1 className="ps-status__title">{title}</h1>
+            {children}
+          </div>
+        </div>
+      </div>
+    </WebShell>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  main: {
-    minHeight: '100vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  card: { background: '#fff', borderRadius: 16, padding: 32, textAlign: 'center', maxWidth: 400 },
-  success: { color: '#10b981', fontWeight: 700, fontSize: 20 },
-  error: { color: '#ef4444', fontWeight: 700, fontSize: 20 },
-  muted: { color: '#6b7280', fontSize: 14, marginTop: 8 },
-  link: { color: '#07D8DD', display: 'block', marginTop: 16 },
-};

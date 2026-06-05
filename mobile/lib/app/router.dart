@@ -11,6 +11,7 @@ import '../presentation/circles/circle_detail_page.dart';
 import '../presentation/circles/create_circle_page.dart';
 import '../presentation/circles/join_circle_page.dart';
 import '../presentation/links/link_detail_page.dart';
+import '../presentation/links/link_qr_page.dart';
 import '../presentation/notifications/notifications_page.dart';
 import '../presentation/onboarding/onboarding_cubit.dart';
 import '../presentation/onboarding/pages/step_connect_bank_page.dart';
@@ -83,6 +84,10 @@ GoRouter createRouter({String initialLocation = '/splash'}) {
       GoRoute(
         path: '/links/:id',
         builder: (_, state) => LinkDetailPage(linkId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/links/:id/qr',
+        builder: (_, state) => LinkQrPage(linkId: state.pathParameters['id']!),
       ),
       GoRoute(path: '/circles/create', builder: (_, __) => const CreateCirclePage()),
       GoRoute(path: '/circles/join', builder: (_, __) => const JoinCirclePage()),

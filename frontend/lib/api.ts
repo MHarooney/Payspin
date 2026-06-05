@@ -56,11 +56,15 @@ export async function fetchPaymentLink(code: string): Promise<PaymentLinkView> {
   return res.json();
 }
 
-export async function initiatePayment(code: string, amountCents?: number) {
+export async function initiatePayment(
+  code: string,
+  amountCents?: number,
+  payerMessage?: string,
+) {
   const res = await fetch(`${API_URL}/pay/${code}/initiate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amountCents }),
+    body: JSON.stringify({ amountCents, payerMessage }),
   });
   if (!res.ok) {
     throw await toApiError(res, 'Could not start the payment. Please try again.');

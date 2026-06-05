@@ -1,4 +1,6 @@
 import { ApiError, fetchPaymentLink, formatAmount, PaymentLinkView } from '@/lib/api';
+import WebShell from '../components/WebShell';
+import FaqAccordion, { PAYER_FAQ } from '../components/FaqAccordion';
 import PayButton from './pay-button';
 
 const PAYABLE: PaymentLinkView['status'][] = ['ACTIVE', 'COLLECTING'];
@@ -33,18 +35,25 @@ export default async function PaymentPage({
   } catch (err) {
     const notFound = err instanceof ApiError && err.status === 404;
     return (
-      <main style={styles.main}>
-        <div style={styles.card}>
-          <h1 style={styles.title}>
-            {notFound ? 'Link not found' : 'Something went wrong'}
-          </h1>
-          <p style={styles.muted}>
-            {notFound
-              ? 'This payment link does not exist. Please check the link and try again.'
-              : 'We could not load this payment request. Please try again in a moment.'}
-          </p>
+      <WebShell>
+        <div className="ps-card">
+          <div className="ps-card__body">
+            <div className="ps-status">
+              <div className="ps-status__icon ps-status__icon--error" aria-hidden>
+                !
+              </div>
+              <h1 className="ps-status__title">
+                {notFound ? 'Link not found' : 'Something went wrong'}
+              </h1>
+              <p className="ps-status__sub">
+                {notFound
+                  ? 'This payment link does not exist. Please check the link and try again.'
+                  : 'We could not load this payment request. Please try again in a moment.'}
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
+      </WebShell>
     );
   }
 
@@ -53,43 +62,54 @@ export default async function PaymentPage({
     ? 'Open amount'
     : formatAmount(link.amountCents as number, link.currency);
   const blocked = unavailableMessage(link);
+  const title = link.description?.trim() || 'Payment request';
 
   return (
-    <main style={styles.main}>
-      <div style={styles.card}>
-        <p style={styles.label}>Payspin payment request</p>
-        <h1 style={styles.amount}>{amountLabel}</h1>
-        <p style={styles.payee}>{link.payeeDisplayName} requests payment</p>
-        {link.description && <p style={styles.desc}>{link.description}</p>}
+    <WebShell>
+      <div className="ps-card">
+        <div className="ps-card__band">
+          <p className="ps-eyebrow">Payment request</p>
+          <h1 className="ps-title">{title}</h1>
+          <p className="ps-payee">
+            To {link.payeeDisplayName}
+            <span className="ps-verified" title="Verified payee" aria-label="Verified payee">
+              ✓
+            </span>
+          </p>
+          <p className="ps-amount">{amountLabel}</p>
+        </div>
 
-        {blocked ? (
-          <div style={styles.notice}>{blocked}</div>
-        ) : (
-          <PayButton
-            code={code}
-            amountCents={link.amountCents ?? undefined}
-            currency={link.currency}
-            openAmount={openAmount}
-          />
-        )}
+        <div className="ps-card__body">
+          {blocked ? (
+            <div className="ps-notice">{blocked}</div>
+          ) : (
+            <PayButton
+              code={code}
+              amountCents={link.amountCents ?? undefined}
+              currency={link.currency}
+              payeeName={link.payeeDisplayName}
+              openAmount={openAmount}
+            />
+          )}
 
-        <p style={styles.footer}>
-          Powered by Yapily open banking · No app install required
-        </p>
+          <p className="ps-legal">
+            By continuing, you accept the Payspin{' '}
+            <a href="https://payspin.io/terms" target="_blank" rel="noreferrer">
+              Terms of use
+            </a>
+            .
+          </p>
+        </div>
       </div>
-    </main>
+
+      <FaqAccordion items={PAYER_FAQ} />
+
+      <section className="ps-support">
+        <h2 className="ps-section-title">Having trouble?</h2>
+        <a className="ps-support__btn" href="mailto:support@payspin.io">
+          Contact support
+        </a>
+      </section>
+    </WebShell>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  main: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  card: { background: '#fff', borderRadius: 16, padding: 32, maxWidth: 400, width: '100%', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' },
-  label: { fontSize: 12, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 1 },
-  title: { fontSize: 24, fontWeight: 800, color: '#111827' },
-  amount: { fontSize: 40, fontWeight: 800, margin: '8px 0', color: '#111827' },
-  payee: { color: '#4b5563', marginBottom: 8 },
-  desc: { color: '#6b7280', marginBottom: 24 },
-  notice: { background: '#f3f4f6', borderRadius: 12, padding: 16, color: '#4b5563', fontSize: 14, textAlign: 'center' },
-  footer: { fontSize: 11, color: '#9ca3af', marginTop: 24, textAlign: 'center' },
-  muted: { color: '#6b7280' },
-};

@@ -33,7 +33,7 @@ export class InitiatePayerPaymentUseCase {
   ) {}
 
   async execute(shortCode: string, body?: unknown): Promise<InitiatePaymentResponse> {
-    const { amountCents } = initiatePaymentSchema.parse(body ?? {});
+    const { amountCents, payerMessage } = initiatePaymentSchema.parse(body ?? {});
     const link = await this.getLink.execute(shortCode);
 
     // Fixed-amount links ignore any payer-supplied amount.
@@ -58,7 +58,10 @@ export class InitiatePayerPaymentUseCase {
       currency: link.currency,
       beneficiaryIban: iban,
       beneficiaryName: link.bankAccount.accountHolder,
-      reference: link.description ?? `Payspin ${link.shortCode}`,
+      // Prefer the payer's own note (shows on their bank statement, Tikkie-style);
+      // otherwise fall back to the link description, then a stable code.
+      reference:
+        payerMessage ?? link.description ?? `Payspin ${link.shortCode}`,
       idempotencyKey,
     });
 

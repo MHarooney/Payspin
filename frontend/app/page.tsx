@@ -1,15 +1,18 @@
-import Link from 'next/link';
+import WebShell from './components/WebShell';
 
 export default function HomePage() {
   return (
-    <main style={{ maxWidth: 480, margin: '80px auto', padding: 24, textAlign: 'center' }}>
-      <h1 style={{ background: 'linear-gradient(90deg,#FC00FF,#07D8DD)', WebkitBackgroundClip: 'text', color: 'transparent' }}>
-        Payspin Pay
-      </h1>
-      <p style={{ color: '#6b7280' }}>Open a payment link shared with you, e.g. /abc12345</p>
-      <Link href="/demo1234" style={{ color: '#07D8DD' }}>
-        Demo link placeholder
-      </Link>
-    </main>
+    <WebShell showFooter={false}>
+      <div className="ps-card">
+        <div className="ps-card__body">
+          <div className="ps-status">
+            <h1 className="ps-status__title">Payspin Pay</h1>
+            <p className="ps-status__sub">
+              Open a payment link shared with you, e.g. pay.payspin.io/abc12345
+            </p>
+          </div>
+        </div>
+      </div>
+    </WebShell>
   );
 }

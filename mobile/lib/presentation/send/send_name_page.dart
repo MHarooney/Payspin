@@ -140,6 +140,30 @@ class _SendNamePageState extends State<SendNamePage> {
     }
   }
 
+  /// Creates the link, then shows the in-person QR screen instead of sharing
+  /// via WhatsApp — for face-to-face payments.
+  Future<void> _createAndShowQr() async {
+    setState(() => _loading = true);
+    try {
+      final link = await sl<PaymentLinkRepository>().createLink(
+        amountCents: widget.amountCents,
+        description: _label.text.trim().isEmpty ? null : _label.text.trim(),
+        bankAccountId: _accounts.length > 1 ? _selectedAccountId : null,
+      );
+      HapticFeedback.mediumImpact();
+      if (mounted) {
+        // Replace the send flow with the link's QR screen.
+        context.pop();
+        context.pop();
+        context.push('/links/${link.id}/qr');
+      }
+    } catch (e) {
+      if (mounted) showPayspinSnackBar(context, apiErrorMessage(e));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   Widget _buildAccountSelector() {
     final account = _selectedAccount;
     if (account == null) return const SizedBox.shrink();
@@ -250,7 +274,11 @@ class _SendNamePageState extends State<SendNamePage> {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  PayspinAccentCircleButton(icon: Icons.qr_code_2, active: filled, onPressed: () {}),
+                  PayspinAccentCircleButton(
+                    icon: Icons.qr_code_2,
+                    active: filled,
+                    onPressed: filled && !_loading ? _createAndShowQr : null,
+                  ),
                 ],
               ),
             ),

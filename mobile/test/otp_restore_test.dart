@@ -39,4 +39,32 @@ void main() {
     expect(find.text('Enter the code'), findsOneWidget);
     expect(find.textContaining('1060908902'), findsWidgets);
   });
+
+  testWidgets('OTP restore with active verification does not auto-trigger reCAPTCHA',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'payspin_onboarding_phone_progress': jsonEncode({
+        'countryCode': '+20',
+        'phone': '1060908902',
+        'displayName': 'Mo',
+        'verificationId': 'vid-restored',
+        'codeSent': true,
+        'savedAt': DateTime.now().millisecondsSinceEpoch,
+      }),
+    });
+
+    final router = createRouter(initialLocation: '/onboarding/otp');
+    await tester.pumpWidget(PayspinApp(router: router));
+    await tester.pump();
+    for (var i = 0; i < 30; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (find.textContaining('Enter the 6-digit code').evaluate().isNotEmpty) {
+        break;
+      }
+    }
+
+    // OTP must never auto-start Firebase (the old "Verifying your device…" state).
+    expect(find.textContaining('Verifying your device'), findsNothing);
+    expect(find.textContaining('1060908902'), findsWidgets);
+  });
 }

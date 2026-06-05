@@ -86,6 +86,23 @@ describe('payer payment schemas', () => {
     assert.throws(() => initiatePaymentSchema.parse({ amountCents: 1.5 }));
   });
 
+  it('initiate accepts an optional payer message capped at 35 chars', () => {
+    assert.equal(
+      initiatePaymentSchema.parse({ payerMessage: 'thanks for lunch' }).payerMessage,
+      'thanks for lunch',
+    );
+    // Trimmed, and an empty/whitespace-only message becomes undefined.
+    assert.equal(
+      initiatePaymentSchema.parse({ payerMessage: '   ' }).payerMessage,
+      undefined,
+    );
+    assert.equal(
+      initiatePaymentSchema.parse({ payerMessage: '  hi  ' }).payerMessage,
+      'hi',
+    );
+    assert.throws(() => initiatePaymentSchema.parse({ payerMessage: 'x'.repeat(36) }));
+  });
+
   it('complete requires a paymentId', () => {
     assert.throws(() => completePaymentSchema.parse({}));
     assert.equal(

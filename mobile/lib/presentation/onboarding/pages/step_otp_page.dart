@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -29,9 +28,7 @@ class _StepOtpPageState extends State<StepOtpPage> {
   @override
   void initState() {
     super.initState();
-    if (_real) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _sendCode());
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
   }
 
   @override
@@ -40,20 +37,47 @@ class _StepOtpPageState extends State<StepOtpPage> {
     super.dispose();
   }
 
+  /// Restores a cold-start session or recognises an in-flight verification
+  /// from the phone step. Never auto-triggers Firebase here — that avoids the
+  /// external reCAPTCHA webview popping on the OTP screen.
+  Future<void> _bootstrap() async {
+    final cubit = context.read<OnboardingCubit>();
+
+    if (cubit.state.phone.trim().isEmpty) {
+      final progress = await cubit.restorePhoneProgress();
+      if (!mounted || progress == null) return;
+      if (progress.verificationId != null && progress.codeSent) {
+        _phoneAuth.restorePendingVerification(progress.verificationId!);
+        setState(() => _codeSent = true);
+      }
+      return;
+    }
+
+    if (_real && _phoneAuth.canConfirmCode) {
+      setState(() => _codeSent = true);
+    }
+  }
+
   String _e164() {
     final draft = context.read<OnboardingCubit>().state;
     final digits = draft.phone.replaceAll(RegExp(r'\D'), '');
     return '${draft.countryCode}$digits';
   }
 
-  Future<void> _sendCode() async {
+  Future<void> _sendCode({bool forceResending = false}) async {
     setState(() {
       _busy = true;
       _error = null;
     });
     await _phoneAuth.sendCode(
       _e164(),
-      onCodeSent: () {
+      forceResending: forceResending,
+      onCodeSent: () async {
+        final cubit = context.read<OnboardingCubit>();
+        await cubit.savePhoneProgress(
+          verificationId: _phoneAuth.pendingVerificationId,
+          codeSent: true,
+        );
         if (!mounted) return;
         setState(() {
           _codeSent = true;
@@ -66,41 +90,11 @@ class _StepOtpPageState extends State<StepOtpPage> {
       onError: (message) {
         if (!mounted) return;
         setState(() {
-          _error = _friendlyPhoneError(message);
+          _error = friendlyPhoneAuthError(message);
           _busy = false;
         });
       },
     );
-  }
-
-  String _friendlyPhoneError(String message) {
-    final lower = message.toLowerCase();
-    if (lower.contains('blocked') || lower.contains('too many')) {
-      return 'Too many attempts. Wait a few minutes, or use a test number.';
-    }
-    if (lower.contains('recaptcha') ||
-        lower.contains('app verification') ||
-        lower.contains('integrity') ||
-        lower.contains('safetynet') ||
-        lower.contains('missing-client-identifier')) {
-      // Device-attestation failure — guidance differs per platform.
-      switch (defaultTargetPlatform) {
-        case TargetPlatform.android:
-          return 'We couldn’t verify this device with Google Play. Register '
-              'this build’s SHA-256 in Firebase and enable Play Integrity, or '
-              'use a test number to continue.';
-        case TargetPlatform.iOS:
-          return 'We couldn’t verify this device. Update to the latest build, '
-              'try a physical device, or use a test number to continue.';
-        default:
-          return 'We couldn’t verify this device for phone sign-in. Use a test '
-              'number to continue.';
-      }
-    }
-    if (lower.contains('network')) {
-      return 'Network error. Check your connection and try again.';
-    }
-    return message;
   }
 
   Future<void> _onVerified() async {
@@ -113,6 +107,8 @@ class _StepOtpPageState extends State<StepOtpPage> {
     final ok = await cubit.ensureAccountFromPhone(_phoneAuth);
     if (!mounted) return;
     if (ok) {
+      await cubit.clearPhoneProgress();
+      if (!mounted) return;
       context.go('/onboarding/connect');
     } else {
       setState(() {
@@ -150,22 +146,26 @@ class _StepOtpPageState extends State<StepOtpPage> {
     await _onVerified();
   }
 
+  Future<void> _goBack() async {
+    await context.read<OnboardingCubit>().clearPhoneProgress();
+    if (mounted) context.go('/onboarding/phone');
+  }
+
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<OnboardingCubit>();
     final phone = cubit.state.phoneDisplay;
-    final sending = _real && _busy && !_codeSent;
     final subtitle = !_real
         ? 'Phone verification is coming soon — this step is a preview for $phone. Enter any 6 digits to continue.'
-        : sending
-            ? 'Verifying your device and sending a code to $phone…'
-            : 'Enter the 6-digit code we sent to $phone.';
+        : _codeSent
+            ? 'Enter the 6-digit code we sent to $phone.'
+            : 'Tap Send code to receive a text message at $phone.';
     return PayspinOnboardingShell(
       step: 3,
       totalSteps: 5,
       title: const Text('Enter the code'),
       subtitle: subtitle,
-      onBack: () => context.go('/onboarding/phone'),
+      onBack: _goBack,
       nextLoading: cubit.isLoading || _busy,
       onNext: (_busy || _code.text.length != 6 || cubit.isLoading) ? null : _submit,
       child: Column(
@@ -183,7 +183,7 @@ class _StepOtpPageState extends State<StepOtpPage> {
           if (_real) ...[
             const SizedBox(height: 16),
             TextButton(
-              onPressed: _busy ? null : _sendCode,
+              onPressed: _busy ? null : () => _sendCode(forceResending: _codeSent),
               child: Text(
                 _codeSent ? 'Resend code' : 'Send code',
                 style: const TextStyle(color: PayspinTokens.mint),

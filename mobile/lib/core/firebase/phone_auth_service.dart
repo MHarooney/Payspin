@@ -4,6 +4,36 @@ import 'package:flutter/foundation.dart';
 import '../../data/datasources/payspin_api_client.dart';
 import 'firebase_bootstrap.dart';
 
+/// Maps raw Firebase / device-attestation errors to payer-friendly copy.
+String friendlyPhoneAuthError(String message) {
+  final lower = message.toLowerCase();
+  if (lower.contains('blocked') || lower.contains('too many')) {
+    return 'Too many attempts. Wait a few minutes, or use a test number.';
+  }
+  if (lower.contains('recaptcha') ||
+      lower.contains('app verification') ||
+      lower.contains('integrity') ||
+      lower.contains('safetynet') ||
+      lower.contains('missing-client-identifier')) {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        return 'We couldn’t verify this device with Google Play. Register '
+            'this build’s SHA-256 in Firebase and enable Play Integrity, or '
+            'use a test number to continue.';
+      case TargetPlatform.iOS:
+        return 'We couldn’t verify this device. Update to the latest build, '
+            'try a physical device, or use a test number to continue.';
+      default:
+        return 'We couldn’t verify this device for phone sign-in. Use a test '
+            'number to continue.';
+    }
+  }
+  if (lower.contains('network')) {
+    return 'Network error. Check your connection and try again.';
+  }
+  return message;
+}
+
 /// Real SMS verification via Firebase Phone Auth, replacing the demo stub when
 /// Firebase is configured. When unavailable, [available] is false and callers
 /// fall back to the legacy [VerifyOtpUseCase] so onboarding still works.

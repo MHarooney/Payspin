@@ -69,6 +69,16 @@ export const createPaymentLinkSchema = z.object({
 
 export const initiatePaymentSchema = z.object({
   amountCents: z.number().int().positive().max(MAX_AMOUNT_CENTS).optional(),
+  /**
+   * Optional note from the payer. Capped at the SEPA reference length (35
+   * chars) and trimmed; surfaced on the payer's bank statement and to the payee.
+   */
+  payerMessage: z
+    .string()
+    .trim()
+    .max(35)
+    .transform((v) => (v.length === 0 ? undefined : v))
+    .optional(),
 });
 
 export const completePaymentSchema = z.object({

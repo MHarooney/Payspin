@@ -3,20 +3,26 @@
 import { initiatePayment } from '@/lib/api';
 import { useState } from 'react';
 
+const MAX_MESSAGE_LENGTH = 35;
+
 export default function PayButton({
   code,
   amountCents,
   currency,
+  payeeName,
   openAmount = false,
 }: {
   code: string;
   amountCents?: number;
   currency: string;
+  payeeName?: string;
   openAmount?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amountInput, setAmountInput] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
+  const [message, setMessage] = useState('');
 
   function resolveAmountCents(): number | undefined {
     if (!openAmount) return amountCents;
@@ -34,7 +40,8 @@ export default function PayButton({
     setLoading(true);
     setError(null);
     try {
-      const result = await initiatePayment(code, cents);
+      const trimmed = message.trim();
+      const result = await initiatePayment(code, cents, trimmed || undefined);
       window.location.href = result.redirectUrl;
     } catch (e) {
       setError(
@@ -49,9 +56,10 @@ export default function PayButton({
   return (
     <div>
       {openAmount && (
-        <label style={styles.field}>
-          <span style={styles.fieldLabel}>Amount ({currency})</span>
+        <label className="ps-field">
+          <span className="ps-field__label">Amount ({currency})</span>
           <input
+            className="ps-input"
             type="number"
             inputMode="decimal"
             min="0.01"
@@ -63,41 +71,51 @@ export default function PayButton({
               setError(null);
             }}
             disabled={loading}
-            style={styles.input}
           />
         </label>
       )}
+
+      {!showMessage ? (
+        <button
+          type="button"
+          className="ps-message-toggle"
+          onClick={() => setShowMessage(true)}
+          disabled={loading}
+        >
+          + Add message{payeeName ? ` for ${payeeName}` : ''}?
+        </button>
+      ) : (
+        <div className="ps-message-wrap">
+          <textarea
+            className="ps-textarea"
+            placeholder="E.g. thanks for lunch"
+            maxLength={MAX_MESSAGE_LENGTH}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            disabled={loading}
+            aria-label="Message for the requester"
+          />
+          <div className="ps-charcount">
+            {MAX_MESSAGE_LENGTH - message.length}
+          </div>
+        </div>
+      )}
+
       <button
+        type="button"
+        className="ps-cta"
         onClick={handlePay}
         disabled={loading}
-        style={{
-          width: '100%',
-          padding: '16px 24px',
-          border: 'none',
-          borderRadius: 28,
-          background: 'linear-gradient(90deg,#FC00FF,#07D8DD)',
-          color: '#fff',
-          fontSize: 16,
-          fontWeight: 600,
-          cursor: loading ? 'wait' : 'pointer',
-        }}
       >
         {loading ? 'Redirecting to your bank…' : 'Pay with my bank'}
       </button>
-      {error && <p style={{ color: '#ef4444', fontSize: 14, marginTop: 12 }}>{error}</p>}
+
+      <div className="ps-trust">
+        <span className="ps-trust__dot" aria-hidden />
+        Secured by open banking · Powered by Yapily
+      </div>
+
+      {error && <p className="ps-error-text">{error}</p>}
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  field: { display: 'block', marginBottom: 16 },
-  fieldLabel: { display: 'block', fontSize: 13, color: '#6b7280', marginBottom: 6 },
-  input: {
-    width: '100%',
-    padding: '14px 16px',
-    border: '1px solid #d1d5db',
-    borderRadius: 12,
-    fontSize: 18,
-    boxSizing: 'border-box',
-  },
-};
