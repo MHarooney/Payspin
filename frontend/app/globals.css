@@ -1,4 +1,5 @@
-:root {
+:root,
+[data-theme='dark'] {
   --ps-bg: #0b0b12;
   --ps-bg-elevated: #15141f;
   --ps-surface-raised: rgba(255, 255, 255, 0.04);
@@ -14,6 +15,37 @@
   --ps-warning: #ffc408;
   --ps-error: #ef4444;
   --ps-gradient: linear-gradient(90deg, #fc00ff, #07d8dd);
+  --ps-card-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  --ps-error-text: #fca5a5;
+  --ps-spinner-track: rgba(255, 255, 255, 0.12);
+  color-scheme: dark;
+}
+
+/* Light theme — design system README. Brand accents stay identical. */
+[data-theme='light'] {
+  --ps-bg: #f9f9f9;
+  --ps-bg-elevated: #ffffff;
+  --ps-surface-raised: rgba(10, 13, 19, 0.04);
+  --ps-glass: rgba(255, 255, 255, 0.72);
+  --ps-border: rgba(10, 13, 19, 0.1);
+  --ps-text-primary: #0a0d13;
+  --ps-text-body: rgba(10, 13, 19, 0.82);
+  --ps-text-muted: rgba(10, 13, 19, 0.55);
+  --ps-text-hint: rgba(10, 13, 19, 0.4);
+  --ps-pink: #fc00ff;
+  --ps-mint: #07d8dd;
+  --ps-success: #16a34a;
+  --ps-warning: #b45309;
+  --ps-error: #dc2626;
+  --ps-gradient: linear-gradient(90deg, #fc00ff, #07d8dd);
+  --ps-card-shadow: 0 18px 50px rgba(10, 13, 19, 0.12);
+  --ps-error-text: #dc2626;
+  --ps-spinner-track: rgba(10, 13, 19, 0.12);
+  color-scheme: light;
+}
+
+body {
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 * {
@@ -96,7 +128,7 @@ body {
   border: 1px solid var(--ps-border);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--ps-card-shadow);
 }
 
 .ps-card__band {
@@ -245,7 +277,7 @@ body {
 
 .ps-notice--error {
   border-color: rgba(239, 68, 68, 0.4);
-  color: #fecaca;
+  color: var(--ps-error-text);
 }
 
 /* Open amount field */
@@ -326,7 +358,7 @@ body {
 }
 
 .ps-error-text {
-  color: #fca5a5;
+  color: var(--ps-error-text);
   font-size: 14px;
   margin-top: 12px;
 }
@@ -491,7 +523,7 @@ body {
   width: 28px;
   height: 28px;
   margin: 4px auto 0;
-  border: 3px solid rgba(255, 255, 255, 0.12);
+  border: 3px solid var(--ps-spinner-track);
   border-top-color: var(--ps-mint);
   border-radius: 50%;
   animation: ps-spin 0.8s linear infinite;
@@ -503,14 +535,163 @@ body {
   }
 }
 
+@keyframes payspin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Theme-aware emblem swap: white on dark, gradient on light. */
+.ps-emblem {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.ps-emblem img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ps-emblem__gradient {
+  display: none;
+}
+
+[data-theme='light'] .ps-emblem__white {
+  display: none;
+}
+
+[data-theme='light'] .ps-emblem__gradient {
+  display: inline-block;
+}
+
+/* Header theme toggle */
+.ps-header {
+  position: relative;
+}
+
+.ps-theme-toggle {
+  position: absolute;
+  right: 0;
+  top: 4px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--ps-border);
+  background: var(--ps-surface-raised);
+  color: var(--ps-text-body);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.ps-theme-toggle:hover {
+  color: var(--ps-text-primary);
+}
+
+.ps-theme-toggle:focus-visible {
+  outline: 2px solid var(--ps-mint);
+  outline-offset: 2px;
+}
+
+/* Branded loader — gradient emblem spinning over a soft ring */
+.ps-loader {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+
+.ps-loader__layers {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  animation: payspin-spin 2.4s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+.ps-loader__arc,
+.ps-loader__loop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ps-loader__arc--gradient,
+.ps-loader__loop--gradient {
+  display: none;
+}
+
+[data-theme='light'] .ps-loader__arc--white,
+[data-theme='light'] .ps-loader__loop--white {
+  display: none;
+}
+
+[data-theme='light'] .ps-loader__arc--gradient,
+[data-theme='light'] .ps-loader__loop--gradient {
+  display: block;
+}
+
+/* Page enter animation */
+.ps-enter {
+  animation: ps-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ps-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* FAQ answer reveal (replaces instant show/hide) */
+.ps-faq__answer-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s ease, opacity 0.28s ease;
+  opacity: 0;
+}
+
+.ps-faq__answer-wrap--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.ps-faq__answer-inner {
+  overflow: hidden;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ps-spinner {
     animation-duration: 2s;
+  }
+  .ps-loader__layers {
+    animation: none;
   }
   .ps-cta:active {
     transform: none;
   }
   .ps-faq__chevron {
+    transition: none;
+  }
+  .ps-faq__answer-wrap {
+    transition: none;
+  }
+  .ps-enter {
+    animation: none;
+  }
+  body {
     transition: none;
   }
 }

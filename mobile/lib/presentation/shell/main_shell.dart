@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/di/injection.dart';
-import '../../core/design_system/tokens/payspin_tokens.dart';
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/widgets/payspin_bottom_nav.dart';
 import '../../core/notifications/push_service.dart';
 import '../home/groepies_page.dart';
@@ -73,7 +73,7 @@ class _MainShellState extends State<MainShell> {
     }
 
     return Scaffold(
-      backgroundColor: PayspinTokens.bg,
+      backgroundColor: context.psColors.bg,
       body: body,
       floatingActionButton: _index == 0 && _homeTab != HomeTab.groepies && !location.contains('groepies')
           ? Padding(

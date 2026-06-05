@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../tokens/payspin_tokens.dart';
+import '../theme/payspin_semantic_colors.dart';
 import 'payspin_radial_glow.dart';
 import 'payspin_stacked_cards_illustration.dart';
 
@@ -27,6 +27,7 @@ class PayspinEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
@@ -48,13 +49,13 @@ class PayspinEmptyState extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.raleway(fontSize: 22, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary),
+                style: GoogleFonts.raleway(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary),
               ),
               const SizedBox(height: 10),
               Text(
                 subtitle,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(fontSize: 14, color: PayspinTokens.textMuted, height: 1.55),
+                style: GoogleFonts.inter(fontSize: 14, color: colors.textMuted, height: 1.55),
               ),
               if (primary != null) ...[const SizedBox(height: 28), primary!],
               if (secondary != null) ...[const SizedBox(height: 12), secondary!],

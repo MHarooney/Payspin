@@ -1,6 +1,7 @@
 import { completePayment, fetchPaymentStatus } from '@/lib/api';
 import Link from 'next/link';
 import WebShell from '../../components/WebShell';
+import PayspinLoader from '../../components/PayspinLoader';
 import CallbackStatusPoller from './CallbackStatusPoller';
 
 export default async function CallbackPage({
@@ -91,7 +92,9 @@ export default async function CallbackPage({
       <div className="ps-card">
         <div className="ps-card__body">
           <div className="ps-status">
-            <span className="ps-spinner" aria-hidden />
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+              <PayspinLoader label="Confirming with your bank" />
+            </div>
             <p className="ps-status__sub">Confirming with your bank…</p>
           </div>
           <div style={{ textAlign: 'center' }}>

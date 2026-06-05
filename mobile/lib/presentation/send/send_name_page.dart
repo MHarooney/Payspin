@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_accent_circle_button.dart';
 import '../../core/design_system/widgets/payspin_flow_header.dart';
@@ -12,6 +13,7 @@ import '../../core/design_system/widgets/payspin_iban_tile.dart';
 import '../../core/design_system/widgets/payspin_snackbar.dart';
 import '../../core/design_system/widgets/payspin_underline_field.dart';
 import '../../core/errors/api_exception.dart';
+import '../../core/l10n/payspin_localizations.dart';
 import '../../data/services/share_service.dart';
 import '../../domain/entities/bank_account.dart';
 import '../../domain/repositories/bank_account_repository.dart';
@@ -71,7 +73,7 @@ class _SendNamePageState extends State<SendNamePage> {
   Future<void> _pickAccount() async {
     final chosen = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: PayspinTokens.bgElevated,
+      backgroundColor: context.psColors.bgElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -83,8 +85,8 @@ class _SendNamePageState extends State<SendNamePage> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
               child: Text(
-                'Pay into',
-                style: GoogleFonts.raleway(fontSize: 18, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary),
+                context.l10n.payInto,
+                style: GoogleFonts.raleway(fontSize: 18, fontWeight: FontWeight.w800, color: context.psColors.textPrimary),
               ),
             ),
             for (final account in _accounts)
@@ -167,13 +169,14 @@ class _SendNamePageState extends State<SendNamePage> {
   Widget _buildAccountSelector() {
     final account = _selectedAccount;
     if (account == null) return const SizedBox.shrink();
+    final colors = context.psColors;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
       child: Material(
-        color: PayspinTokens.surfaceRaised,
+        color: colors.surfaceRaised,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-          side: const BorderSide(color: PayspinTokens.border),
+          side: BorderSide(color: colors.border),
         ),
         child: InkWell(
           onTap: _loading ? null : _pickAccount,
@@ -182,22 +185,22 @@ class _SendNamePageState extends State<SendNamePage> {
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
             child: Row(
               children: [
-                const Icon(Icons.credit_card_outlined, size: 18, color: PayspinTokens.textMuted),
+                Icon(Icons.credit_card_outlined, size: 18, color: colors.textMuted),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Pay into', style: GoogleFonts.inter(fontSize: 11, color: PayspinTokens.textMuted)),
+                      Text(context.l10n.payInto, style: GoogleFonts.inter(fontSize: 11, color: colors.textMuted)),
                       const SizedBox(height: 2),
                       Text(
                         '•••• ${account.ibanLast4}',
-                        style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 15, color: PayspinTokens.textPrimary),
+                        style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 15, color: colors.textPrimary),
                       ),
                     ],
                   ),
                 ),
-                Text('Change', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: PayspinTokens.mint)),
+                Text(context.l10n.change, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: PayspinTokens.mint)),
               ],
             ),
           ),
@@ -210,28 +213,30 @@ class _SendNamePageState extends State<SendNamePage> {
   Widget build(BuildContext context) {
     final filled = _label.text.trim().isNotEmpty;
     final left = 35 - _label.text.length;
+    final colors = context.psColors;
+    final l10n = context.l10n;
     return Scaffold(
-      backgroundColor: PayspinTokens.bg,
+      backgroundColor: colors.bg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PayspinFlowHeader(onBack: () => context.pop(), onHelp: () {}),
+            PayspinFlowHeader(onBack: () => context.pop()),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
-                'Requesting ${widget.amountLabel}',
-                style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted),
+                l10n.sendRequesting(widget.amountLabel),
+                style: GoogleFonts.inter(fontSize: 13, color: colors.textMuted),
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
               child: Text(
-                'What is it for?',
+                l10n.sendWhatFor,
                 style: GoogleFonts.raleway(
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
-                  color: PayspinTokens.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
             ),
@@ -239,7 +244,7 @@ class _SendNamePageState extends State<SendNamePage> {
               padding: const EdgeInsets.all(24),
               child: PayspinUnderlineField(
                 controller: _label,
-                hintText: 'E.g. Dinner',
+                hintText: l10n.sendForHint,
                 maxLength: 140,
                 autofocus: true,
                 onChanged: (_) => setState(() {}),
@@ -252,11 +257,11 @@ class _SendNamePageState extends State<SendNamePage> {
               child: Align(
                 alignment: Alignment.centerRight,
                 child: Text(
-                  '$left left',
+                  l10n.sendCharsLeft(left),
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
-                    color: PayspinTokens.textMuted,
+                    color: colors.textMuted,
                   ),
                 ),
               ),
@@ -267,7 +272,7 @@ class _SendNamePageState extends State<SendNamePage> {
                 children: [
                   Expanded(
                     child: PayspinGradientPillButton(
-                      label: 'Share via WhatsApp',
+                      label: l10n.sendViaWhatsApp,
                       loading: _loading,
                       onPressed: filled && !_loading ? _send : null,
                       icon: const Icon(Icons.send, color: PayspinTokens.onBrand, size: 18),

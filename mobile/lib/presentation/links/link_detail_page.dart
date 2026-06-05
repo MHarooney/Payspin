@@ -6,8 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
+import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_snackbar.dart';
 import '../../core/design_system/widgets/payspin_status_chip.dart';
 import '../../core/errors/api_exception.dart';
@@ -105,6 +107,7 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
   }
 
   Widget _heroCard(PaymentLinkDetail link) {
+    final colors = context.psColors;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -113,16 +116,16 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
           colors: [PayspinTokens.pink.withValues(alpha: 0.14), PayspinTokens.mint.withValues(alpha: 0.08)],
         ),
         borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-        border: Border.all(color: PayspinTokens.border),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if ((link.description ?? '').isNotEmpty) ...[
-            Text(link.description!, style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted)),
+            Text(link.description!, style: GoogleFonts.inter(fontSize: 13, color: colors.textMuted)),
             const SizedBox(height: 8),
           ],
-          Text(link.amountLabel, style: GoogleFonts.raleway(fontSize: 40, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
+          Text(link.amountLabel, style: GoogleFonts.raleway(fontSize: 40, fontWeight: FontWeight.w800, color: colors.textPrimary)),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -135,7 +138,7 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
               ),
               if (link.usageLabel != null) ...[
                 const SizedBox(width: 8),
-                Text(link.usageLabel!, style: GoogleFonts.inter(color: PayspinTokens.textMuted, fontWeight: FontWeight.w500, fontSize: 12)),
+                Text(link.usageLabel!, style: GoogleFonts.inter(color: colors.textMuted, fontWeight: FontWeight.w500, fontSize: 12)),
               ],
             ],
           ),
@@ -145,11 +148,12 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
   }
 
   Widget _copyLinkButton(String url) {
+    final colors = context.psColors;
     return Material(
-      color: PayspinTokens.surfaceRaised,
+      color: colors.surfaceRaised,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
-        side: const BorderSide(color: PayspinTokens.border),
+        side: BorderSide(color: colors.border),
       ),
       child: InkWell(
         onTap: () async {
@@ -163,9 +167,9 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.link, color: PayspinTokens.textBody, size: 18),
+              Icon(Icons.link, color: colors.textBody, size: 18),
               const SizedBox(width: 10),
-              Text('Copy link', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: PayspinTokens.textBody)),
+              Text('Copy link', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: colors.textBody)),
             ],
           ),
         ),
@@ -174,11 +178,12 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
   }
 
   Widget _showQrButton() {
+    final colors = context.psColors;
     return Material(
-      color: PayspinTokens.surfaceRaised,
+      color: colors.surfaceRaised,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
-        side: const BorderSide(color: PayspinTokens.border),
+        side: BorderSide(color: colors.border),
       ),
       child: InkWell(
         onTap: () => context.push('/links/${widget.linkId}/qr'),
@@ -188,9 +193,9 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.qr_code_2, color: PayspinTokens.textBody, size: 18),
+              Icon(Icons.qr_code_2, color: colors.textBody, size: 18),
               const SizedBox(width: 10),
-              Text('Show QR', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: PayspinTokens.textBody)),
+              Text('Show QR', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: colors.textBody)),
             ],
           ),
         ),
@@ -199,18 +204,19 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
   }
 
   Widget _noPaymentsYet() {
+    final colors = context.psColors;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: PayspinTokens.bgElevated,
+        color: colors.bgElevated,
         borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-        border: Border.all(color: PayspinTokens.border),
+        border: Border.all(color: colors.border),
       ),
       child: Row(
         children: [
-          const Icon(Icons.schedule, color: PayspinTokens.textMuted, size: 18),
+          Icon(Icons.schedule, color: colors.textMuted, size: 18),
           const SizedBox(width: 12),
-          Text('No payments yet — waiting for the first.', style: GoogleFonts.inter(color: PayspinTokens.textMuted)),
+          Text('No payments yet — waiting for the first.', style: GoogleFonts.inter(color: colors.textMuted)),
         ],
       ),
     );
@@ -218,6 +224,7 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
 
   Widget _timelineTile(PaymentRecord p, bool isLast) {
     final color = PaymentVisuals.recordStatusColor(p.status);
+    final colors = context.psColors;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,7 +241,7 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
                 ),
               ),
               if (!isLast)
-                Expanded(child: Container(width: 2, color: PayspinTokens.border)),
+                Expanded(child: Container(width: 2, color: colors.border)),
             ],
           ),
           const SizedBox(width: 14),
@@ -243,9 +250,9 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: PayspinTokens.bgElevated,
+                color: colors.bgElevated,
                 borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-                border: Border.all(color: PayspinTokens.border),
+                border: Border.all(color: colors.border),
               ),
               child: Row(
                 children: [
@@ -264,10 +271,16 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
   Widget build(BuildContext context) {
     final link = _link;
     return Scaffold(
-      backgroundColor: PayspinTokens.bg,
+      backgroundColor: context.psColors.bg,
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
         title: Text(link?.description ?? 'Link', style: GoogleFonts.raleway(fontWeight: FontWeight.w700)),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: PayspinQuickSettings(size: 36, iconSize: 18),
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: PayspinTokens.pink))

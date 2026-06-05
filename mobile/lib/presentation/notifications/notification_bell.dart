@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/state/notifications_refresh_notifier.dart';
 import '../../domain/repositories/notification_repository.dart';
@@ -43,14 +44,15 @@ class _NotificationBellState extends State<NotificationBell> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Stack(
       clipBehavior: Clip.none,
       children: [
         Material(
-          color: PayspinTokens.glass,
+          color: colors.glassFill,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: PayspinTokens.border),
+            side: BorderSide(color: colors.glassBorder),
           ),
           child: InkWell(
             onTap: () {
@@ -58,10 +60,10 @@ class _NotificationBellState extends State<NotificationBell> {
               _load();
             },
             borderRadius: BorderRadius.circular(12),
-            child: const SizedBox(
+            child: SizedBox(
               width: 40,
               height: 40,
-              child: Icon(Icons.notifications_outlined, color: PayspinTokens.textPrimary, size: 20),
+              child: Icon(Icons.notifications_outlined, color: colors.textPrimary, size: 20),
             ),
           ),
         ),
@@ -75,7 +77,7 @@ class _NotificationBellState extends State<NotificationBell> {
               decoration: BoxDecoration(
                 gradient: PayspinTokens.gradientPink,
                 borderRadius: BorderRadius.circular(100),
-                border: Border.all(color: PayspinTokens.bg, width: 1.5),
+                border: Border.all(color: colors.bg, width: 1.5),
               ),
               child: Center(
                 child: Text(

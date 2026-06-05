@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Raleway } from 'next/font/google';
 import './globals.css';
+import ThemeProvider, { themeNoFlashScript } from './components/ThemeProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -22,7 +23,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0B0B12',
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0B0B12' },
+    { media: '(prefers-color-scheme: light)', color: '#F9F9F9' },
+  ],
   width: 'device-width',
   initialScale: 1,
 };
@@ -33,8 +37,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${raleway.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${inter.variable} ${raleway.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeNoFlashScript }} />
+      </head>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

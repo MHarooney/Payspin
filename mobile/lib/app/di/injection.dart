@@ -1,6 +1,9 @@
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/config/remote_config_service.dart';
+import '../../core/design_system/theme/theme_mode_controller.dart';
+import '../../core/l10n/locale_controller.dart';
 import '../../core/firebase/phone_auth_service.dart';
 import '../../core/notifications/push_service.dart';
 import '../../core/onboarding/onboarding_progress_store.dart';
@@ -30,6 +33,21 @@ import '../../presentation/onboarding/onboarding_cubit.dart';
 final sl = GetIt.instance;
 
 Future<void> configureDependencies() async {
+  // Hot restart re-runs [main] but GetIt may still hold a partial graph from
+  // before new registrations (e.g. LocaleController) were added — reset first.
+  if (sl.isRegistered<ThemeModeController>()) {
+    await sl.reset(dispose: true);
+  }
+
+  final prefs = await SharedPreferences.getInstance();
+  final themeController = ThemeModeController(prefs);
+  await themeController.load();
+  sl.registerSingleton<ThemeModeController>(themeController);
+
+  final localeController = LocaleController(prefs);
+  await localeController.load();
+  sl.registerSingleton<LocaleController>(localeController);
+
   sl.registerLazySingleton(PayspinApiClient.new);
   sl.registerLazySingleton(LinksRefreshNotifier.new);
   sl.registerLazySingleton(CirclesRefreshNotifier.new);

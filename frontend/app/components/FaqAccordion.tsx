@@ -70,11 +70,16 @@ function FaqRow({ item }: { item: FaqItem }) {
           ▾
         </span>
       </button>
-      {open && (
-        <div id={panelId} className="ps-faq__answer">
-          {item.a}
+      <div
+        id={panelId}
+        role="region"
+        className={`ps-faq__answer-wrap${open ? ' ps-faq__answer-wrap--open' : ''}`}
+        aria-hidden={!open}
+      >
+        <div className="ps-faq__answer-inner">
+          <div className="ps-faq__answer">{item.a}</div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

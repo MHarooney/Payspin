@@ -10,6 +10,8 @@ Quick index for AI agents working on Payspin.
 4. [workflows.md](workflows.md) — step-by-step task checklists
 5. [mobile-implementation-prompt.md](mobile-implementation-prompt.md) — full agent prompt for **Payspin-mobile** repo (payment links + Circles/Groepies)
 5b. [mobile-ui-ux-enhancement-prompt.md](mobile-ui-ux-enhancement-prompt.md) — **UI/UX polish** to match dark prototype (all screens)
+5e. **[ui-ux-brand-enhancement-prompt.md](ui-ux-brand-enhancement-prompt.md)** — **MASTER: logos, light/dark theme, glass, QR, motion, usability — plan + implement Phases 0→D** ([audit](ui-ux-brand-audit.md))
+5f. **[splash-onboarding-storyboard-prompt.md](splash-onboarding-storyboard-prompt.md)** — **Splash vector logo fix + Wise-style 5-scene intro + app-wide theme/language** (copy-paste agent prompt)
 5c. [payment-notifications-yapily-prompt.md](payment-notifications-yapily-prompt.md) — **Yapily webhooks, Firebase (FCM/SMS/in-app), Shorebird OTA, payer polling, IBAN routing** — full cloud E2E ([Shorebird org 49026](https://console.shorebird.dev/orgs/49026/apps))
 5d. [mobile-otp-debug-prompt.md](mobile-otp-debug-prompt.md) — **Firebase Phone OTP on iPhone** — stale restore, SMS autofill, mobile-mcp device testing
 6. [circles-implementation-prompt.md](circles-implementation-prompt.md) — Circles/Groepies backend + mobile (Phase 2–3)

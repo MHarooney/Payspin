@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
 
 /// A single bank account / IBAN row used in the profile list and the
@@ -34,6 +35,7 @@ class PayspinIbanTile extends StatelessWidget {
       if (bankName != null && bankName!.isNotEmpty) bankName!,
       accountHolder,
     ].join(' · ');
+    final colors = context.psColors;
 
     return Material(
       color: Colors.transparent,
@@ -48,7 +50,7 @@ class PayspinIbanTile extends StatelessWidget {
                 Icon(
                   selected! ? Icons.radio_button_checked : Icons.radio_button_unchecked,
                   size: 20,
-                  color: selected! ? PayspinTokens.mint : PayspinTokens.textHint,
+                  color: selected! ? PayspinTokens.mint : colors.textHint,
                 ),
                 const SizedBox(width: 12),
               ] else ...[
@@ -56,10 +58,10 @@ class PayspinIbanTile extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: PayspinTokens.glass,
+                    color: colors.glassFill,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.credit_card_outlined, size: 18, color: PayspinTokens.textPrimary),
+                  child: Icon(Icons.credit_card_outlined, size: 18, color: colors.textPrimary),
                 ),
                 const SizedBox(width: 12),
               ],
@@ -75,7 +77,7 @@ class PayspinIbanTile extends StatelessWidget {
                             style: GoogleFonts.raleway(
                               fontWeight: FontWeight.w700,
                               fontSize: 15,
-                              color: PayspinTokens.textPrimary,
+                              color: colors.textPrimary,
                             ),
                           ),
                         ),
@@ -91,7 +93,7 @@ class PayspinIbanTile extends StatelessWidget {
                         subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(fontSize: 12, color: PayspinTokens.textMuted),
+                        style: GoogleFonts.inter(fontSize: 12, color: colors.textMuted),
                       ),
                     ],
                   ],

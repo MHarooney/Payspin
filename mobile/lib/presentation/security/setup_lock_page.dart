@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_lock_keypad.dart';
@@ -154,9 +155,10 @@ class _SetupLockPageState extends State<SetupLockPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     final showKeypad = _phase != _Phase.biometric;
     return Scaffold(
-      backgroundColor: PayspinTokens.bg,
+      backgroundColor: colors.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -169,7 +171,7 @@ class _SetupLockPageState extends State<SetupLockPage> {
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: PayspinTokens.textMuted,
+                    color: colors.textMuted,
                   ),
                 ),
               ),
@@ -181,7 +183,7 @@ class _SetupLockPageState extends State<SetupLockPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: PayspinTokens.pink.withValues(alpha: 0.12),
-                border: Border.all(color: PayspinTokens.borderActive),
+                border: Border.all(color: colors.borderActive),
               ),
               child: Icon(
                 _phase == _Phase.biometric
@@ -202,7 +204,7 @@ class _SetupLockPageState extends State<SetupLockPage> {
                     style: GoogleFonts.raleway(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
-                      color: PayspinTokens.textPrimary,
+                      color: colors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -212,7 +214,7 @@ class _SetupLockPageState extends State<SetupLockPage> {
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       height: 1.5,
-                      color: PayspinTokens.textMuted,
+                      color: colors.textMuted,
                     ),
                   ),
                 ],
@@ -251,7 +253,7 @@ class _SetupLockPageState extends State<SetupLockPage> {
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: PayspinTokens.textBody,
+                          color: colors.textBody,
                         ),
                       ),
                     ),

@@ -14,7 +14,7 @@ export default function WebShell({
 }) {
   return (
     <main className="ps-page">
-      <div className="ps-shell">
+      <div className="ps-shell ps-enter">
         <PayspinHeader />
         {children}
         {showFooter && <PayspinFooter />}

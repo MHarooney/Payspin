@@ -8,6 +8,7 @@
 | [agents/architecture.md](agents/architecture.md) | Clean architecture per app |
 | [agents/conventions.md](agents/conventions.md) | Naming, files, anti-patterns |
 | [agents/workflows.md](agents/workflows.md) | Step-by-step: feature, test, deploy |
+| [agents/ui-ux-brand-enhancement-prompt.md](agents/ui-ux-brand-enhancement-prompt.md) | **Brand UI/UX master prompt** (logos, themes, glass, motion — all phases) |
 | [agents/README.md](agents/README.md) | Agent doc hub + Cursor rules map |
 | [.cursor/skills/payspin/SKILL.md](../.cursor/skills/payspin/SKILL.md) | Cursor skill — invoke for Payspin tasks |
 

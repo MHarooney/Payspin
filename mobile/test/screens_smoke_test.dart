@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:payspin_mobile/core/l10n/locale_controller.dart';
+import 'package:payspin_mobile/core/l10n/payspin_localizations.dart';
 import 'package:payspin_mobile/app/app.dart';
 import 'package:payspin_mobile/app/di/injection.dart';
 import 'package:payspin_mobile/app/router.dart';
@@ -31,6 +35,14 @@ Future<void> pumpRoute(WidgetTester tester, GoRouter router, String location) as
 
 Widget _themed(Widget child) => MaterialApp(
       theme: PayspinTheme.dark(),
+      locale: const Locale('en'),
+      supportedLocales: LocaleController.supportedLocales,
+      localizationsDelegates: const [
+        PayspinLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: child,
     );
 
@@ -38,6 +50,8 @@ void main() {
   late GoRouter router;
 
   setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
     await configureDependencies();
   });
 
@@ -76,6 +90,8 @@ void main() {
 
     testWidgets('onboarding connect bank', (tester) async {
       await pumpRoute(tester, router, '/onboarding/connect');
+      // Drain secure-storage read timeout started in initState.
+      await tester.pump(const Duration(seconds: 4));
       expect(tester.takeException(), isNull);
     });
 
@@ -109,6 +125,7 @@ void main() {
         _themed(const SendNamePage(amountLabel: '€10.00', amountCents: 1000)),
       );
       await tester.pump();
+      await tester.pump(const Duration(seconds: 4));
       expect(tester.takeException(), isNull);
     });
 
@@ -122,6 +139,7 @@ void main() {
     testWidgets('notifications', (tester) async {
       await tester.pumpWidget(_themed(const NotificationsPage()));
       await tester.pump();
+      await tester.pump(const Duration(seconds: 4));
       expect(tester.takeException(), isNull);
     });
 

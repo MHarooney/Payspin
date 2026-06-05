@@ -10,6 +10,7 @@ import '../presentation/auth/login_page.dart';
 import '../presentation/circles/circle_detail_page.dart';
 import '../presentation/circles/create_circle_page.dart';
 import '../presentation/circles/join_circle_page.dart';
+import '../presentation/intro/payspin_intro_flow.dart';
 import '../presentation/links/link_detail_page.dart';
 import '../presentation/links/link_qr_page.dart';
 import '../presentation/notifications/notifications_page.dart';
@@ -39,6 +40,7 @@ GoRouter createRouter({String initialLocation = '/splash'}) {
     redirect: _redirect,
     routes: [
       GoRoute(path: '/splash', builder: (_, __) => const SplashPage()),
+      GoRoute(path: '/intro', builder: (_, __) => const PayspinIntroFlow()),
       GoRoute(path: '/welcome', builder: (_, __) => const WelcomePage()),
       GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
       ShellRoute(
@@ -102,6 +104,7 @@ GoRouter createRouter({String initialLocation = '/splash'}) {
 Future<String?> _redirect(BuildContext context, GoRouterState state) async {
   final loc = state.matchedLocation;
   if (loc == '/splash' ||
+      loc == '/intro' ||
       loc == '/welcome' ||
       loc.startsWith('/onboarding') ||
       loc == '/login') {

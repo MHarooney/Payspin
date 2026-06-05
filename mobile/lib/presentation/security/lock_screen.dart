@@ -3,9 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_lock_keypad.dart';
 import '../../core/design_system/widgets/payspin_passcode_dots.dart';
+import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_radial_glow.dart';
 import '../../core/security/app_lock_service.dart';
 
@@ -146,8 +148,9 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Scaffold(
-      backgroundColor: PayspinTokens.bg,
+      backgroundColor: colors.bg,
       body: Stack(
         children: [
           const Positioned.fill(
@@ -156,7 +159,14 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
           SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 36),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(0, 8, 16, 0),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: PayspinQuickSettings(size: 38, iconSize: 18),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Column(
@@ -166,7 +176,7 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontSize: 24,
                               fontWeight: FontWeight.w800,
-                              color: PayspinTokens.textPrimary,
+                              color: colors.textPrimary,
                             ),
                       ),
                       if (_name.isNotEmpty) ...[
@@ -176,7 +186,7 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 fontSize: 15,
-                                color: PayspinTokens.textMuted,
+                                color: colors.textMuted,
                               ),
                         ),
                       ],

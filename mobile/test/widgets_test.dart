@@ -28,6 +28,7 @@ import 'package:payspin_mobile/presentation/notifications/notifications_page.dar
 import 'package:payspin_mobile/domain/entities/app_notification.dart';
 
 import 'helpers/fake_repositories.dart';
+import 'helpers/l10n_test_app.dart';
 
 final _sl = GetIt.instance;
 
@@ -78,7 +79,7 @@ void main() {
     await _sl.reset();
   });
 
-  Widget wrap(Widget child) => MaterialApp(home: child);
+  Widget wrap(Widget child) => l10nTestApp(child);
 
   group('HomePage', () {
     // NOTE: empty/error states render continuous "breathing" animations

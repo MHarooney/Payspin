@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
 
 /// Row of passcode progress dots (filled = entered). Shakes via [shake] and
@@ -22,6 +23,7 @@ class PayspinPasscodeDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(length, (i) {
@@ -29,8 +31,8 @@ class PayspinPasscodeDots extends StatelessWidget {
         final color = error
             ? PayspinTokens.pink
             : isFilled
-                ? PayspinTokens.textPrimary
-                : PayspinTokens.textHint;
+                ? colors.textPrimary
+                : colors.textHint;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 140),
           margin: const EdgeInsets.symmetric(horizontal: 9),

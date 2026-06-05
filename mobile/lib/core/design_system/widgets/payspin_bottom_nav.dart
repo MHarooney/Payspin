@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../l10n/payspin_localizations.dart';
+import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
 
 class PayspinBottomNav extends StatelessWidget {
@@ -13,21 +15,23 @@ class PayspinBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
+    final l10n = context.l10n;
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xD90B0B12),
-            border: Border(top: BorderSide(color: PayspinTokens.border)),
+            color: colors.navBarScrim,
+            border: Border(top: BorderSide(color: colors.border)),
           ),
           child: SafeArea(
             top: false,
             child: Row(
               children: [
-                _item(0, 'Home', Icons.home_rounded),
-                _item(1, 'Scan QR', Icons.qr_code_scanner_rounded),
-                _item(2, 'Profile', Icons.person_rounded),
+                _item(context, 0, l10n.navHome, Icons.home_rounded),
+                _item(context, 1, l10n.navScanQr, Icons.qr_code_scanner_rounded),
+                _item(context, 2, l10n.navProfile, Icons.person_rounded),
               ],
             ),
           ),
@@ -36,9 +40,10 @@ class PayspinBottomNav extends StatelessWidget {
     );
   }
 
-  Widget _item(int index, String label, IconData icon) {
+  Widget _item(BuildContext context, int index, String label, IconData icon) {
+    final colors = context.psColors;
     final selected = currentIndex == index;
-    final color = selected ? PayspinTokens.textPrimary : PayspinTokens.textMuted;
+    final color = selected ? colors.textPrimary : colors.textMuted;
     return Expanded(
       child: InkWell(
         onTap: () => onTap(index),

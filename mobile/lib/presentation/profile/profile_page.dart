@@ -4,6 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
 import '../../core/config/app_version.dart';
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
+import '../../core/design_system/theme/theme_mode_controller.dart';
+import '../../core/l10n/locale_controller.dart';
+import '../../core/l10n/payspin_localizations.dart';
+import '../../core/preferences/payspin_preferences_sheets.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_iban_tile.dart';
 import '../../core/design_system/widgets/payspin_settings_group.dart';
@@ -43,16 +48,31 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     duration: const Duration(milliseconds: 1100),
   );
 
+  final ThemeModeController _themeController = sl<ThemeModeController>();
+  final LocaleController _localeController = sl<LocaleController>();
+
   @override
   void initState() {
     super.initState();
+    _themeController.addListener(_onThemeChanged);
+    _localeController.addListener(_onLocaleChanged);
     _load();
   }
 
   @override
   void dispose() {
+    _themeController.removeListener(_onThemeChanged);
+    _localeController.removeListener(_onLocaleChanged);
     _shine.dispose();
     super.dispose();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onLocaleChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _load() async {
@@ -92,11 +112,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     final turnOff = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: PayspinTokens.bgElevated,
+        backgroundColor: context.psColors.bgElevated,
         title: Text('Turn off app lock?',
-            style: GoogleFonts.raleway(fontWeight: FontWeight.w700, color: PayspinTokens.textPrimary)),
+            style: GoogleFonts.raleway(fontWeight: FontWeight.w700, color: context.psColors.textPrimary)),
         content: Text('Payspin will no longer ask for $_lockDetail to open the app.',
-            style: GoogleFonts.inter(color: PayspinTokens.textMuted)),
+            style: GoogleFonts.inter(color: context.psColors.textMuted)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           TextButton(
@@ -116,6 +136,16 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   Future<void> _openBankAccounts() async {
     await context.push('/bank-accounts');
     if (mounted) await _load();
+  }
+
+  Future<void> _chooseAppearance() async {
+    await context.showAppearanceSheet();
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _chooseLanguage() async {
+    await context.showLanguageSheet();
+    if (mounted) setState(() {});
   }
 
   Future<void> _setPrimary(BankAccount account) async {
@@ -143,11 +173,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: PayspinTokens.bgElevated,
+        backgroundColor: context.psColors.bgElevated,
         title: Text('Remove this IBAN?',
-            style: GoogleFonts.raleway(fontWeight: FontWeight.w700, color: PayspinTokens.textPrimary)),
+            style: GoogleFonts.raleway(fontWeight: FontWeight.w700, color: context.psColors.textPrimary)),
         content: Text('•••• ${account.ibanLast4} will be removed from your account.',
-            style: GoogleFonts.inter(color: PayspinTokens.textMuted)),
+            style: GoogleFonts.inter(color: context.psColors.textMuted)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           TextButton(
@@ -170,10 +200,11 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Widget _accountMenu(BankAccount account) {
+    final colors = context.psColors;
     return PopupMenuButton<String>(
       enabled: !_busy,
-      icon: const Icon(Icons.more_vert, size: 18, color: PayspinTokens.textMuted),
-      color: PayspinTokens.bgElevated,
+      icon: Icon(Icons.more_vert, size: 18, color: colors.textMuted),
+      color: colors.bgElevated,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (value) {
         if (value == 'primary') _setPrimary(account);
@@ -183,7 +214,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         if (!account.isPrimary)
           PopupMenuItem(
             value: 'primary',
-            child: Text('Set as primary', style: GoogleFonts.inter(color: PayspinTokens.textPrimary)),
+            child: Text('Set as primary', style: GoogleFonts.inter(color: colors.textPrimary)),
           ),
         PopupMenuItem(
           value: 'remove',
@@ -194,6 +225,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   }
 
   Widget _addRow({required IconData icon, required String label, required VoidCallback onTap}) {
+    final colors = context.psColors;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -205,14 +237,14 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(color: PayspinTokens.glass, borderRadius: BorderRadius.circular(10)),
-                child: Icon(icon, size: 18, color: PayspinTokens.textPrimary),
+                decoration: BoxDecoration(color: colors.glassFill, borderRadius: BorderRadius.circular(10)),
+                child: Icon(icon, size: 18, color: colors.textPrimary),
               ),
               const SizedBox(width: 14),
               Expanded(
-                child: Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14, color: PayspinTokens.textPrimary)),
+                child: Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14, color: colors.textPrimary)),
               ),
-              const Icon(Icons.chevron_right, size: 16, color: PayspinTokens.textHint),
+              Icon(Icons.chevron_right, size: 16, color: colors.textHint),
             ],
           ),
         ),
@@ -222,6 +254,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
 
   Widget _buildBankAccountsSection() {
     final accounts = _accounts;
+    final colors = context.psColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -232,7 +265,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               Expanded(
                 child: Text(
                   accounts.length > 1 ? 'BANK ACCOUNTS · ${accounts.length}' : 'BANK ACCOUNT',
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: PayspinTokens.textMuted, letterSpacing: 1),
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: colors.textMuted, letterSpacing: 1),
                 ),
               ),
               TextButton(
@@ -249,14 +282,14 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
         ),
         Container(
           decoration: BoxDecoration(
-            color: PayspinTokens.surfaceRaised,
+            color: colors.surfaceRaised,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: PayspinTokens.border),
+            border: Border.all(color: colors.border),
           ),
           child: Column(
             children: [
               for (var i = 0; i < accounts.length; i++) ...[
-                if (i > 0) const Divider(height: 1, color: PayspinTokens.border),
+                if (i > 0) Divider(height: 1, color: colors.border),
                 PayspinIbanTile(
                   ibanLast4: accounts[i].ibanLast4,
                   accountHolder: accounts[i].accountHolder,
@@ -266,13 +299,13 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                   trailing: _accountMenu(accounts[i]),
                 ),
               ],
-              if (accounts.isNotEmpty) const Divider(height: 1, color: PayspinTokens.border),
+              if (accounts.isNotEmpty) Divider(height: 1, color: colors.border),
               _addRow(
                 icon: Icons.add,
                 label: accounts.isEmpty ? 'Add an IBAN' : 'Add another IBAN',
                 onTap: () => context.push('/onboarding/iban?existing=1'),
               ),
-              const Divider(height: 1, color: PayspinTokens.border),
+              Divider(height: 1, color: colors.border),
               _addRow(
                 icon: Icons.account_balance_outlined,
                 label: 'Connect a bank',
@@ -289,6 +322,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator(color: PayspinTokens.pink));
 
+    final colors = context.psColors;
     final displayName = _user?.displayName?.trim();
     // For phone accounts the email local-part is just raw digits, so fall back
     // to a friendly default rather than showing a number where a name belongs.
@@ -309,7 +343,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
               child: Row(
                 children: [
-                  IconButton(onPressed: widget.onGoHome, icon: const Icon(Icons.arrow_back, color: PayspinTokens.textPrimary)),
+                  IconButton(onPressed: widget.onGoHome, icon: Icon(Icons.arrow_back, color: colors.textPrimary)),
                   Expanded(child: Text('Profile', textAlign: TextAlign.center, style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 17))),
                   const SizedBox(width: 48),
                 ],
@@ -329,7 +363,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     decoration: BoxDecoration(shape: BoxShape.circle, gradient: PayspinTokens.gradientTri, boxShadow: PayspinTokens.fabShadow),
                     padding: const EdgeInsets.all(4),
                     child: Container(
-                      decoration: const BoxDecoration(shape: BoxShape.circle, color: PayspinTokens.bg),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: colors.bg),
                       padding: const EdgeInsets.all(3),
                       child: Container(
                         decoration: const BoxDecoration(shape: BoxShape.circle, gradient: PayspinTokens.gradientPink),
@@ -339,9 +373,9 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     ),
                   ),
                   const SizedBox(height: 14),
-                  Text(name, style: GoogleFonts.raleway(fontSize: 22, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
+                  Text(name, style: GoogleFonts.raleway(fontSize: 22, fontWeight: FontWeight.w800, color: colors.textPrimary)),
                   if (contact.isNotEmpty)
-                    Text(contact, style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted)),
+                    Text(contact, style: GoogleFonts.inter(fontSize: 13, color: colors.textMuted)),
                 ],
               ),
               const SizedBox(height: 28),
@@ -358,7 +392,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                           decoration: BoxDecoration(
                             gradient: LinearGradient(colors: [PayspinTokens.pink.withValues(alpha: 0.12), PayspinTokens.mint.withValues(alpha: 0.08)]),
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: PayspinTokens.border),
+                            border: Border.all(color: colors.border),
                           ),
                           child: Row(
                             children: [
@@ -366,13 +400,13 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('PRIMARY IBAN', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: PayspinTokens.textMuted, letterSpacing: 1)),
+                                    Text('PRIMARY IBAN', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 11, color: colors.textMuted, letterSpacing: 1)),
                                     const SizedBox(height: 8),
                                     Text(_primaryAccount != null ? '•••• ${_primaryAccount!.ibanLast4}' : 'Not linked', style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 18)),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.chevron_right, size: 18, color: PayspinTokens.textMuted),
+                              Icon(Icons.chevron_right, size: 18, color: colors.textMuted),
                             ],
                           ),
                         ),
@@ -423,10 +457,25 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     onTap: _openBankAccounts,
                   ),
                   PayspinSettingsRow(icon: Icons.lock_outline, label: 'App lock', detail: _lockDetail, onTap: _manageLock),
+                  PayspinSettingsRow(
+                    icon: Icons.brightness_6_outlined,
+                    label: context.l10n.appearance,
+                    detail: switch (_themeController.mode) {
+                      ThemeMode.light => context.l10n.themeLight,
+                      ThemeMode.dark => context.l10n.themeDark,
+                      ThemeMode.system => context.l10n.themeSystem,
+                    },
+                    onTap: _chooseAppearance,
+                  ),
                   PayspinSettingsRow(icon: Icons.notifications_outlined, label: 'Push notifications', detail: 'On', onTap: () {}),
-                  PayspinSettingsRow(icon: Icons.language, label: 'Language', detail: 'English', onTap: () {}),
-                  PayspinSettingsRow(icon: Icons.help_outline, label: 'Help & support', onTap: () {}),
-                  PayspinSettingsRow(icon: Icons.info_outline, label: 'Version', detail: AppVersion.serial, onTap: null),
+                  PayspinSettingsRow(
+                    icon: Icons.language,
+                    label: context.l10n.language,
+                    detail: _localeController.languageLabel,
+                    onTap: _chooseLanguage,
+                  ),
+                  PayspinSettingsRow(icon: Icons.help_outline, label: context.l10n.helpSupport, onTap: () {}),
+                  PayspinSettingsRow(icon: Icons.info_outline, label: context.l10n.version, detail: AppVersion.serial, onTap: null),
                 ],
               ),
               const SizedBox(height: 16),

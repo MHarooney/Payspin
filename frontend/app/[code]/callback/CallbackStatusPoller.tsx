@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import PayspinLoader from '../../components/PayspinLoader';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/v1';
 const POLL_INTERVAL_MS = 5000;
@@ -115,7 +116,9 @@ export default function CallbackStatusPoller({
 
   return (
     <div className="ps-status">
-      <span className="ps-spinner" aria-hidden />
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <PayspinLoader label="Payment is being processed" />
+      </div>
       <h1 className="ps-status__title" style={{ marginTop: 16 }}>
         Payment is being processed
       </h1>

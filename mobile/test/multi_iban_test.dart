@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:payspin_mobile/app/di/injection.dart';
 import 'package:payspin_mobile/core/design_system/theme/payspin_theme.dart';
 import 'package:payspin_mobile/core/design_system/widgets/payspin_iban_tile.dart';
+import 'package:payspin_mobile/core/l10n/locale_controller.dart';
+import 'package:payspin_mobile/core/l10n/payspin_localizations.dart';
 import 'package:payspin_mobile/domain/entities/bank_account.dart';
 import 'package:payspin_mobile/domain/entities/payment_link.dart';
 import 'package:payspin_mobile/domain/repositories/bank_account_repository.dart';
@@ -11,7 +14,18 @@ import 'package:payspin_mobile/presentation/send/send_name_page.dart';
 
 import 'helpers/fake_repositories.dart';
 
-Widget _themed(Widget child) => MaterialApp(theme: PayspinTheme.dark(), home: child);
+Widget _themed(Widget child) => MaterialApp(
+      theme: PayspinTheme.dark(),
+      locale: const Locale('en'),
+      supportedLocales: LocaleController.supportedLocales,
+      localizationsDelegates: const [
+        PayspinLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: child,
+    );
 
 PaymentLink _link() => const PaymentLink(
       id: 'l1',
@@ -33,6 +47,7 @@ void main() {
       await tester.pumpWidget(_themed(
         const PayspinIbanTile(ibanLast4: '1234', accountHolder: 'Jane', isPrimary: true),
       ));
+      await tester.pump();
       expect(find.text('•••• 1234'), findsOneWidget);
       expect(find.text('Primary'), findsOneWidget);
     });
@@ -47,6 +62,7 @@ void main() {
           onTap: () => tapped = true,
         ),
       ));
+      await tester.pump();
       expect(find.byIcon(Icons.radio_button_checked), findsOneWidget);
       await tester.tap(find.byType(PayspinIbanTile));
       expect(tapped, isTrue);

@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
+import '../../core/l10n/payspin_localizations.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_deals_placeholder.dart';
 import '../../core/design_system/widgets/payspin_empty_state.dart';
@@ -10,6 +12,7 @@ import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_gradient_text.dart';
 import '../../core/design_system/widgets/payspin_groepies_promo_card.dart';
 import '../../core/design_system/widgets/payspin_logo.dart';
+import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_skeleton.dart';
 import '../../core/design_system/widgets/payspin_tab_strip.dart';
 import '../../core/design_system/widgets/payspin_tikkie_row.dart';
@@ -120,6 +123,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _header(BuildContext context) {
+    final l10n = context.l10n;
     return SafeArea(
       bottom: false,
       child: Padding(
@@ -141,6 +145,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 _glassIcon(Icons.search, () => setState(() => _searchOpen = !_searchOpen)),
                 const SizedBox(width: 8),
+                const PayspinQuickSettings(rounded: true),
+                const SizedBox(width: 8),
                 NotificationBell(onTap: () => context.push('/notifications')),
               ],
             ),
@@ -154,8 +160,8 @@ class _HomePageState extends State<HomePage> {
                       child: TextField(
                         autofocus: true,
                         onChanged: (v) => setState(() => _query = v),
-                        style: GoogleFonts.inter(color: PayspinTokens.textPrimary),
-                        decoration: const InputDecoration(hintText: 'Search Tikkies…'),
+                        style: GoogleFonts.inter(color: context.psColors.textPrimary),
+                        decoration: InputDecoration(hintText: l10n.searchTikkies),
                       ),
                     )
                   : const SizedBox(width: double.infinity),
@@ -167,21 +173,23 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _glassIcon(IconData icon, VoidCallback onTap) {
+    final colors = context.psColors;
     return Material(
-      color: PayspinTokens.glass,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: PayspinTokens.border)),
+      color: colors.glassFill,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: colors.glassBorder)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: SizedBox(width: 40, height: 40, child: Icon(icon, color: PayspinTokens.textPrimary, size: 20)),
+        child: SizedBox(width: 40, height: 40, child: Icon(icon, color: colors.textPrimary, size: 20)),
       ),
     );
   }
 
   Widget _tabs() {
+    final l10n = context.l10n;
     const tabs = [HomeTab.tikkies, HomeTab.deals, HomeTab.groepies];
     return PayspinTabStrip(
-      labels: const ['Tikkies', 'Deals', 'Groepies'],
+      labels: [l10n.tabTikkies, l10n.tabDeals, l10n.tabGroepies],
       selectedIndex: tabs.indexOf(_tab),
       onSelected: (i) => _selectTab(tabs[i]),
     );
@@ -209,9 +217,9 @@ class _HomePageState extends State<HomePage> {
         hasScrollBody: false,
         child: PayspinEmptyState(
           emoji: '😕',
-          title: 'Something went wrong',
+          title: context.l10n.errorTitle,
           subtitle: _error!,
-          primary: PayspinGradientPillButton(label: 'Try again', onPressed: _load),
+          primary: PayspinGradientPillButton(label: context.l10n.tryAgain, onPressed: _load),
         ),
       );
     }
@@ -219,12 +227,12 @@ class _HomePageState extends State<HomePage> {
       return SliverFillRemaining(hasScrollBody: false, child: _emptyState());
     }
     if (filtered.isEmpty) {
-      return const SliverFillRemaining(
+      return SliverFillRemaining(
         hasScrollBody: false,
         child: Center(
           child: Padding(
-            padding: EdgeInsets.all(32),
-            child: Text('No Tikkies match your search.', style: TextStyle(color: PayspinTokens.textMuted)),
+            padding: const EdgeInsets.all(32),
+            child: Text(context.l10n.noSearchResults, style: TextStyle(color: context.psColors.textMuted)),
           ),
         ),
       );
@@ -253,12 +261,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _emptyState() {
+    final l10n = context.l10n;
     return PayspinEmptyState(
       emoji: '💸',
-      title: 'Time for your first Tikkie',
-      subtitle: 'Request money from friends in seconds — they pay straight from their bank.',
+      title: l10n.emptyTikkiesTitle,
+      subtitle: l10n.emptyTikkiesSubtitle,
       primary: PayspinGradientPillButton(
-        label: 'Create a Tikkie',
+        label: l10n.createTikkie,
         icon: const Icon(Icons.add, color: PayspinTokens.onBrand, size: 20),
         onPressed: () => context.push('/send/amount'),
       ),

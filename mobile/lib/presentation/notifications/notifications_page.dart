@@ -3,7 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app/di/injection.dart';
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
+import '../../core/design_system/widgets/payspin_quick_settings.dart';
+import '../../core/l10n/payspin_localizations.dart';
 import '../../core/errors/api_exception.dart';
 import '../../core/state/notifications_refresh_notifier.dart';
 import '../../domain/entities/app_notification.dart';
@@ -75,19 +78,24 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Scaffold(
-      backgroundColor: PayspinTokens.bg,
+      backgroundColor: colors.bg,
       appBar: AppBar(
-        backgroundColor: PayspinTokens.bg,
-        title: Text('Notifications',
-            style: GoogleFonts.raleway(fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
+        backgroundColor: colors.bg,
+        title: Text(context.l10n.notificationsTitle,
+            style: GoogleFonts.raleway(fontWeight: FontWeight.w800, color: colors.textPrimary)),
         actions: [
           if (_items.any((n) => n.isUnread))
             TextButton(
               onPressed: _markAll,
-              child: Text('Mark all read',
+              child: Text(context.l10n.markAllRead,
                   style: GoogleFonts.inter(color: PayspinTokens.mint, fontSize: 13)),
             ),
+          const Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: PayspinQuickSettings(size: 36, iconSize: 18),
+          ),
         ],
       ),
       body: RefreshIndicator(
@@ -105,7 +113,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     if (_error != null) {
       return ListView(children: [
         const SizedBox(height: 120),
-        Center(child: Text(_error!, style: const TextStyle(color: PayspinTokens.textMuted))),
+        Center(child: Text(_error!, style: TextStyle(color: context.psColors.textMuted))),
       ]);
     }
     if (_items.isEmpty) {
@@ -114,8 +122,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
         const Center(child: Text('🔔', style: TextStyle(fontSize: 40))),
         const SizedBox(height: 12),
         Center(
-          child: Text('No notifications yet',
-              style: GoogleFonts.inter(color: PayspinTokens.textMuted, fontSize: 15)),
+          child: Text(context.l10n.noNotifications,
+              style: GoogleFonts.inter(color: context.psColors.textMuted, fontSize: 15)),
         ),
       ]);
     }
@@ -128,8 +136,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Widget _row(AppNotification n) {
+    final colors = context.psColors;
     return Material(
-      color: n.isUnread ? PayspinTokens.bgElevated : PayspinTokens.glass,
+      color: n.isUnread ? colors.bgElevated : colors.glassFill,
       borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
       child: InkWell(
         onTap: () => _open(n),
@@ -146,7 +155,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   gradient: PayspinTokens.gradientPink,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.payments_outlined, color: PayspinTokens.textPrimary, size: 20),
+                child: const Icon(Icons.payments_outlined, color: PayspinTokens.onBrand, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -155,17 +164,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   children: [
                     Text(n.title,
                         style: GoogleFonts.inter(
-                            color: PayspinTokens.textPrimary,
+                            color: colors.textPrimary,
                             fontWeight: FontWeight.w700,
                             fontSize: 15)),
                     const SizedBox(height: 2),
                     Text(n.body,
                         style: GoogleFonts.inter(
-                            color: PayspinTokens.textBody, fontSize: 13)),
+                            color: colors.textBody, fontSize: 13)),
                     const SizedBox(height: 4),
                     Text(n.timeLabel,
                         style: GoogleFonts.inter(
-                            color: PayspinTokens.textHint, fontSize: 11)),
+                            color: colors.textHint, fontSize: 11)),
                   ],
                 ),
               ),

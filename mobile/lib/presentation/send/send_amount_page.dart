@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_flow_header.dart';
 import '../../core/design_system/widgets/payspin_gradient_circle_button.dart';
 import '../../core/design_system/widgets/payspin_numpad.dart';
+import '../../core/l10n/payspin_localizations.dart';
 
 class SendAmountPage extends StatefulWidget {
   const SendAmountPage({super.key});
@@ -50,16 +52,18 @@ class _SendAmountPageState extends State<SendAmountPage> {
   @override
   Widget build(BuildContext context) {
     final isZero = !_openAmount && (_cents == null);
+    final colors = context.psColors;
+    final l10n = context.l10n;
     return Scaffold(
-      backgroundColor: PayspinTokens.bg,
+      backgroundColor: colors.bg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            PayspinFlowHeader(onBack: () => context.pop(), onHelp: () {}),
+            PayspinFlowHeader(onBack: () => context.pop()),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text("What's the amount?", style: GoogleFonts.raleway(fontSize: 30, fontWeight: FontWeight.w800, color: PayspinTokens.textPrimary)),
+              child: Text(l10n.sendAmountQuestion, style: GoogleFonts.raleway(fontSize: 30, fontWeight: FontWeight.w800, color: colors.textPrimary)),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
@@ -69,13 +73,13 @@ class _SendAmountPageState extends State<SendAmountPage> {
                 children: [
                   Text('€', style: GoogleFonts.raleway(fontSize: 38, fontWeight: FontWeight.w800, color: PayspinTokens.mint)),
                   const SizedBox(width: 12),
-                  Text(_display, style: GoogleFonts.raleway(fontSize: 42, fontWeight: FontWeight.w800, color: isZero ? PayspinTokens.mint : PayspinTokens.textPrimary)),
+                  Text(_display, style: GoogleFonts.raleway(fontSize: 42, fontWeight: FontWeight.w800, color: isZero ? PayspinTokens.mint : colors.textPrimary)),
                 ],
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
-              child: Text('You can request back a maximum of €950.', style: GoogleFonts.inter(fontSize: 12, color: PayspinTokens.textMuted)),
+              child: Text(l10n.sendMaxHint, style: GoogleFonts.inter(fontSize: 12, color: colors.textMuted)),
             ),
             Expanded(
               child: Padding(
@@ -85,16 +89,16 @@ class _SendAmountPageState extends State<SendAmountPage> {
                 children: [
                   Expanded(
                     child: Material(
-                      color: PayspinTokens.glass,
+                      color: colors.glassFill,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-                        side: const BorderSide(color: PayspinTokens.border),
+                        side: BorderSide(color: colors.glassBorder),
                       ),
                       child: SwitchListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14),
                         title: Text(
-                          'Payer may choose amount',
-                          style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textBody),
+                          l10n.sendOpenAmountToggle,
+                          style: GoogleFonts.inter(fontSize: 13, color: colors.textBody),
                         ),
                         value: _openAmount,
                         activeThumbColor: PayspinTokens.pink,
@@ -106,7 +110,7 @@ class _SendAmountPageState extends State<SendAmountPage> {
                     PayspinGradientCircleButton(
                       onPressed: (!_openAmount && isZero)
                           ? null
-                          : () => context.push('/send/name', extra: {'cents': _cents, 'amountLabel': _openAmount ? 'Open amount' : '€$_display'}),
+                          : () => context.push('/send/name', extra: {'cents': _cents, 'amountLabel': _openAmount ? l10n.sendOpenAmount : '€$_display'}),
                     ),
                   ],
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
 
 /// Horizontal text tabs with an animated sliding mint underline.
@@ -31,7 +32,7 @@ class PayspinTabStrip extends StatelessWidget {
               children: [
                 for (var i = 0; i < labels.length; i++) ...[
                   if (i > 0) const SizedBox(width: _gap),
-                  _tab(labels[i], i),
+                  _tab(context, labels[i], i),
                 ],
               ],
             ),
@@ -55,8 +56,9 @@ class PayspinTabStrip extends StatelessWidget {
     );
   }
 
-  Widget _tab(String label, int index) {
+  Widget _tab(BuildContext context, String label, int index) {
     final active = index == selectedIndex;
+    final colors = context.psColors;
     return GestureDetector(
       onTap: () => onSelected(index),
       behavior: HitTestBehavior.opaque,
@@ -68,7 +70,7 @@ class PayspinTabStrip extends StatelessWidget {
             style: GoogleFonts.inter(
               fontWeight: active ? FontWeight.w700 : FontWeight.w500,
               fontSize: 14,
-              color: active ? PayspinTokens.textPrimary : PayspinTokens.textMuted,
+              color: active ? colors.textPrimary : colors.textMuted,
             ),
             child: Text(label),
           ),

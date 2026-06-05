@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/design_system/theme/payspin_motion.dart';
+import '../../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
 import '../../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../../core/design_system/widgets/payspin_gradient_text.dart';
@@ -51,14 +53,21 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
+    final colors = context.psColors;
+    final reduced = PayspinMotion.reduced(context);
+    if (reduced && _c.isAnimating) {
+      _c.stop();
+      _c.value = 1;
+    }
     final badge = CurvedAnimation(parent: _c, curve: const Interval(0.0, 0.5, curve: Curves.elasticOut));
     final text = CurvedAnimation(parent: _c, curve: const Interval(0.35, 0.8, curve: Curves.easeOut));
 
     return Scaffold(
-      backgroundColor: PayspinTokens.bg,
+      backgroundColor: colors.bg,
       body: Stack(
         children: [
           const Positioned.fill(child: PayspinRadialGlow(size: 420)),
+          if (!reduced)
           AnimatedBuilder(
             animation: _c,
             builder: (context, _) {
@@ -106,12 +115,12 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
                   opacity: text,
                   child: Column(
                     children: [
-                      Text('Nice!', style: GoogleFonts.raleway(fontSize: 56, fontWeight: FontWeight.w900, color: PayspinTokens.textPrimary)),
+                      Text('Nice!', style: GoogleFonts.raleway(fontSize: 56, fontWeight: FontWeight.w900, color: colors.textPrimary)),
                       const SizedBox(height: 12),
                       Text.rich(
                         TextSpan(
                           children: [
-                            TextSpan(text: 'You can now use ', style: GoogleFonts.raleway(fontSize: 24, fontWeight: FontWeight.w700, color: PayspinTokens.textBody)),
+                            TextSpan(text: 'You can now use ', style: GoogleFonts.raleway(fontSize: 24, fontWeight: FontWeight.w700, color: colors.textBody)),
                             const WidgetSpan(child: PayspinGradientText('Payspin', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700))),
                           ],
                         ),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../tokens/payspin_tokens.dart';
+import '../theme/payspin_semantic_colors.dart';
 import 'payspin_gradient_circle_button.dart';
 import 'payspin_progress_bar.dart';
+import 'payspin_quick_settings.dart';
 
 class PayspinOnboardingShell extends StatelessWidget {
   const PayspinOnboardingShell({
@@ -33,8 +34,9 @@ class PayspinOnboardingShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Scaffold(
-      backgroundColor: PayspinTokens.bg,
+      backgroundColor: colors.bg,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -45,11 +47,13 @@ class PayspinOnboardingShell extends StatelessWidget {
                 children: [
                   IconButton(
                     onPressed: onBack,
-                    icon: const Icon(Icons.arrow_back, color: PayspinTokens.textPrimary),
+                    icon: Icon(Icons.arrow_back, color: colors.textPrimary),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                   ),
                   const Spacer(),
+                  const PayspinQuickSettings(size: 34, iconSize: 18),
+                  const SizedBox(width: 12),
                   PayspinStepCounter(step: step, total: totalSteps),
                 ],
               ),
@@ -65,7 +69,7 @@ class PayspinOnboardingShell extends StatelessWidget {
                 style: GoogleFonts.raleway(
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
-                  color: PayspinTokens.textPrimary,
+                  color: colors.textPrimary,
                   height: 1.15,
                 ),
                 child: title,
@@ -85,7 +89,7 @@ class PayspinOnboardingShell extends StatelessWidget {
                         subtitle!,
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: PayspinTokens.textMuted,
+                          color: colors.textMuted,
                           height: 1.6,
                         ),
                       ),
@@ -120,12 +124,13 @@ class PayspinStepCounter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return RichText(
       text: TextSpan(
-        style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14, color: PayspinTokens.textMuted),
+        style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14, color: colors.textMuted),
         children: [
           TextSpan(text: '$step'),
-          TextSpan(text: '/$total', style: const TextStyle(color: PayspinTokens.textHint)),
+          TextSpan(text: '/$total', style: TextStyle(color: colors.textHint)),
         ],
       ),
     );

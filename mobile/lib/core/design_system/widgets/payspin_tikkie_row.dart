@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../domain/entities/payment_link.dart';
 import '../../utils/payment_visuals.dart';
-import '../tokens/payspin_tokens.dart';
+import '../theme/payspin_semantic_colors.dart';
 import 'payspin_status_chip.dart';
 
 class PayspinTikkieRow extends StatefulWidget {
@@ -34,6 +34,7 @@ class _PayspinTikkieRowState extends State<PayspinTikkieRow> {
     final paid = link.completedPaymentCount > 0;
     final status = paid ? 'Paid ${link.completedPaymentCount}x' : link.statusLabel;
     final statusColor = PaymentVisuals.linkStatusColor(link.status, hasCompletedPayments: paid);
+    final colors = context.psColors;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -41,10 +42,10 @@ class _PayspinTikkieRowState extends State<PayspinTikkieRow> {
         scale: _pressed ? 0.98 : 1,
         duration: const Duration(milliseconds: 110),
         child: Material(
-        color: PayspinTokens.surfaceRaised,
+        color: colors.surfaceRaised,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: PayspinTokens.border),
+          side: BorderSide(color: colors.border),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -70,7 +71,7 @@ class _PayspinTikkieRowState extends State<PayspinTikkieRow> {
                     children: [
                       Text(
                         title,
-                        style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 15, color: PayspinTokens.textPrimary),
+                        style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 15, color: colors.textPrimary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -83,11 +84,11 @@ class _PayspinTikkieRowState extends State<PayspinTikkieRow> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     if (link.dateLabel.isNotEmpty)
-                      Text(link.dateLabel, style: GoogleFonts.inter(fontSize: 11, color: PayspinTokens.textHint)),
+                      Text(link.dateLabel, style: GoogleFonts.inter(fontSize: 11, color: colors.textHint)),
                     const SizedBox(height: 4),
                     Text(
                       link.amountLabel,
-                      style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 16, color: PayspinTokens.textPrimary),
+                      style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 16, color: colors.textPrimary),
                     ),
                   ],
                 ),

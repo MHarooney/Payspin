@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../tokens/payspin_tokens.dart';
+import '../theme/payspin_semantic_colors.dart';
 
 class PayspinSettingsRow {
   const PayspinSettingsRow({required this.icon, required this.label, this.detail, this.onTap});
@@ -19,16 +19,17 @@ class PayspinSettingsGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Container(
       decoration: BoxDecoration(
-        color: PayspinTokens.surfaceRaised,
+        color: colors.surfaceRaised,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: PayspinTokens.border),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         children: [
           for (var i = 0; i < rows.length; i++) ...[
-            if (i > 0) const Divider(height: 1, color: PayspinTokens.border),
+            if (i > 0) Divider(height: 1, color: colors.border),
             Material(
               color: Colors.transparent,
               child: InkWell(
@@ -40,21 +41,21 @@ class PayspinSettingsGroup extends StatelessWidget {
                       Container(
                         width: 36,
                         height: 36,
-                        decoration: BoxDecoration(color: PayspinTokens.glass, borderRadius: BorderRadius.circular(10)),
-                        child: Icon(rows[i].icon, size: 18, color: PayspinTokens.textPrimary),
+                        decoration: BoxDecoration(color: colors.glassFill, borderRadius: BorderRadius.circular(10)),
+                        child: Icon(rows[i].icon, size: 18, color: colors.textPrimary),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(rows[i].label, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14, color: PayspinTokens.textPrimary)),
+                            Text(rows[i].label, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14, color: colors.textPrimary)),
                             if (rows[i].detail != null)
-                              Text(rows[i].detail!, style: GoogleFonts.inter(fontSize: 12, color: PayspinTokens.textMuted)),
+                              Text(rows[i].detail!, style: GoogleFonts.inter(fontSize: 12, color: colors.textMuted)),
                           ],
                         ),
                       ),
-                      if (rows[i].onTap != null) const Icon(Icons.chevron_right, size: 16, color: PayspinTokens.textHint),
+                      if (rows[i].onTap != null) Icon(Icons.chevron_right, size: 16, color: colors.textHint),
                     ],
                   ),
                 ),

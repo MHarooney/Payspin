@@ -4,14 +4,14 @@ import 'package:payspin_mobile/core/design_system/theme/payspin_theme.dart';
 import 'package:payspin_mobile/core/design_system/widgets/payspin_gradient_pill_button.dart';
 import 'package:payspin_mobile/presentation/welcome/welcome_page.dart';
 
+import 'helpers/l10n_test_app.dart';
+
 void main() {
   testWidgets('welcome shows Get started', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        theme: PayspinTheme.dark(),
-        home: const WelcomePage(),
-      ),
+      l10nTestApp(const WelcomePage(), theme: PayspinTheme.dark()),
     );
+    await tester.pump();
     expect(find.text('Get started'), findsOneWidget);
     expect(find.text('Payspin'), findsOneWidget);
   });

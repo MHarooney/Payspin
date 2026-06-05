@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/di/injection.dart';
+import '../../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
 import '../../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../../core/design_system/widgets/payspin_skeleton.dart';
@@ -135,8 +136,9 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Scaffold(
-      backgroundColor: PayspinTokens.bg,
+      backgroundColor: colors.bg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -149,8 +151,8 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
                   IconButton(
                     onPressed: () => context.go(
                         _existing ? '/bank-accounts' : '/onboarding/otp'),
-                    icon: const Icon(Icons.arrow_back,
-                        color: PayspinTokens.textPrimary),
+                    icon: Icon(Icons.arrow_back,
+                        color: colors.textPrimary),
                     padding: EdgeInsets.zero,
                     constraints:
                         const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -163,7 +165,7 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
                 style: GoogleFonts.raleway(
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
-                  color: PayspinTokens.textPrimary,
+                  color: colors.textPrimary,
                   height: 1.15,
                 ),
               ),
@@ -173,7 +175,7 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
                 'We never store your bank login.',
                 style: GoogleFonts.inter(
                   fontSize: 13,
-                  color: PayspinTokens.textMuted,
+                  color: colors.textMuted,
                   height: 1.6,
                 ),
               ),
@@ -208,7 +210,7 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
-                    color: PayspinTokens.textPrimary,
+                    color: colors.textPrimary,
                     decoration: TextDecoration.underline,
                   ),
                 ),
@@ -222,6 +224,7 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
   }
 
   Widget _buildBody() {
+    final colors = context.psColors;
     if (_loading) {
       return ListView.separated(
         itemCount: 5,
@@ -230,9 +233,9 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
         itemBuilder: (_, __) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
           decoration: BoxDecoration(
-            color: PayspinTokens.glass,
+            color: colors.glassFill,
             borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-            border: Border.all(color: PayspinTokens.border),
+            border: Border.all(color: colors.border),
           ),
           child: const Row(
             children: [
@@ -252,7 +255,7 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
             Text(
               'No banks available right now.',
               style: GoogleFonts.inter(
-                  fontSize: 14, color: PayspinTokens.textMuted),
+                  fontSize: 14, color: colors.textMuted),
             ),
             const SizedBox(height: 12),
             TextButton(
@@ -272,12 +275,11 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
         return Material(
           color: selected
               ? PayspinTokens.pink.withValues(alpha: 0.12)
-              : PayspinTokens.glass,
+              : colors.glassFill,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
             side: BorderSide(
-              color:
-                  selected ? PayspinTokens.borderActive : PayspinTokens.border,
+              color: selected ? colors.borderActive : colors.border,
             ),
           ),
           child: InkWell(
@@ -293,7 +295,7 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: PayspinTokens.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                   ),

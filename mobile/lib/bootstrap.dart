@@ -6,7 +6,8 @@ import 'package:flutter/services.dart';
 import 'app/app.dart';
 import 'app/di/injection.dart';
 import 'core/config/remote_config_service.dart';
-import 'core/design_system/tokens/payspin_tokens.dart';
+import 'core/design_system/theme/payspin_semantic_colors.dart';
+import 'core/design_system/theme/theme_mode_controller.dart';
 import 'core/firebase/firebase_bootstrap.dart';
 import 'core/firebase/phone_auth_service.dart';
 import 'core/network/api_config.dart';
@@ -35,12 +36,21 @@ Future<void> bootstrap() async {
     debugPrint('FlutterError: ${details.exceptionAsString()}');
   };
 
+  final mode = sl<ThemeModeController>().mode;
+  final platformIsDark =
+      WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
+  final isDark = switch (mode) {
+    ThemeMode.dark => true,
+    ThemeMode.light => false,
+    ThemeMode.system => platformIsDark,
+  };
   SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
+    SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: PayspinTokens.bg,
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor:
+          isDark ? PayspinSemanticColors.dark.bg : PayspinSemanticColors.light.bg,
+      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ),
   );
 

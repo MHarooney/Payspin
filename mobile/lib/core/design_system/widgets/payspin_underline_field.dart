@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
 
 /// Underline text field matching [screens.jsx] onboarding/send inputs:
@@ -105,19 +106,20 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
 
   Color get _valueColor => widget.filledTextColor ?? PayspinTokens.mint;
 
-  TextStyle _fieldStyle({required bool hasValue}) {
+  TextStyle _fieldStyle({required bool hasValue, required Color hintColor}) {
     return GoogleFonts.raleway(
       fontSize: 22,
       fontWeight: FontWeight.w700,
-      color: hasValue ? _valueColor : PayspinTokens.textHint,
+      color: hasValue ? _valueColor : hintColor,
       letterSpacing: hasValue ? widget.filledLetterSpacing : 0,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     final hasValue = _hasValue;
-    final fieldStyle = _fieldStyle(hasValue: hasValue);
+    final fieldStyle = _fieldStyle(hasValue: hasValue, hintColor: colors.textHint);
 
     // Isolate from [PayspinTheme] glass-filled [InputDecorationTheme] so typed
     // text uses [fieldStyle], not colorScheme.onSurface (white).
@@ -151,7 +153,7 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
                   cursorColor: PayspinTokens.mint,
                   decoration: _fieldDecoration.copyWith(
                     hintText: widget.hintText,
-                    hintStyle: _fieldStyle(hasValue: false),
+                    hintStyle: _fieldStyle(hasValue: false, hintColor: colors.textHint),
                   ),
                 ),
               ),
@@ -161,7 +163,7 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
                   onPressed: () => setState(() => _obscured = !_obscured),
                   icon: Icon(
                     _obscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    color: PayspinTokens.textMuted,
+                    color: colors.textMuted,
                     size: 22,
                   ),
                   padding: EdgeInsets.zero,
@@ -174,7 +176,7 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
           const SizedBox(height: 8),
           Container(
             height: 1,
-            color: hasValue ? PayspinTokens.borderActive : PayspinTokens.border,
+            color: hasValue ? colors.borderActive : colors.border,
           ),
         ],
       ),

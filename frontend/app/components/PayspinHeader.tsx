@@ -1,15 +1,12 @@
-/* eslint-disable @next/next/no-img-element */
+import PayspinEmblem from './PayspinEmblem';
+import ThemeToggle from './ThemeToggle';
+
 export default function PayspinHeader() {
   return (
     <header className="ps-header">
-      <img
-        className="ps-header__logo"
-        src="/payspin-logo.png"
-        alt="Payspin"
-        width={28}
-        height={28}
-      />
+      <PayspinEmblem size={28} className="ps-header__logo" />
       <span className="ps-header__text">Pay with Payspin</span>
+      <ThemeToggle />
     </header>
   );
 }

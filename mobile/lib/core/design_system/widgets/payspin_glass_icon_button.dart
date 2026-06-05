@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../tokens/payspin_tokens.dart';
+import '../theme/payspin_semantic_colors.dart';
 
 /// 40×40 glass circle with white icon — home header, send flow, notifications.
 class PayspinGlassIconButton extends StatelessWidget {
@@ -19,16 +19,17 @@ class PayspinGlassIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Material(
-      color: PayspinTokens.glass,
-      shape: CircleBorder(side: BorderSide(color: PayspinTokens.border)),
+      color: colors.glassFill,
+      shape: CircleBorder(side: BorderSide(color: colors.glassBorder)),
       child: InkWell(
         onTap: onPressed,
         customBorder: const CircleBorder(),
         child: SizedBox(
           width: size,
           height: size,
-          child: Icon(icon, color: PayspinTokens.textPrimary, size: iconSize),
+          child: Icon(icon, color: colors.textPrimary, size: iconSize),
         ),
       ),
     );
