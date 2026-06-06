@@ -71,9 +71,9 @@ class _SendAmountPageState extends State<SendAmountPage> {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Text('€', style: GoogleFonts.raleway(fontSize: 38, fontWeight: FontWeight.w800, color: PayspinTokens.mint)),
+                  Text('€', style: GoogleFonts.raleway(fontSize: 38, fontWeight: FontWeight.w800, color: colors.fieldAccent)),
                   const SizedBox(width: 12),
-                  Text(_display, style: GoogleFonts.raleway(fontSize: 42, fontWeight: FontWeight.w800, color: isZero ? PayspinTokens.mint : colors.textPrimary)),
+                  Text(_display, style: GoogleFonts.raleway(fontSize: 42, fontWeight: FontWeight.w800, color: colors.fieldAccent)),
                 ],
               ),
             ),

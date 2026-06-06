@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
 
 /// Numeric keypad for passcode entry. The bottom-left key is an optional
@@ -24,6 +25,7 @@ class PayspinLockKeypad extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -32,19 +34,21 @@ class PayspinLockKeypad extends StatelessWidget {
           ['4', '5', '6'],
           ['7', '8', '9'],
         ])
-          Row(children: [for (final d in row) _digit(d)]),
+          Row(children: [for (final d in row) _digit(d, colors)]),
         Row(
           children: [
             _action(
+              colors,
               child: biometricIcon != null
                   ? Icon(biometricIcon, color: PayspinTokens.mint, size: 30)
                   : null,
               onTap: biometricIcon != null ? onBiometric : null,
             ),
-            _digit('0'),
+            _digit('0', colors),
             _action(
-              child: const Icon(Icons.backspace_outlined,
-                  color: PayspinTokens.textBody, size: 26),
+              colors,
+              child: Icon(Icons.backspace_outlined,
+                  color: colors.textBody, size: 26),
               onTap: onBackspace,
             ),
           ],
@@ -53,10 +57,11 @@ class PayspinLockKeypad extends StatelessWidget {
     );
   }
 
-  Widget _digit(String d) => Expanded(
+  Widget _digit(String d, PayspinSemanticColors colors) => Expanded(
         child: AspectRatio(
           aspectRatio: 1.45,
           child: _KeypadButton(
+            colors: colors,
             onTap: () {
               HapticFeedback.selectionClick();
               onDigit(d);
@@ -66,19 +71,20 @@ class PayspinLockKeypad extends StatelessWidget {
               style: GoogleFonts.raleway(
                 fontSize: 30,
                 fontWeight: FontWeight.w600,
-                color: PayspinTokens.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
           ),
         ),
       );
 
-  Widget _action({Widget? child, VoidCallback? onTap}) => Expanded(
+  Widget _action(PayspinSemanticColors colors, {Widget? child, VoidCallback? onTap}) => Expanded(
         child: AspectRatio(
           aspectRatio: 1.45,
           child: child == null
               ? const SizedBox.shrink()
               : _KeypadButton(
+                  colors: colors,
                   onTap: onTap == null
                       ? null
                       : () {
@@ -92,9 +98,10 @@ class PayspinLockKeypad extends StatelessWidget {
 }
 
 class _KeypadButton extends StatelessWidget {
-  const _KeypadButton({required this.child, this.onTap});
+  const _KeypadButton({required this.child, required this.colors, this.onTap});
 
   final Widget child;
+  final PayspinSemanticColors colors;
   final VoidCallback? onTap;
 
   @override
@@ -108,8 +115,8 @@ class _KeypadButton extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           customBorder: const CircleBorder(),
-          highlightColor: PayspinTokens.glass,
-          splashColor: PayspinTokens.surfaceMuted,
+          highlightColor: colors.glassFill,
+          splashColor: colors.surfaceRaised,
           child: Center(child: child),
         ),
       ),

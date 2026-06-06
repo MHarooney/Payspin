@@ -62,6 +62,7 @@ GoRouter createRouter({String initialLocation = '/splash'}) {
         builder: (_, state, child) => MainShell(child: child),
         routes: [
           GoRoute(path: '/home', builder: (_, __) => const SizedBox.shrink()),
+          GoRoute(path: '/home/groepies', builder: (_, __) => const SizedBox.shrink()),
           GoRoute(path: '/home/profile', builder: (_, __) => const SizedBox.shrink()),
         ],
       ),

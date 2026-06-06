@@ -10,7 +10,6 @@ import '../../core/design_system/widgets/payspin_ambient_background.dart';
 import '../../core/design_system/widgets/payspin_brand_mark.dart';
 import '../../core/design_system/widgets/payspin_finance_particles.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
-import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_radial_glow.dart';
 
 /// Welcome / marketing screen — animated brand mark matches splash motion.
@@ -35,13 +34,6 @@ class WelcomePage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    const Align(
-                      alignment: Alignment.centerRight,
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 8),
-                        child: PayspinQuickSettings(),
-                      ),
-                    ),
                     const Spacer(flex: 2),
                     PayspinParallax(
                       dx: 18,

@@ -8,7 +8,6 @@ import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_glass_surface.dart';
 import '../../core/design_system/widgets/payspin_emblem_loader.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
-import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/l10n/payspin_localizations.dart';
 import '../../core/errors/api_exception.dart';
 import '../../core/state/notifications_refresh_notifier.dart';
@@ -95,10 +94,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
               child: Text(context.l10n.markAllRead,
                   style: GoogleFonts.inter(color: PayspinTokens.mint, fontSize: 13)),
             ),
-          const Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: PayspinQuickSettings(size: 36, iconSize: 18),
-          ),
         ],
       ),
       body: RefreshIndicator(

@@ -14,7 +14,7 @@
     },
     "dart": {
       "type": "stdio",
-      "command": "${FLUTTER_DART:-/Users/mahmoudalharoon/flutter/bin/dart}",
+      "command": "${FLUTTER_DART:-/Users/7arooney/development/flutter/bin/dart}",
       "args": [
         "mcp-server",
         "--force-roots-fallback"
@@ -47,7 +47,7 @@
         "@mobilenext/mobile-mcp@latest"
       ],
       "env": {
-        "GO_IOS_PATH": "/Users/mahmoudalharoon/Desktop/Payspin/scripts/dev/ios-mcp-wrapper.sh"
+        "GO_IOS_PATH": "/Users/7arooney/CodeWork/Payspin_2026/scripts/dev/ios-mcp-wrapper.sh"
       }
     },
     "notion": {

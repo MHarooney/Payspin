@@ -29,9 +29,27 @@ class PayspinBottomNav extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
             children: [
-              _item(context, 0, l10n.navHome, Icons.home_rounded),
-              _item(context, 1, l10n.navScanQr, Icons.qr_code_scanner_rounded),
-              _item(context, 2, l10n.navProfile, Icons.person_rounded),
+              _item(
+                context,
+                0,
+                l10n.navHome,
+                icon: (color) => Icon(Icons.home_rounded, size: 22, color: color),
+              ),
+              _item(
+                context,
+                1,
+                'Payspin',
+                // Payspin emblem tinted with the item colour — white in dark
+                // mode, black in light mode (the white silhouette PNG keeps its
+                // alpha, so tinting recolours the mark).
+                icon: (color) => Image.asset(
+                  'assets/images/payspin_emblem_white.png',
+                  width: 22,
+                  height: 22,
+                  color: color,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
             ],
           ),
         ),
@@ -39,7 +57,12 @@ class PayspinBottomNav extends StatelessWidget {
     );
   }
 
-  Widget _item(BuildContext context, int index, String label, IconData icon) {
+  Widget _item(
+    BuildContext context,
+    int index,
+    String label, {
+    required Widget Function(Color color) icon,
+  }) {
     final colors = context.psColors;
     final selected = currentIndex == index;
     final color = selected ? colors.textPrimary : colors.textMuted;
@@ -77,7 +100,7 @@ class PayspinBottomNav extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 22, color: color),
+                SizedBox(height: 22, child: Center(child: icon(color))),
                 const SizedBox(height: 4),
                 Text(
                   label,

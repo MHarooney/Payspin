@@ -14,6 +14,9 @@ frontend/.env.local
 # Firebase / credentials
 **/firebase-adminsdk*.json
 **/*-adminsdk-*.json
+# Local Flutter SDK (install globally — not part of repo)
+flutter_sdk/
+
 # Flutter / Dart
 mobile/.dart_tool/
 mobile/build/

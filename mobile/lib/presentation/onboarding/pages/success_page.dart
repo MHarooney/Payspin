@@ -119,14 +119,13 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
                     children: [
                       Text('Nice!', style: GoogleFonts.raleway(fontSize: 56, fontWeight: FontWeight.w900, color: colors.textPrimary)),
                       const SizedBox(height: 12),
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(text: 'You can now use ', style: GoogleFonts.raleway(fontSize: 24, fontWeight: FontWeight.w700, color: colors.textBody)),
-                            const WidgetSpan(child: PayspinGradientText('Payspin', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700))),
-                          ],
-                        ),
+                      Text(
+                        'You can now use',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.raleway(fontSize: 24, fontWeight: FontWeight.w700, color: colors.textBody),
                       ),
+                      const SizedBox(height: 14),
+                      const PayspinGradientText('Payspin', wordmark: true, style: TextStyle(fontSize: 30)),
                     ],
                   ),
                 ),

@@ -184,10 +184,9 @@ class _PayspinBrandMarkState extends State<PayspinBrandMark> with TickerProvider
                     enabled: widget.shimmerWordmark && !reduced,
                     child: PayspinGradientText(
                       'Payspin',
-                      solidWordmark: true,
+                      wordmark: true,
                       style: TextStyle(
                         fontSize: widget.wordmarkFontSize,
-                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),

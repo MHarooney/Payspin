@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../constants/phone_country_codes.dart';
+import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
 import 'payspin_underline_field.dart';
 
@@ -159,11 +160,12 @@ class _CountryPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Material(
-      color: PayspinTokens.glass,
+      color: colors.glassFill,
       shape: StadiumBorder(
         side: BorderSide(
-          color: isOpen ? PayspinTokens.borderActive : PayspinTokens.border,
+          color: isOpen ? colors.borderActive : colors.border,
         ),
       ),
       child: InkWell(
@@ -181,13 +183,13 @@ class _CountryPill extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
-                  color: PayspinTokens.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               Icon(
                 isOpen ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
                 size: 14,
-                color: PayspinTokens.textMuted,
+                color: colors.textMuted,
               ),
             ],
           ),
@@ -246,13 +248,14 @@ class _CountryDropdownState extends State<_CountryDropdown> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     return Material(
-      color: PayspinTokens.bgElevated,
+      color: colors.bgElevated,
       elevation: 8,
       shadowColor: Colors.black.withValues(alpha: 0.4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-        side: const BorderSide(color: PayspinTokens.border),
+        side: BorderSide(color: colors.border),
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(maxHeight: widget.maxHeight),
@@ -281,34 +284,35 @@ class _CountryDropdownState extends State<_CountryDropdown> {
   }
 
   Widget _buildSearchField() {
+    final colors = context.psColors;
     return Padding(
       padding: const EdgeInsets.all(6),
       child: TextField(
         controller: _search,
         focusNode: _searchFocus,
-        style: GoogleFonts.inter(fontSize: 14, color: PayspinTokens.textPrimary),
-        cursorColor: PayspinTokens.mint,
+        style: GoogleFonts.inter(fontSize: 14, color: colors.textPrimary),
+        cursorColor: colors.fieldAccent,
         textInputAction: TextInputAction.search,
         decoration: InputDecoration(
           isDense: true,
           hintText: 'Search country or code',
-          hintStyle: GoogleFonts.inter(fontSize: 14, color: PayspinTokens.textHint),
-          prefixIcon: const Icon(Icons.search_rounded, size: 18, color: PayspinTokens.textMuted),
+          hintStyle: GoogleFonts.inter(fontSize: 14, color: colors.textHint),
+          prefixIcon: Icon(Icons.search_rounded, size: 18, color: colors.textMuted),
           prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
           filled: true,
-          fillColor: PayspinTokens.glass,
+          fillColor: colors.glassFill,
           contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
-            borderSide: const BorderSide(color: PayspinTokens.border),
+            borderSide: BorderSide(color: colors.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
-            borderSide: const BorderSide(color: PayspinTokens.border),
+            borderSide: BorderSide(color: colors.border),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
-            borderSide: const BorderSide(color: PayspinTokens.mint),
+            borderSide: BorderSide(color: colors.borderActive),
           ),
         ),
       ),
@@ -316,19 +320,21 @@ class _CountryDropdownState extends State<_CountryDropdown> {
   }
 
   Widget _buildEmptyState() {
+    final colors = context.psColors;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
       child: Text(
         'No countries found',
-        style: GoogleFonts.inter(fontSize: 13, color: PayspinTokens.textMuted),
+        style: GoogleFonts.inter(fontSize: 13, color: colors.textMuted),
       ),
     );
   }
 
   Widget _buildCountryRow(PhoneCountry country) {
+    final colors = context.psColors;
     final isSelected = country.dialCode == widget.selected.dialCode;
     return Material(
-      color: isSelected ? PayspinTokens.surfaceMuted : Colors.transparent,
+      color: isSelected ? colors.glassFill : Colors.transparent,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: () => widget.onPick(country),
@@ -345,7 +351,7 @@ class _CountryDropdownState extends State<_CountryDropdown> {
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: PayspinTokens.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
@@ -354,12 +360,12 @@ class _CountryDropdownState extends State<_CountryDropdown> {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isSelected ? PayspinTokens.mint : PayspinTokens.textMuted,
+                  color: isSelected ? colors.fieldAccent : colors.textMuted,
                 ),
               ),
               if (isSelected) ...[
                 const SizedBox(width: 8),
-                const Icon(Icons.check_rounded, size: 16, color: PayspinTokens.mint),
+                Icon(Icons.check_rounded, size: 16, color: colors.fieldAccent),
               ],
             ],
           ),

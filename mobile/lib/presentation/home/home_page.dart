@@ -12,9 +12,7 @@ import '../../core/design_system/widgets/payspin_glass_icon_button.dart';
 import '../../core/design_system/widgets/payspin_glass_surface.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_gradient_text.dart';
-import '../../core/design_system/widgets/payspin_groepies_promo_card.dart';
 import '../../core/design_system/widgets/payspin_brand_mark.dart';
-import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_skeleton.dart';
 import '../../core/design_system/widgets/payspin_tab_strip.dart';
 import '../../core/design_system/widgets/payspin_tikkie_row.dart';
@@ -137,7 +135,14 @@ class _HomePageState extends State<HomePage> {
                 PayspinGlassIconButton(
                   icon: Icons.qr_code_2,
                   semanticLabel: l10n.navScanQr,
+                  bordered: false,
                   onPressed: () => context.push('/scan'),
+                ),
+                PayspinGlassIconButton(
+                  icon: _searchOpen ? Icons.close_rounded : Icons.search,
+                  semanticLabel: l10n.searchTikkies,
+                  bordered: false,
+                  onPressed: () => setState(() => _searchOpen = !_searchOpen),
                 ),
                 Expanded(
                   child: Row(
@@ -145,19 +150,13 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       PayspinBrandMark.inline(size: 22),
                       const SizedBox(width: 8),
-                      PayspinGradientText('Payspin', style: GoogleFonts.raleway(fontSize: 18, fontWeight: FontWeight.w800)),
+                      const PayspinGradientText('Payspin', wordmark: true, style: TextStyle(fontSize: 18)),
                     ],
                   ),
                 ),
-                PayspinGlassIconButton(
-                  icon: _searchOpen ? Icons.close_rounded : Icons.search,
-                  semanticLabel: l10n.searchTikkies,
-                  onPressed: () => setState(() => _searchOpen = !_searchOpen),
-                ),
-                const SizedBox(width: 8),
-                const PayspinQuickSettings(rounded: true),
-                const SizedBox(width: 8),
-                NotificationBell(onTap: () => context.push('/notifications')),
+                NotificationBell(bordered: false, onTap: () => context.push('/notifications')),
+                const SizedBox(width: 4),
+                _ProfileAvatarButton(onTap: () => context.go('/home/profile')),
               ],
             ),
             AnimatedSize(
@@ -251,19 +250,13 @@ class _HomePageState extends State<HomePage> {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, i) {
-            if (i == filtered.length) {
-              return Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: PayspinGroepiesPromoCard(onTap: () => _selectTab(HomeTab.groepies)),
-              );
-            }
             return PayspinTikkieRow(
               link: filtered[i],
               tintIndex: i,
               onTap: () => context.push('/links/${filtered[i].id}'),
             );
           },
-          childCount: filtered.length + 1,
+          childCount: filtered.length,
         ),
       ),
     );
@@ -279,6 +272,38 @@ class _HomePageState extends State<HomePage> {
         label: l10n.createTikkie,
         icon: const Icon(Icons.add, color: PayspinTokens.onBrand, size: 20),
         onPressed: () => context.push('/send/amount'),
+      ),
+    );
+  }
+}
+
+/// Compact gradient avatar in the Home app bar that opens Profile.
+class _ProfileAvatarButton extends StatelessWidget {
+  const _ProfileAvatarButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Profile',
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: Center(
+            child: Container(
+              width: 30,
+              height: 30,
+              decoration: const BoxDecoration(shape: BoxShape.circle, gradient: PayspinTokens.gradientPink),
+              alignment: Alignment.center,
+              child: const Icon(Icons.person_rounded, size: 18, color: PayspinTokens.onBrand),
+            ),
+          ),
+        ),
       ),
     );
   }

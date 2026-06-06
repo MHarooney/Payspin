@@ -13,7 +13,6 @@ import '../../core/design_system/widgets/payspin_confirm_dialog.dart';
 import '../../core/design_system/widgets/payspin_glass_surface.dart';
 import '../../core/design_system/widgets/payspin_emblem_loader.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
-import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_snackbar.dart';
 import '../../core/design_system/widgets/payspin_status_chip.dart';
 import '../../core/errors/api_exception.dart';
@@ -260,12 +259,6 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
         backgroundColor: Colors.transparent,
         leading: IconButton(icon: const Icon(Icons.arrow_back), tooltip: 'Back', onPressed: () => context.pop()),
         title: Text(link?.description ?? 'Link', style: GoogleFonts.raleway(fontWeight: FontWeight.w700)),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: PayspinQuickSettings(size: 36, iconSize: 18),
-          ),
-        ],
       ),
       extendBodyBehindAppBar: true,
       body: PayspinAmbientBackground(

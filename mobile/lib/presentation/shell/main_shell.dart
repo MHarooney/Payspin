@@ -5,6 +5,7 @@ import '../../app/di/injection.dart';
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/widgets/payspin_ambient_background.dart';
 import '../../core/design_system/widgets/payspin_bottom_nav.dart';
+import '../../core/design_system/widgets/payspin_draggable_fab.dart';
 import '../../core/notifications/push_service.dart';
 import '../home/groepies_page.dart';
 import '../home/home_page.dart';
@@ -21,7 +22,6 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _index = 0;
-  HomeTab _homeTab = HomeTab.tikkies;
   final PushService _push = sl<PushService>();
 
   @override
@@ -47,42 +47,44 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _onTap(int i) {
-    if (i == 1) {
-      context.push('/scan');
-      return;
-    }
     setState(() => _index = i);
-    context.go(i == 2 ? '/home/profile' : '/home');
+    // 0 = Home, 1 = Payspin (Groepies / community — "coming soon").
+    context.go(i == 1 ? '/home/groepies' : '/home');
   }
 
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    if (location.contains('/profile')) {
-      _index = 2;
-    } else if (!location.contains('/scan')) {
-      _index = 0;
-    }
+    final isGroepies = location.contains('groepies');
+    final isProfile = location.contains('profile');
+    _index = isGroepies ? 1 : 0;
 
     Widget body = widget.child;
     if (location == '/home' || location == '/home/') {
-      body = HomePage(onTabChanged: (tab) => setState(() => _homeTab = tab));
-    } else if (location.contains('groepies')) {
+      body = const HomePage();
+    } else if (isGroepies) {
       body = const GroepiesPage();
-    } else if (location.contains('profile')) {
+    } else if (isProfile) {
       body = ProfilePage(onGoHome: () => context.go('/home'));
     }
+
+    // The create-link FAB only belongs on the Home (tikkies) screen.
+    final showFab = location == '/home' || location == '/home/';
 
     return Scaffold(
       backgroundColor: context.psColors.bg,
       extendBody: true,
-      body: PayspinAmbientBackground(child: body),
-      floatingActionButton: _index == 0 && _homeTab != HomeTab.groepies && !location.contains('groepies')
-          ? Padding(
-              padding: const EdgeInsets.only(bottom: 84),
-              child: PayspinGradientFab(onPressed: () => context.push('/send/amount')),
-            )
-          : null,
+      body: Stack(
+        children: [
+          PayspinAmbientBackground(child: body),
+          if (showFab)
+            Positioned.fill(
+              child: PayspinDraggableFab(
+                child: PayspinGradientFab(onPressed: () => context.push('/send/amount')),
+              ),
+            ),
+        ],
+      ),
       bottomNavigationBar: PayspinBottomNav(currentIndex: _index, onTap: _onTap),
     );
   }

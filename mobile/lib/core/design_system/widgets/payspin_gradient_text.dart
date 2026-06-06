@@ -10,6 +10,7 @@ class PayspinGradientText extends StatelessWidget {
     this.style,
     this.textAlign,
     this.solidWordmark = false,
+    this.wordmark = false,
   });
 
   final String text;
@@ -20,9 +21,41 @@ class PayspinGradientText extends StatelessWidget {
   /// the brand gradient (used on splash / welcome wordmarks in light mode).
   final bool solidWordmark;
 
+  /// Brand "Payspin" wordmark: renders the official logo lettering (cropped
+  /// from the brand lockup) tinted to the semantic primary colour — white in
+  /// dark mode, black in light mode — so it matches the logo exactly on every
+  /// screen. [style.fontSize] sets the visual size.
+  final bool wordmark;
+
+  /// Cropped from the official Payspin logo lockup (black on transparent), so
+  /// tinting with [colorBlendMode] srcIn recolours it per theme.
+  static const String _wordmarkAsset = 'assets/images/payspin_wordmark.png';
+
+  /// Native pixel aspect ratio of [_wordmarkAsset] (width / height).
+  static const double _wordmarkAspect = 241 / 71;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.psColors;
+
+    // Canonical Payspin wordmark — official logo artwork, tinted per theme.
+    if (wordmark) {
+      final fontSize = style?.fontSize ?? 18;
+      // Match the optical height of the old text (cap height ≈ 0.72·fontSize;
+      // the artwork includes ascenders/descenders, so scale up a touch).
+      final height = fontSize * 1.25;
+      return Image.asset(
+        _wordmarkAsset,
+        height: height,
+        width: height * _wordmarkAspect,
+        color: colors.textPrimary,
+        colorBlendMode: BlendMode.srcIn,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+        semanticLabel: 'Payspin',
+      );
+    }
+
     final base = style ??
         Theme.of(context).textTheme.headlineLarge?.copyWith(
               fontWeight: FontWeight.w800,

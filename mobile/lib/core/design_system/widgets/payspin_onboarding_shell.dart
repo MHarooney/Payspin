@@ -5,7 +5,6 @@ import '../theme/payspin_semantic_colors.dart';
 import 'payspin_ambient_background.dart';
 import 'payspin_gradient_circle_button.dart';
 import 'payspin_progress_bar.dart';
-import 'payspin_quick_settings.dart';
 
 class PayspinOnboardingShell extends StatelessWidget {
   const PayspinOnboardingShell({
@@ -55,8 +54,6 @@ class PayspinOnboardingShell extends StatelessWidget {
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                   ),
                   const Spacer(),
-                  const PayspinQuickSettings(size: 34, iconSize: 18),
-                  const SizedBox(width: 12),
                   PayspinStepCounter(step: step, total: totalSteps),
                 ],
               ),

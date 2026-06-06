@@ -9,7 +9,6 @@ import '../../core/design_system/widgets/payspin_ambient_background.dart';
 import '../../core/design_system/widgets/payspin_confirm_dialog.dart';
 import '../../core/design_system/widgets/payspin_lock_keypad.dart';
 import '../../core/design_system/widgets/payspin_passcode_dots.dart';
-import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_radial_glow.dart';
 import '../../core/security/app_lock_service.dart';
 
@@ -162,14 +161,7 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
           SafeArea(
             child: Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(0, 8, 16, 0),
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: PayspinQuickSettings(size: 38, iconSize: 18),
-                  ),
-                ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Column(

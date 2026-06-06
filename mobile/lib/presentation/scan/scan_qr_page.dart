@@ -6,7 +6,6 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_glass_surface.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
-import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_scan_frame.dart';
 import '../../core/l10n/payspin_localizations.dart';
 
@@ -60,8 +59,6 @@ class _ScanQrPageState extends State<ScanQrPage> {
                       _roundBtn(Icons.close, () => context.pop(), label: 'Close scanner'),
                       const Spacer(),
                       _roundBtn(_torchOn ? Icons.flash_on : Icons.flash_off, _toggleTorch, active: _torchOn, label: 'Toggle flashlight'),
-                      const SizedBox(width: 10),
-                      _roundBtn(Icons.tune_rounded, () => context.showQuickSettingsSheet(), label: 'Settings'),
                     ],
                   ),
                 ),

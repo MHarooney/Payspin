@@ -67,4 +67,6 @@ flutter:
     - assets/images/payspin_emblem_loop_gradient.png
     - assets/images/payspin_emblem_qr_center.png
     - assets/images/payspin_emblem_qr_center_light.png
+    - assets/images/payspin_wordmark.png
+    - assets/images/payspin_logo_lockup.png
     - shorebird.yaml

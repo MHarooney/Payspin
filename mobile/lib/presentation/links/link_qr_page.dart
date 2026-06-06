@@ -9,7 +9,6 @@ import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_branded_qr.dart';
 import '../../core/design_system/widgets/payspin_emblem_loader.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
-import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_snackbar.dart';
 import '../../core/design_system/widgets/payspin_status_chip.dart';
 import '../../core/errors/api_exception.dart';
@@ -94,12 +93,6 @@ class _LinkQrPageState extends State<LinkQrPage> {
               : l10n.scanToPay,
           style: GoogleFonts.raleway(fontWeight: FontWeight.w700),
         ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: PayspinQuickSettings(size: 36, iconSize: 18),
-          ),
-        ],
       ),
       body: _loading
           ? const PayspinPageLoader()

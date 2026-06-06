@@ -26,6 +26,7 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
     required this.navBarScrim,
     required this.pageGlowPink,
     required this.pageGlowMint,
+    required this.fieldAccent,
     required this.emblemStyle,
   });
 
@@ -58,6 +59,11 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
   final Color navBarScrim;
   final Color pageGlowPink;
   final Color pageGlowMint;
+
+  /// Accent for editable input values (typed field text, amount entry, carets).
+  /// Pink in light mode, mint in dark mode.
+  final Color fieldAccent;
+
   final PayspinEmblemStyle emblemStyle;
 
   static const PayspinSemanticColors dark = PayspinSemanticColors(
@@ -78,6 +84,7 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
     navBarScrim: Color(0xD90B0B12),
     pageGlowPink: Color(0x29FC00FF),
     pageGlowMint: Color(0x1F07D8DD),
+    fieldAccent: Color(0xFF07D8DD),
     emblemStyle: PayspinEmblemStyle.white,
   );
 
@@ -99,6 +106,7 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
     navBarScrim: Color(0xE6FFFFFF),
     pageGlowPink: Color(0x1FFC00FF),
     pageGlowMint: Color(0x1407D8DD),
+    fieldAccent: Color(0xFFFC00FF),
     emblemStyle: PayspinEmblemStyle.gradient,
   );
 
@@ -121,6 +129,7 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
     Color? navBarScrim,
     Color? pageGlowPink,
     Color? pageGlowMint,
+    Color? fieldAccent,
     PayspinEmblemStyle? emblemStyle,
   }) {
     return PayspinSemanticColors(
@@ -141,6 +150,7 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
       navBarScrim: navBarScrim ?? this.navBarScrim,
       pageGlowPink: pageGlowPink ?? this.pageGlowPink,
       pageGlowMint: pageGlowMint ?? this.pageGlowMint,
+      fieldAccent: fieldAccent ?? this.fieldAccent,
       emblemStyle: emblemStyle ?? this.emblemStyle,
     );
   }
@@ -166,6 +176,7 @@ class PayspinSemanticColors extends ThemeExtension<PayspinSemanticColors> {
       navBarScrim: Color.lerp(navBarScrim, other.navBarScrim, t)!,
       pageGlowPink: Color.lerp(pageGlowPink, other.pageGlowPink, t)!,
       pageGlowMint: Color.lerp(pageGlowMint, other.pageGlowMint, t)!,
+      fieldAccent: Color.lerp(fieldAccent, other.fieldAccent, t)!,
       emblemStyle: t < 0.5 ? emblemStyle : other.emblemStyle,
     );
   }

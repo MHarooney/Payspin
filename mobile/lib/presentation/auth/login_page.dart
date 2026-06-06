@@ -12,7 +12,6 @@ import '../../core/design_system/widgets/payspin_brand_mark.dart';
 import '../../core/design_system/widgets/payspin_finance_particles.dart';
 import '../../core/design_system/widgets/payspin_glass_surface.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
-import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_radial_glow.dart';
 import '../../core/design_system/widgets/payspin_underline_field.dart';
 import '../../core/errors/api_exception.dart';
@@ -66,12 +65,6 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/welcome')),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: PayspinQuickSettings(size: 36, iconSize: 18),
-          ),
-        ],
       ),
       extendBodyBehindAppBar: true,
       body: PayspinAmbientBackground(

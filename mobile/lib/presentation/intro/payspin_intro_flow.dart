@@ -8,7 +8,6 @@ import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_finance_particles.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
-import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/design_system/widgets/payspin_radial_glow.dart';
 import '../../core/l10n/payspin_localizations.dart';
 import '../../core/onboarding/intro_store.dart';
@@ -85,7 +84,6 @@ class _PayspinIntroFlowState extends State<PayspinIntroFlow> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: Row(
                     children: [
-                      const PayspinQuickSettings(),
                       const Spacer(),
                       TextButton(
                         onPressed: _finish,

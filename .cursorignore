@@ -1,0 +1,24 @@
+# Local Flutter SDK — install globally; do not index (5GB+)
+flutter_sdk/
+
+# Flutter build artifacts
+mobile/build/
+mobile/.dart_tool/
+mobile/ios/Pods/
+mobile/ios/.symlinks/
+mobile/android/.gradle/
+
+# Local screenshots / design refs (not app source)
+UI/
+
+# Old local scratch copies (deleted or obsolete)
+Cursor/
+VS Code/
+PS_REFACTORING_2026/
+
+# Dependencies
+node_modules/
+Payspin-portal/node_modules/
+.turbo/
+.next/
+dist/

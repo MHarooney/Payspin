@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/payspin_semantic_colors.dart';
-import '../tokens/payspin_tokens.dart';
 
 /// Underline text field matching [screens.jsx] onboarding/send inputs:
 /// mint text + mint caret when filled; hint at 35% white; active pink underline.
@@ -20,8 +19,9 @@ class PayspinUnderlineField extends StatefulWidget {
     this.showVisibilityToggle = false,
     this.onChanged,
     this.textInputAction,
-    /// Text color when the field has a value. Defaults to [PayspinTokens.mint].
-    /// Step 5 (full name) uses [PayspinTokens.textPrimary] per prototype.
+    /// Text color when the field has a value. Defaults to the theme
+    /// [PayspinSemanticColors.fieldAccent] (pink in light, mint in dark).
+    /// Step 5 (full name) overrides with the semantic primary text colour.
     this.filledTextColor,
     this.filledLetterSpacing = 0,
     this.inputFormatters,
@@ -104,13 +104,18 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
 
   bool get _hasValue => widget.controller.text.isNotEmpty;
 
-  Color get _valueColor => widget.filledTextColor ?? PayspinTokens.mint;
+  Color _valueColorOf(BuildContext context) =>
+      widget.filledTextColor ?? context.psColors.fieldAccent;
 
-  TextStyle _fieldStyle({required bool hasValue, required Color hintColor}) {
+  TextStyle _fieldStyle({
+    required bool hasValue,
+    required Color hintColor,
+    required Color valueColor,
+  }) {
     return GoogleFonts.raleway(
       fontSize: 22,
       fontWeight: FontWeight.w700,
-      color: hasValue ? _valueColor : hintColor,
+      color: hasValue ? valueColor : hintColor,
       letterSpacing: hasValue ? widget.filledLetterSpacing : 0,
     );
   }
@@ -118,18 +123,19 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
   @override
   Widget build(BuildContext context) {
     final colors = context.psColors;
+    final accent = _valueColorOf(context);
     final hasValue = _hasValue;
-    final fieldStyle = _fieldStyle(hasValue: hasValue, hintColor: colors.textHint);
+    final fieldStyle = _fieldStyle(hasValue: hasValue, hintColor: colors.textHint, valueColor: accent);
 
     // Isolate from [PayspinTheme] glass-filled [InputDecorationTheme] so typed
     // text uses [fieldStyle], not colorScheme.onSurface (white).
     return Theme(
       data: Theme.of(context).copyWith(
         inputDecorationTheme: _fieldDecorationTheme,
-        textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: PayspinTokens.mint,
-          selectionColor: Color(0x4D07D8DD),
-          selectionHandleColor: PayspinTokens.mint,
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: accent,
+          selectionColor: accent.withValues(alpha: 0.3),
+          selectionHandleColor: accent,
         ),
       ),
       child: Column(
@@ -150,10 +156,10 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
                   textInputAction: widget.textInputAction,
                   onChanged: widget.onChanged,
                   style: fieldStyle,
-                  cursorColor: PayspinTokens.mint,
+                  cursorColor: accent,
                   decoration: _fieldDecoration.copyWith(
                     hintText: widget.hintText,
-                    hintStyle: _fieldStyle(hasValue: false, hintColor: colors.textHint),
+                    hintStyle: _fieldStyle(hasValue: false, hintColor: colors.textHint, valueColor: accent),
                   ),
                 ),
               ),

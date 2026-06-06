@@ -10,9 +10,12 @@ import '../../domain/repositories/notification_repository.dart';
 /// Glass bell button with an unread badge. Refetches the unread count whenever
 /// [NotificationsRefreshNotifier] bumps (push arrived / row marked read).
 class NotificationBell extends StatefulWidget {
-  const NotificationBell({super.key, required this.onTap});
+  const NotificationBell({super.key, required this.onTap, this.bordered = true});
 
   final VoidCallback onTap;
+
+  /// When false, drops the glass fill + border for a flat app-bar look.
+  final bool bordered;
 
   @override
   State<NotificationBell> createState() => _NotificationBellState();
@@ -49,10 +52,10 @@ class _NotificationBellState extends State<NotificationBell> {
       clipBehavior: Clip.none,
       children: [
         Material(
-          color: colors.glassFill,
+          color: widget.bordered ? colors.glassFill : Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: colors.glassBorder),
+            side: widget.bordered ? BorderSide(color: colors.glassBorder) : BorderSide.none,
           ),
           child: InkWell(
             onTap: () {
