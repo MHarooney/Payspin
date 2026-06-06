@@ -13,6 +13,10 @@ import 'payspin_glass_surface.dart';
 class PayspinBottomNav extends StatelessWidget {
   const PayspinBottomNav({super.key, required this.currentIndex, required this.onTap});
 
+  /// Chrome stacked above the home-indicator inset: outer bottom padding (12),
+  /// glass vertical padding (16), and one nav item row (58).
+  static const double heightAboveBottomInset = 12 + 16 + 58;
+
   final int currentIndex;
   final ValueChanged<int> onTap;
 

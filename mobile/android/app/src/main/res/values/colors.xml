@@ -3,5 +3,5 @@
     <!-- Payspin dark background (#0B0B12) — keeps the native launch window dark
          so there is no white flash before Flutter draws the splash. -->
     <color name="payspin_bg">#FF0B0B12</color>
-	<color name="ic_launcher_background">#FFFFFF</color>
+	<color name="ic_launcher_background">#000000</color>
 </resources>

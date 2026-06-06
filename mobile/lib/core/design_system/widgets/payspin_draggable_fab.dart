@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'payspin_bottom_nav.dart';
+
 /// A floating action button that defaults to just above the bottom nav bar and
 /// can be dragged anywhere on screen. The chosen position is remembered between
 /// sessions (stored as a fractional offset so it survives rotation / different
@@ -10,15 +12,21 @@ class PayspinDraggableFab extends StatefulWidget {
     super.key,
     required this.child,
     this.size = 64,
-    this.defaultBottomGap = 104,
-    this.storageKey = 'home_fab_position',
+    this.defaultBottomGap = PayspinBottomNav.heightAboveBottomInset,
+    this.defaultCenterXFraction = 0.75,
+    this.storageKey = 'home_fab_position_v3',
   });
 
   final Widget child;
   final double size;
 
-  /// Gap (logical px) between the FAB and the bottom edge in its default spot.
+  /// Distance from the screen bottom (incl. home indicator) to the FAB's bottom
+  /// edge in the default spot — matches the top of [PayspinBottomNav].
   final double defaultBottomGap;
+
+  /// Horizontal centre of the default FAB position as a fraction of parent width
+  /// (0.75 aligns with the Payspin item in the two-tab bottom nav).
+  final double defaultCenterXFraction;
   final String storageKey;
 
   @override
@@ -63,8 +71,8 @@ class _PayspinDraggableFabState extends State<PayspinDraggableFab> {
         final maxX = constraints.maxWidth - widget.size;
         final maxY = constraints.maxHeight - widget.size;
 
-        // Resolve the active position: saved fraction, else default (bottom
-        // centre, just above the nav bar).
+        // Resolve the active position: saved fraction, else default (above nav,
+        // centred over the Payspin tab on the right).
         _pos ??= () {
           if (_savedFx != null && _savedFy != null) {
             return Offset(
@@ -72,10 +80,11 @@ class _PayspinDraggableFabState extends State<PayspinDraggableFab> {
               (_savedFy! * maxY).clamp(0.0, maxY),
             );
           }
-          final defaultY =
-              constraints.maxHeight - widget.size - widget.defaultBottomGap - bottomInset;
+          final navTopFromBottom = bottomInset + widget.defaultBottomGap;
+          final defaultY = constraints.maxHeight - widget.size - navTopFromBottom;
+          final centerX = constraints.maxWidth * widget.defaultCenterXFraction;
           return Offset(
-            (constraints.maxWidth - widget.size) / 2,
+            (centerX - widget.size / 2).clamp(0.0, maxX),
             defaultY.clamp(0.0, maxY),
           );
         }();

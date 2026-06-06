@@ -8,6 +8,7 @@ import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
 import 'payspin_emblem_assemble.dart';
 import 'payspin_gradient_text.dart';
+import 'payspin_radial_glow.dart';
 
 /// Animated Payspin emblem + optional wordmark — same motion language as splash.
 ///
@@ -26,10 +27,22 @@ class PayspinBrandMark extends StatefulWidget {
     this.orbitRadius,
     this.wordmarkFontSize = 42,
     this.tagline,
+    this.emblemStyleOverride,
+    this.wordmarkBelowGlow = false,
+    this.glowAnimate = false,
+    this.glowSize = 300,
   });
 
   /// Welcome / splash-scale brand block.
-  factory PayspinBrandMark.hero({Key? key, String? tagline}) => PayspinBrandMark(
+  factory PayspinBrandMark.hero({
+    Key? key,
+    String? tagline,
+    PayspinEmblemStyle? emblemStyle,
+    bool wordmarkBelowGlow = true,
+    bool glowAnimate = false,
+    double glowSize = 300,
+  }) =>
+      PayspinBrandMark(
         key: key,
         emblemSize: 108,
         showWordmark: true,
@@ -39,6 +52,10 @@ class PayspinBrandMark extends StatefulWidget {
         wordmarkFontSize: 42,
         tagline: tagline,
         orbitRadius: 92,
+        emblemStyleOverride: emblemStyle,
+        wordmarkBelowGlow: wordmarkBelowGlow,
+        glowAnimate: glowAnimate,
+        glowSize: glowSize,
       );
 
   /// Login and other auth surfaces — emblem draws in, wordmark shimmers.
@@ -53,12 +70,18 @@ class PayspinBrandMark extends StatefulWidget {
       );
 
   /// Compact header chip — assembled emblem with subtle breathing only.
-  factory PayspinBrandMark.inline({Key? key, double size = 22}) => PayspinBrandMark(
+  factory PayspinBrandMark.inline({
+    Key? key,
+    double size = 22,
+    PayspinEmblemStyle? emblemStyle,
+  }) =>
+      PayspinBrandMark(
         key: key,
         emblemSize: size,
         replayAssemble: false,
         loopAmbient: true,
         showOrbit: false,
+        emblemStyleOverride: emblemStyle,
       );
 
   final double emblemSize;
@@ -71,6 +94,10 @@ class PayspinBrandMark extends StatefulWidget {
   final double? orbitRadius;
   final double wordmarkFontSize;
   final String? tagline;
+  final PayspinEmblemStyle? emblemStyleOverride;
+  final bool wordmarkBelowGlow;
+  final bool glowAnimate;
+  final double glowSize;
 
   @override
   State<PayspinBrandMark> createState() => _PayspinBrandMarkState();
@@ -134,7 +161,7 @@ class _PayspinBrandMarkState extends State<PayspinBrandMark> with TickerProvider
     if (reduced && _assemble.value != 1) _assemble.value = 1;
 
     final colors = context.psColors;
-    final emblemStyle = colors.emblemStyle;
+    final emblemStyle = widget.emblemStyleOverride ?? colors.emblemStyle;
     final resolvedTagline = widget.tagline ?? (widget.showTagline ? context.l10n.tagline : null);
     final orbitRadius = widget.orbitRadius ?? widget.emblemSize * 0.85;
     final boxExtent = widget.showOrbit ? orbitRadius * 2 + 30 : widget.emblemSize;
@@ -145,37 +172,34 @@ class _PayspinBrandMarkState extends State<PayspinBrandMark> with TickerProvider
         final breath = reduced ? 1.0 : 1 + 0.025 * math.sin(_ambient.value * 2 * math.pi);
         final appear = widget.replayAssemble ? _wordmarkFade.value : 1.0;
 
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: boxExtent,
-              height: boxExtent,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  if (widget.showOrbit && !reduced)
-                    _BrandOrbitLayer(
-                      t: _ambient.value,
-                      radius: orbitRadius,
-                      opacity: appear,
-                    ),
-                  Transform.scale(
-                    scale: breath,
-                    child: payspinEmblemAssembleForContext(
-                      context,
-                      size: widget.emblemSize,
-                      progress: widget.replayAssemble ? _assemble.value : 1,
-                      style: emblemStyle,
-                      glow: widget.emblemSize >= 48,
-                    ),
-                  ),
-                ],
+        final emblemBlock = SizedBox(
+          width: boxExtent,
+          height: boxExtent,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (widget.showOrbit && !reduced)
+                _BrandOrbitLayer(
+                  t: _ambient.value,
+                  radius: orbitRadius,
+                  opacity: appear,
+                ),
+              Transform.scale(
+                scale: breath,
+                child: payspinEmblemAssembleForContext(
+                  context,
+                  size: widget.emblemSize,
+                  progress: widget.replayAssemble ? _assemble.value : 1,
+                  style: emblemStyle,
+                  glow: widget.emblemSize >= 48,
+                ),
               ),
-            ),
-            if (widget.showWordmark) ...[
-              SizedBox(height: widget.emblemSize >= 80 ? 20 : 12),
-              SlideTransition(
+            ],
+          ),
+        );
+
+        final wordmarkBlock = widget.showWordmark
+            ? SlideTransition(
                 position: _wordmarkSlide,
                 child: FadeTransition(
                   opacity: _wordmarkFade,
@@ -191,11 +215,11 @@ class _PayspinBrandMarkState extends State<PayspinBrandMark> with TickerProvider
                     ),
                   ),
                 ),
-              ),
-            ],
-            if (widget.showTagline && resolvedTagline != null) ...[
-              const SizedBox(height: 14),
-              FadeTransition(
+              )
+            : null;
+
+        final taglineBlock = widget.showTagline && resolvedTagline != null
+            ? FadeTransition(
                 opacity: _wordmarkFade,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 48),
@@ -210,7 +234,51 @@ class _PayspinBrandMarkState extends State<PayspinBrandMark> with TickerProvider
                     ),
                   ),
                 ),
+              )
+            : null;
+
+        if (widget.wordmarkBelowGlow) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: widget.glowSize,
+                height: widget.glowSize,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    PayspinRadialGlow(
+                      size: widget.glowSize,
+                      animate: widget.glowAnimate,
+                      centered: true,
+                    ),
+                    emblemBlock,
+                  ],
+                ),
               ),
+              if (wordmarkBlock != null) ...[
+                const SizedBox(height: 20),
+                wordmarkBlock,
+              ],
+              if (taglineBlock != null) ...[
+                const SizedBox(height: 14),
+                taglineBlock,
+              ],
+            ],
+          );
+        }
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            emblemBlock,
+            if (wordmarkBlock != null) ...[
+              SizedBox(height: widget.emblemSize >= 80 ? 20 : 12),
+              wordmarkBlock,
+            ],
+            if (taglineBlock != null) ...[
+              const SizedBox(height: 14),
+              taglineBlock,
             ],
           ],
         );

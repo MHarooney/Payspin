@@ -9,6 +9,7 @@ import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_lock_keypad.dart';
 import '../../core/design_system/widgets/payspin_passcode_dots.dart';
+import '../../core/notifications/push_service.dart';
 import '../../core/security/app_lock_controller.dart';
 import '../../core/security/app_lock_service.dart';
 import 'lock_screen.dart' show biometricIconFor;
@@ -144,6 +145,8 @@ class _SetupLockPageState extends State<SetupLockPage> {
       displayName: widget.displayName,
     );
     _controller.markEnabledUnlocked();
+    if (!mounted) return;
+    await sl<PushService>().requestNotificationPermission();
     if (!mounted) return;
     context.go('/home');
   }

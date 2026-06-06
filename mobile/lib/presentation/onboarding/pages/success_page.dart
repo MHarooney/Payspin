@@ -68,7 +68,6 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
       body: PayspinAmbientBackground(
         child: Stack(
         children: [
-          const Positioned.fill(child: PayspinRadialGlow(size: 420)),
           if (!reduced)
           AnimatedBuilder(
             animation: _c,
@@ -101,15 +100,25 @@ class _SuccessPageState extends State<SuccessPage> with SingleTickerProviderStat
                 const Spacer(),
                 ScaleTransition(
                   scale: badge,
-                  child: Container(
-                    width: 104,
-                    height: 104,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: PayspinTokens.gradientPink,
-                      boxShadow: PayspinTokens.fabShadow,
+                  child: SizedBox(
+                    width: 280,
+                    height: 280,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        const PayspinRadialGlow(size: 280, centered: true),
+                        Container(
+                          width: 104,
+                          height: 104,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: PayspinTokens.gradientPink,
+                            boxShadow: PayspinTokens.fabShadow,
+                          ),
+                          child: const Icon(Icons.check_rounded, color: PayspinTokens.onBrand, size: 56),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.check_rounded, color: PayspinTokens.onBrand, size: 56),
                   ),
                 ),
                 const SizedBox(height: 32),

@@ -30,8 +30,10 @@ class PushService {
   final ValueNotifier<String?> openLinkRequests = ValueNotifier<String?>(null);
 
   bool _initialized = false;
+  bool _permissionPrompted = false;
 
-  /// Call after a successful login/session restore. Idempotent.
+  /// Wires FCM listeners and registers the token when permission is already
+  /// granted. Does **not** show the OS notification permission dialog.
   Future<void> init() async {
     if (_initialized || !FirebaseBootstrap.available) return;
     _initialized = true;
@@ -40,19 +42,6 @@ class PushService {
       final messaging = FirebaseMessaging.instance;
       FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-      try {
-        await messaging
-            .requestPermission(alert: true, badge: true, sound: true)
-            .timeout(const Duration(seconds: 8));
-      } on TimeoutException {
-        debugPrint('Push permission request timed out — continuing without push');
-      }
-
-      final token = await messaging.getToken().timeout(
-            const Duration(seconds: 8),
-            onTimeout: () => null,
-          );
-      await _registerToken(token);
       messaging.onTokenRefresh.listen(_registerToken);
 
       FirebaseMessaging.onMessage.listen((message) {
@@ -65,9 +54,59 @@ class PushService {
       FirebaseMessaging.onMessageOpenedApp.listen(_handleOpen);
       final initial = await messaging.getInitialMessage();
       if (initial != null) _handleOpen(initial);
+
+      await _registerTokenIfAuthorized(messaging);
     } catch (e) {
       debugPrint('PushService init failed: $e');
     }
+  }
+
+  /// Shows the OS notification permission dialog (once) and registers the FCM
+  /// token. Call after passcode setup, or on cold start when lock is already on.
+  Future<void> requestNotificationPermission() async {
+    if (!FirebaseBootstrap.available) return;
+    if (!_initialized) await init();
+    if (_permissionPrompted) return;
+
+    try {
+      final messaging = FirebaseMessaging.instance;
+      final settings = await messaging.getNotificationSettings();
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        await _registerTokenIfAuthorized(messaging);
+        return;
+      }
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        _permissionPrompted = true;
+        return;
+      }
+
+      _permissionPrompted = true;
+      try {
+        await messaging
+            .requestPermission(alert: true, badge: true, sound: true)
+            .timeout(const Duration(seconds: 8));
+      } on TimeoutException {
+        debugPrint('Push permission request timed out — continuing without push');
+      }
+
+      await _registerTokenIfAuthorized(messaging);
+    } catch (e) {
+      debugPrint('PushService requestNotificationPermission failed: $e');
+    }
+  }
+
+  Future<void> _registerTokenIfAuthorized(FirebaseMessaging messaging) async {
+    final settings = await messaging.getNotificationSettings();
+    if (settings.authorizationStatus != AuthorizationStatus.authorized &&
+        settings.authorizationStatus != AuthorizationStatus.provisional) {
+      return;
+    }
+    final token = await messaging.getToken().timeout(
+          const Duration(seconds: 8),
+          onTimeout: () => null,
+        );
+    await _registerToken(token);
   }
 
   Future<void> _registerToken(String? token) async {

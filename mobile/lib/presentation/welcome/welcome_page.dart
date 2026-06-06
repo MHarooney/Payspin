@@ -10,7 +10,6 @@ import '../../core/design_system/widgets/payspin_ambient_background.dart';
 import '../../core/design_system/widgets/payspin_brand_mark.dart';
 import '../../core/design_system/widgets/payspin_finance_particles.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
-import '../../core/design_system/widgets/payspin_radial_glow.dart';
 
 /// Welcome / marketing screen — animated brand mark matches splash motion.
 class WelcomePage extends StatelessWidget {
@@ -20,22 +19,23 @@ class WelcomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isLight = Theme.of(context).brightness == Brightness.light;
+    final isDark = !isLight;
     return Scaffold(
       backgroundColor: context.psColors.bg,
       body: PayspinAmbientBackground(
         child: Stack(
           children: [
-            const Positioned.fill(child: PayspinRadialGlow(size: 420, animate: false)),
             Positioned.fill(
               child: PayspinFinanceParticles(intensity: isLight ? 1.0 : 0.7),
             ),
-            // Brand mark centred on the full screen so it sits in the same
-            // location as the splash screen.
             Center(
               child: PayspinParallax(
                 dx: 18,
                 dy: 12,
-                child: PayspinBrandMark.hero(tagline: l10n.tagline),
+                child: PayspinBrandMark.hero(
+                  tagline: l10n.tagline,
+                  emblemStyle: isDark ? PayspinEmblemStyle.gradient : null,
+                ),
               ),
             ),
             SafeArea(

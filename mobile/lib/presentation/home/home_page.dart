@@ -6,7 +6,6 @@ import '../../app/di/injection.dart';
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/l10n/payspin_localizations.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
-import '../../core/design_system/widgets/payspin_deals_placeholder.dart';
 import '../../core/design_system/widgets/payspin_empty_state.dart';
 import '../../core/design_system/widgets/payspin_glass_icon_button.dart';
 import '../../core/design_system/widgets/payspin_glass_surface.dart';
@@ -14,28 +13,21 @@ import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_gradient_text.dart';
 import '../../core/design_system/widgets/payspin_brand_mark.dart';
 import '../../core/design_system/widgets/payspin_skeleton.dart';
-import '../../core/design_system/widgets/payspin_tab_strip.dart';
 import '../../core/design_system/widgets/payspin_tikkie_row.dart';
 import '../../core/errors/api_exception.dart';
 import '../../core/state/links_refresh_notifier.dart';
 import '../../domain/entities/payment_link.dart';
 import '../../domain/repositories/payment_link_repository.dart';
 import '../notifications/notification_bell.dart';
-import 'groepies_page.dart';
-
-enum HomeTab { tikkies, deals, groepies }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.onTabChanged});
-
-  final ValueChanged<HomeTab>? onTabChanged;
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  HomeTab _tab = HomeTab.tikkies;
   List<PaymentLink> _links = [];
   bool _loading = true;
   String? _error;
@@ -47,9 +39,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.onTabChanged?.call(_tab);
-    });
     // Reload when a link is created/cancelled elsewhere in the nav stack.
     _refresh.addListener(_onLinksChanged);
     _load();
@@ -65,12 +54,6 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void _selectTab(HomeTab tab) {
-    if (_tab == tab) return;
-    setState(() => _tab = tab);
-    widget.onTabChanged?.call(tab);
-  }
-
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -80,20 +63,8 @@ class _HomePageState extends State<HomePage> {
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(child: _header(context)),
-          SliverToBoxAdapter(child: _tabs()),
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
-          if (_tab == HomeTab.deals)
-            const SliverFillRemaining(
-              hasScrollBody: false,
-              child: PayspinDealsPlaceholder(),
-            )
-          else if (_tab == HomeTab.groepies)
-            const SliverFillRemaining(
-              hasScrollBody: false,
-              child: GroepiesTabContent(),
-            )
-          else
-            _tikkiesContent(),
+          _tikkiesContent(),
         ],
       ),
     );
@@ -124,6 +95,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _header(BuildContext context) {
     final l10n = context.l10n;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SafeArea(
       bottom: false,
       child: Padding(
@@ -148,7 +120,10 @@ class _HomePageState extends State<HomePage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      PayspinBrandMark.inline(size: 22),
+                      PayspinBrandMark.inline(
+                        size: 22,
+                        emblemStyle: isDark ? PayspinEmblemStyle.gradient : null,
+                      ),
                       const SizedBox(width: 8),
                       const PayspinGradientText('Payspin', wordmark: true, style: TextStyle(fontSize: 18)),
                     ],
@@ -156,7 +131,12 @@ class _HomePageState extends State<HomePage> {
                 ),
                 NotificationBell(bordered: false, onTap: () => context.push('/notifications')),
                 const SizedBox(width: 4),
-                _ProfileAvatarButton(onTap: () => context.go('/home/profile')),
+                PayspinGlassIconButton(
+                  icon: Icons.person_rounded,
+                  semanticLabel: 'Profile',
+                  bordered: false,
+                  onPressed: () => context.go('/home/profile'),
+                ),
               ],
             ),
             AnimatedSize(
@@ -190,16 +170,6 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _tabs() {
-    final l10n = context.l10n;
-    const tabs = [HomeTab.tikkies, HomeTab.deals, HomeTab.groepies];
-    return PayspinTabStrip(
-      labels: [l10n.tabTikkies, l10n.tabDeals, l10n.tabGroepies],
-      selectedIndex: tabs.indexOf(_tab),
-      onSelected: (i) => _selectTab(tabs[i]),
     );
   }
 
@@ -272,38 +242,6 @@ class _HomePageState extends State<HomePage> {
         label: l10n.createTikkie,
         icon: const Icon(Icons.add, color: PayspinTokens.onBrand, size: 20),
         onPressed: () => context.push('/send/amount'),
-      ),
-    );
-  }
-}
-
-/// Compact gradient avatar in the Home app bar that opens Profile.
-class _ProfileAvatarButton extends StatelessWidget {
-  const _ProfileAvatarButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: 'Profile',
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: Center(
-            child: Container(
-              width: 30,
-              height: 30,
-              decoration: const BoxDecoration(shape: BoxShape.circle, gradient: PayspinTokens.gradientPink),
-              alignment: Alignment.center,
-              child: const Icon(Icons.person_rounded, size: 18, color: PayspinTokens.onBrand),
-            ),
-          ),
-        ),
       ),
     );
   }

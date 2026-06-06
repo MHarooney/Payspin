@@ -13,6 +13,7 @@ import 'core/firebase/phone_auth_service.dart';
 import 'core/network/api_config.dart';
 import 'core/notifications/push_service.dart';
 import 'core/security/app_lock_controller.dart';
+import 'core/security/app_lock_service.dart';
 
 /// Shared app startup for [main]. Use [main_driver.dart] for Flutter Driver / MCP.
 Future<void> bootstrap() async {
@@ -66,6 +67,13 @@ Future<void> _deferredStartup() async {
     await FirebaseBootstrap.ensureInitialized().timeout(const Duration(seconds: 8));
     await sl<RemoteConfigService>().init();
     await sl<PushService>().init();
+    // Only prompt for notifications once a passcode exists (new users are
+    // prompted after /security/setup; returning users get it on cold start).
+    final lockEnabled = sl<AppLockController>().isEnabled ||
+        await sl<AppLockService>().isLockEnabled();
+    if (lockEnabled) {
+      await sl<PushService>().requestNotificationPermission();
+    }
     await sl<PhoneAuthService>().syncVerifiedPhone();
     debugPrint('Payspin: deferred startup done');
   } on TimeoutException {

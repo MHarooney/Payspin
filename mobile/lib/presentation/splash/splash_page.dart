@@ -9,7 +9,6 @@ import '../../core/design_system/theme/payspin_motion.dart';
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/widgets/payspin_brand_mark.dart';
 import '../../core/design_system/widgets/payspin_finance_particles.dart';
-import '../../core/design_system/widgets/payspin_radial_glow.dart';
 import '../../core/l10n/payspin_localizations.dart';
 import '../../core/onboarding/intro_store.dart';
 import '../../core/onboarding/onboarding_progress_store.dart';
@@ -76,6 +75,7 @@ class _SplashPageState extends State<SplashPage> {
     final colors = context.psColors;
     final l10n = context.l10n;
     final reduced = PayspinMotion.reduced(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: colors.bg,
@@ -84,13 +84,16 @@ class _SplashPageState extends State<SplashPage> {
         onTap: _skipIntro,
         child: Stack(
           children: [
-            const Positioned.fill(child: PayspinRadialGlow(size: 460)),
             const Positioned.fill(child: PayspinFinanceParticles(intensity: 0.95)),
             Center(
               child: PayspinParallax(
                 dx: reduced ? 0 : 14,
                 dy: reduced ? 0 : 10,
-                child: PayspinBrandMark.hero(tagline: l10n.tagline),
+                child: PayspinBrandMark.hero(
+                  tagline: l10n.tagline,
+                  emblemStyle: isDark ? PayspinEmblemStyle.gradient : null,
+                  glowAnimate: true,
+                ),
               ),
             ),
           ],
