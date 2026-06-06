@@ -85,7 +85,10 @@ class BankPrismaFake {
   }
 }
 
-const fakeEncryption = { encrypt: (_: string) => ({ ciphertext: 'c', iv: 'iv' }) } as any;
+const fakeEncryption = {
+  encrypt: (plain: string) => ({ ciphertext: `ct:${plain}`, iv: 'iv' }),
+  decrypt: (ciphertext: string, _iv: string) => ciphertext.replace(/^ct:/, ''),
+} as any;
 
 describe('GetDefaultBankAccountUseCase', () => {
   let db: BankPrismaFake;
@@ -127,7 +130,7 @@ describe('CreateBankAccountUseCase (auto-primary)', () => {
   it('marks the first account primary and later ones non-primary', async () => {
     const first = await useCase.execute('u1', { iban: 'NL91ABNA0417164300', accountHolder: 'Jane Doe' });
     assert.equal(first.isPrimary, true);
-    const second = await useCase.execute('u1', { iban: 'NL91ABNA0417164300', accountHolder: 'Jane Doe' });
+    const second = await useCase.execute('u1', { iban: 'NL02ABNA0123456789', accountHolder: 'Jane Doe' });
     assert.equal(second.isPrimary, false);
   });
 });

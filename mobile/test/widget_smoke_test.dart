@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:payspin_mobile/core/design_system/theme/payspin_theme.dart';
+import 'package:payspin_mobile/core/design_system/widgets/payspin_brand_mark.dart';
 import 'package:payspin_mobile/core/design_system/widgets/payspin_gradient_pill_button.dart';
 import 'package:payspin_mobile/presentation/welcome/welcome_page.dart';
 
@@ -13,7 +14,7 @@ void main() {
     );
     await tester.pump();
     expect(find.text('Get started'), findsOneWidget);
-    expect(find.text('Payspin'), findsOneWidget);
+    expect(find.byType(PayspinBrandMark), findsOneWidget);
   });
 
   testWidgets('gradient pill button renders label', (tester) async {
