@@ -20,9 +20,6 @@ abstract final class PayspinTokens {
   static const Color mustard = Color(0xFFFFC408);
   static const Color error = Color(0xFFFC00FF);
 
-  /// Teal stop on horizontal CTA gradients (Timber `.gradient` uses `#00dbde`).
-  static const Color mintCta = Color(0xFF00DBDE);
-
   /// Success / "paid" green — distinct from the teal `mint` brand accent.
   static const Color green = Color(0xFF22C55E);
 
@@ -57,11 +54,10 @@ abstract final class PayspinTokens {
   static const double radiusPill = 100;
   static const double btnHeightLg = 56;
 
-  /// Primary CTA gradient — pink → teal, left to right (Timber `.gradient`).
   static const LinearGradient gradientPink = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [pink, mintCta],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [pink, mint],
   );
 
   static const LinearGradient gradientTri = LinearGradient(
@@ -82,7 +78,7 @@ abstract final class PayspinTokens {
           offset: const Offset(0, 8),
         ),
         BoxShadow(
-          color: mintCta.withValues(alpha: 0.18),
+          color: mint.withValues(alpha: 0.18),
           blurRadius: 12,
           offset: const Offset(0, 4),
         ),
