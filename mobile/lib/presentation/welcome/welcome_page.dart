@@ -25,9 +25,7 @@ class WelcomePage extends StatelessWidget {
       body: PayspinAmbientBackground(
         child: Stack(
           children: [
-            const Positioned.fill(
-              child: PayspinRadialGlow(size: 420, animate: false, alignment: Alignment(0, -0.2)),
-            ),
+            const Positioned.fill(child: PayspinRadialGlow(size: 420, animate: false)),
             Positioned.fill(
               child: PayspinFinanceParticles(intensity: isLight ? 1.0 : 0.7),
             ),
@@ -37,10 +35,7 @@ class WelcomePage extends StatelessWidget {
               child: PayspinParallax(
                 dx: 18,
                 dy: 12,
-                child: PayspinBrandMark.hero(
-                  tagline: l10n.tagline,
-                  emblemStyle: PayspinEmblemStyle.gradient,
-                ),
+                child: PayspinBrandMark.hero(tagline: l10n.tagline),
               ),
             ),
             SafeArea(

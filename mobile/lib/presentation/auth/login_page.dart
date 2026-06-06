@@ -82,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: PayspinParallax(
                         dx: 10,
                         dy: 8,
-                        child: PayspinBrandMark.auth(emblemStyle: PayspinEmblemStyle.gradient),
+                        child: PayspinBrandMark.auth(),
                       ),
                     ),
                     const SizedBox(height: 28),
