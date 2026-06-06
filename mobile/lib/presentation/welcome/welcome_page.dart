@@ -25,50 +25,39 @@ class WelcomePage extends StatelessWidget {
       body: PayspinAmbientBackground(
         child: Stack(
           children: [
-            const Positioned.fill(child: PayspinRadialGlow(size: 420, animate: false)),
+            const Positioned.fill(
+              child: PayspinRadialGlow(size: 420, animate: false, alignment: Alignment(0, -0.2)),
+            ),
             Positioned.fill(
               child: PayspinFinanceParticles(intensity: isLight ? 1.0 : 0.7),
             ),
+            // Brand mark centred on the full screen so it sits in the same
+            // location as the splash screen.
+            Center(
+              child: PayspinParallax(
+                dx: 18,
+                dy: 12,
+                child: PayspinBrandMark.hero(
+                  tagline: l10n.tagline,
+                  emblemStyle: PayspinEmblemStyle.gradient,
+                ),
+              ),
+            ),
             SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const Spacer(flex: 2),
-                    PayspinParallax(
-                      dx: 18,
-                      dy: 12,
-                      child: PayspinBrandMark.hero(tagline: l10n.tagline),
-                    ),
-                    const Spacer(flex: 3),
-                    PayspinGradientPillButton(
-                      key: const Key('welcome_get_started'),
-                      label: l10n.getStarted,
-                      shimmer: true,
-                      icon: const Icon(Icons.arrow_forward, color: PayspinTokens.onBrand, size: 20),
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        context.go('/onboarding/name');
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: Text.rich(
-                        TextSpan(
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 13),
-                          children: [
-                            TextSpan(text: l10n.alreadyHaveAccount),
-                            TextSpan(
-                              text: l10n.logIn,
-                              style: const TextStyle(color: PayspinTokens.mint, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 36),
-                  ],
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 36),
+                  child: PayspinGradientPillButton(
+                    key: const Key('welcome_get_started'),
+                    label: l10n.getStarted,
+                    shimmer: true,
+                    icon: const Icon(Icons.arrow_forward, color: PayspinTokens.onBrand, size: 20),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      context.go('/onboarding/name');
+                    },
+                  ),
                 ),
               ),
             ),

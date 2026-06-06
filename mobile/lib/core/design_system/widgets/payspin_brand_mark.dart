@@ -26,10 +26,11 @@ class PayspinBrandMark extends StatefulWidget {
     this.orbitRadius,
     this.wordmarkFontSize = 42,
     this.tagline,
+    this.emblemStyleOverride,
   });
 
   /// Welcome / splash-scale brand block.
-  factory PayspinBrandMark.hero({Key? key, String? tagline}) => PayspinBrandMark(
+  factory PayspinBrandMark.hero({Key? key, String? tagline, PayspinEmblemStyle? emblemStyle}) => PayspinBrandMark(
         key: key,
         emblemSize: 108,
         showWordmark: true,
@@ -39,10 +40,11 @@ class PayspinBrandMark extends StatefulWidget {
         wordmarkFontSize: 42,
         tagline: tagline,
         orbitRadius: 92,
+        emblemStyleOverride: emblemStyle,
       );
 
   /// Login and other auth surfaces — emblem draws in, wordmark shimmers.
-  factory PayspinBrandMark.auth({Key? key}) => PayspinBrandMark(
+  factory PayspinBrandMark.auth({Key? key, PayspinEmblemStyle? emblemStyle}) => PayspinBrandMark(
         key: key,
         emblemSize: 72,
         showWordmark: true,
@@ -50,6 +52,7 @@ class PayspinBrandMark extends StatefulWidget {
         showOrbit: true,
         wordmarkFontSize: 28,
         orbitRadius: 58,
+        emblemStyleOverride: emblemStyle,
       );
 
   /// Compact header chip — assembled emblem with subtle breathing only.
@@ -71,6 +74,12 @@ class PayspinBrandMark extends StatefulWidget {
   final double? orbitRadius;
   final double wordmarkFontSize;
   final String? tagline;
+
+  /// Forces the emblem render style regardless of theme. When null, follows
+  /// the theme's [PayspinSemanticColors.emblemStyle] (white in dark, gradient
+  /// in light). Splash/welcome/login pass [PayspinEmblemStyle.gradient] so the
+  /// gradient emblem shows in dark mode too.
+  final PayspinEmblemStyle? emblemStyleOverride;
 
   @override
   State<PayspinBrandMark> createState() => _PayspinBrandMarkState();
@@ -134,7 +143,7 @@ class _PayspinBrandMarkState extends State<PayspinBrandMark> with TickerProvider
     if (reduced && _assemble.value != 1) _assemble.value = 1;
 
     final colors = context.psColors;
-    final emblemStyle = colors.emblemStyle;
+    final emblemStyle = widget.emblemStyleOverride ?? colors.emblemStyle;
     final resolvedTagline = widget.tagline ?? (widget.showTagline ? context.l10n.tagline : null);
     final orbitRadius = widget.orbitRadius ?? widget.emblemSize * 0.85;
     final boxExtent = widget.showOrbit ? orbitRadius * 2 + 30 : widget.emblemSize;
@@ -194,7 +203,7 @@ class _PayspinBrandMarkState extends State<PayspinBrandMark> with TickerProvider
               ),
             ],
             if (widget.showTagline && resolvedTagline != null) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 30),
               FadeTransition(
                 opacity: _wordmarkFade,
                 child: Padding(

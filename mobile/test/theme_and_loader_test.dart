@@ -58,12 +58,12 @@ void main() {
       expect(prefs.getString('payspin_theme_mode'), 'dark');
     });
 
-    test('defaults to light when nothing stored', () async {
+    test('defaults to dark when nothing stored', () async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final controller = ThemeModeController(prefs);
       await controller.load();
-      expect(controller.mode, ThemeMode.light);
+      expect(controller.mode, ThemeMode.dark);
     });
   });
 

@@ -84,13 +84,18 @@ class _SplashPageState extends State<SplashPage> {
         onTap: _skipIntro,
         child: Stack(
           children: [
-            const Positioned.fill(child: PayspinRadialGlow(size: 460)),
+            const Positioned.fill(
+              child: PayspinRadialGlow(size: 460, alignment: Alignment(0, -0.2)),
+            ),
             const Positioned.fill(child: PayspinFinanceParticles(intensity: 0.95)),
             Center(
               child: PayspinParallax(
                 dx: reduced ? 0 : 14,
                 dy: reduced ? 0 : 10,
-                child: PayspinBrandMark.hero(tagline: l10n.tagline),
+                child: PayspinBrandMark.hero(
+                  tagline: l10n.tagline,
+                  emblemStyle: PayspinEmblemStyle.gradient,
+                ),
               ),
             ),
           ],

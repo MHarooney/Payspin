@@ -8,7 +8,8 @@ class ThemeModeController extends ChangeNotifier {
   static const _prefKey = 'payspin_theme_mode';
 
   final SharedPreferences _prefs;
-  ThemeMode _mode = ThemeMode.light;
+  // Dark is the default Payspin experience; users can switch in Profile.
+  ThemeMode _mode = ThemeMode.dark;
 
   ThemeMode get mode => _mode;
 
@@ -16,8 +17,9 @@ class ThemeModeController extends ChangeNotifier {
     final stored = _prefs.getString(_prefKey);
     _mode = switch (stored) {
       'dark' => ThemeMode.dark,
+      'light' => ThemeMode.light,
       'system' => ThemeMode.system,
-      _ => ThemeMode.light,
+      _ => ThemeMode.dark,
     };
     notifyListeners();
   }
