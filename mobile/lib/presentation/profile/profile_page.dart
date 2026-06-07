@@ -484,7 +484,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     onTap: _chooseLanguage,
                   ),
                   PayspinSettingsRow(icon: Icons.help_outline, label: context.l10n.helpSupport, onTap: () {}),
-                  PayspinSettingsRow(icon: Icons.info_outline, label: context.l10n.version, detail: AppVersion.serial, onTap: null),
+                  PayspinSettingsRow(icon: Icons.info_outline, label: context.l10n.version, detail: AppVersion.label, onTap: null),
                 ],
               ),
               const SizedBox(height: 16),

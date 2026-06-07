@@ -8,7 +8,7 @@ import '../firebase/firebase_bootstrap.dart';
 /// values unconditionally.
 class RemoteConfigService {
   static const _defaults = <String, dynamic>{
-    'min_app_version': '0.1.0',
+    'min_app_version': '0.9.0',
     'min_shorebird_patch': 0,
     'payer_poll_interval_ms': 3500,
     'feature_circles_enabled': false,

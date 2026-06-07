@@ -8,6 +8,36 @@ hotfixes to installed builds **without** waiting on App Store / Play review.
 - **Account:** `payspin.app@gmail.com`
 - **Config file:** `mobile/shorebird.yaml` (`app_id` written by `shorebird init`)
 
+## Version numbering (pre-1.0)
+
+| Piece | Example | Where |
+|-------|---------|--------|
+| **Semver** (user-facing) | `0.9.0` | `pubspec.yaml`, App Store “Version”, Play “Version name” |
+| **Build** (monotonic) | `19` | `pubspec.yaml` after `+`, iOS “Build”, Play “Version code” |
+| **Release id** (artifacts) | `0.9.0-build19` | APK/IPA/AAB filenames in `mobile/dist/` |
+
+Source of truth: `mobile/lib/core/config/app_version.dart` + `mobile/pubspec.yaml`
+(kept in sync by `./scripts/dev/bump-mobile-version.sh`).
+
+```bash
+./scripts/dev/bump-mobile-version.sh current   # → 0.9.0-build19
+./scripts/dev/bump-mobile-version.sh next      # +1 build (every store upload)
+./scripts/dev/bump-mobile-version.sh minor     # 0.9.0 → 0.10.0 + build bump
+```
+
+**Reserve `1.0.0`** for the first public App Store / Play launch.
+
+### Build outputs
+
+| Target | Script | Artifact |
+|--------|--------|----------|
+| Android sideload / QA | `./scripts/dev/build-android-release.sh` | `payspin-0.9.0-build19-release.apk` |
+| Google Play | `./scripts/dev/build-android-playstore.sh` | `payspin-0.9.0-build19-release.aab` |
+| iOS TestFlight | `./scripts/dev/build-ios-testflight.sh` | `payspin-0.9.0-build19-testflight.ipa` |
+| iOS dev device | `./scripts/dev/build-ios-release.sh` | `payspin-0.9.0-build19-release.ipa` |
+
+Symlinks: `payspin-latest-release.apk`, `payspin-latest-release.aab`, `payspin-latest-testflight.ipa`.
+
 ## Release vs patch — decision tree
 
 | Change | Action |
@@ -52,7 +82,26 @@ shorebird release ios \
   --export-options-plist=ios/ExportOptions.plist
 ```
 
-The `--release-version` is taken from `pubspec.yaml` (`0.1.0+1`).
+The `--release-version` is taken from `pubspec.yaml` (e.g. `0.9.0+19`).
+
+## Android — Google Play
+
+Build an App Bundle (required for Play Store):
+
+```bash
+./scripts/dev/build-android-playstore.sh
+```
+
+Upload to internal testing (requires [Play Console API](https://developer.android.com/distribute) + fastlane):
+
+```bash
+# One-time: save service account JSON to ~/.config/payspin/google-play-service-account.json
+brew install fastlane
+UPLOAD=1 ./scripts/dev/build-android-playstore.sh
+# Optional: TRACK=alpha UPLOAD=1 ...
+```
+
+Package: `io.payspin.payspin_mobile`. Play Console shows **0.9.0 (19)** from pubspec.
 
 ## iOS TestFlight (external testers, all CLI)
 
@@ -85,7 +134,7 @@ Force upload with env var instead of Keychain:
 UPLOAD=1 APPLE_UPLOAD_PASSWORD='xxxx-xxxx-xxxx-xxxx' ./scripts/dev/build-ios-testflight.sh
 ```
 
-Output: `mobile/dist/payspin-{SERIAL}-testflight.ipa` → symlink `payspin-latest-testflight.ipa`.
+Output: `mobile/dist/payspin-{semver}-build{N}-testflight.ipa` → symlink `payspin-latest-testflight.ipa`.
 
 After upload, wait ~5–15 min for processing, then in [App Store Connect → TestFlight](https://appstoreconnect.apple.com):
 - **Internal testing** — team members (fast)
@@ -107,8 +156,8 @@ After a Dart-only change (e.g. notification copy, inbox layout):
 
 ```bash
 cd mobile
-shorebird patch android --release-version 0.1.0+1
-shorebird patch ios     --release-version 0.1.0+1   # when iOS released
+shorebird patch android --release-version 0.9.0+19
+shorebird patch ios     --release-version 0.9.0+19   # when iOS released
 ```
 
 Verify on a device that already has the baseline installed:

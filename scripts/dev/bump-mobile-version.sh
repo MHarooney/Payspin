@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
-# Payspin mobile release serial bumping.
+# Payspin mobile semver + monotonic build number.
 #
-# Serial format: V{major}.{minor}{letter}  e.g. V1.6a → V1.6b → … → V1.6z → V1.7a
-# Syncs mobile/lib/core/config/app_version.dart and pubspec.yaml (semver + build number).
+# Flutter pubspec:  MAJOR.MINOR.PATCH+BUILD
+#   PATCH line  → iOS CFBundleShortVersionString / Android versionName
+#   BUILD       → iOS CFBundleVersion / Android versionCode (always increase)
+#
+# Dist artifacts: payspin-{semver}-build{BUILD}-release.{apk|ipa|aab}
 #
 # Usage:
-#   ./scripts/dev/bump-mobile-version.sh current          # print current serial
-#   ./scripts/dev/bump-mobile-version.sh set V1.6a      # pin serial (resets letter line)
-#   ./scripts/dev/bump-mobile-version.sh next           # increment for the next build
-#   ./scripts/dev/bump-mobile-version.sh sync-from-dist # take max(serial in dist, dart)
+#   ./scripts/dev/bump-mobile-version.sh current          # e.g. 0.9.0-build19
+#   ./scripts/dev/bump-mobile-version.sh next             # +1 build (each upload)
+#   ./scripts/dev/bump-mobile-version.sh set 0.9.0        # pin semver
+#   ./scripts/dev/bump-mobile-version.sh set 0.9.0 25    # pin semver + build
+#   ./scripts/dev/bump-mobile-version.sh patch          # 0.9.0 → 0.9.1 + build
+#   ./scripts/dev/bump-mobile-version.sh minor          # 0.9.0 → 0.10.0 + build
+#   ./scripts/dev/bump-mobile-version.sh major          # → 1.0.0 + build (launch)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -16,114 +22,134 @@ VERSION_DART="$ROOT/mobile/lib/core/config/app_version.dart"
 PUBSPEC="$ROOT/mobile/pubspec.yaml"
 DIST="$ROOT/mobile/dist"
 
-read_serial_from_dart() {
-  grep "static const String serial" "$VERSION_DART" | sed -E "s/.*serial = '([^']+)'.*/\1/"
+read_semver_from_dart() {
+  grep "static const String semver" "$VERSION_DART" | sed -E "s/.*semver = '([^']+)'.*/\1/"
 }
 
 read_build_number_from_dart() {
   grep "static const int buildNumber" "$VERSION_DART" | sed -E 's/.*buildNumber = ([0-9]+).*/\1/'
 }
 
-parse_serial() {
-  local serial="$1"
-  if [[ ! "$serial" =~ ^V([0-9]+)\.([0-9]+)([a-z])$ ]]; then
-    echo "Invalid serial '$serial' — expected V1.6a format" >&2
+release_id() {
+  echo "$(read_semver_from_dart)-build$(read_build_number_from_dart)"
+}
+
+parse_semver() {
+  local semver="$1"
+  if [[ ! "$semver" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+    echo "Invalid semver '$semver' — expected MAJOR.MINOR.PATCH" >&2
     return 1
   fi
-  SERIAL_MAJOR="${BASH_REMATCH[1]}"
-  SERIAL_MINOR="${BASH_REMATCH[2]}"
-  SERIAL_LETTER="${BASH_REMATCH[3]}"
+  VER_MAJOR="${BASH_REMATCH[1]}"
+  VER_MINOR="${BASH_REMATCH[2]}"
+  VER_PATCH="${BASH_REMATCH[3]}"
 }
 
-serial_to_sort_key() {
-  local serial="$1"
-  parse_serial "$serial"
-  printf '%04d-%04d-%02d' "$SERIAL_MAJOR" "$SERIAL_MINOR" "$(( $(printf '%d' "'$SERIAL_LETTER") - 97 ))"
+semver_to_sort_key() {
+  parse_semver "$1"
+  printf '%04d-%04d-%04d' "$VER_MAJOR" "$VER_MINOR" "$VER_PATCH"
 }
 
-max_serial() {
+parse_release_id() {
+  local id="$1"
+  if [[ ! "$id" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-build([0-9]+)$ ]]; then
+    return 1
+  fi
+  VER_PARSED_SEMVER="${BASH_REMATCH[1]}"
+  VER_PARSED_BUILD="${BASH_REMATCH[2]}"
+}
+
+release_id_sort_key() {
+  parse_release_id "$1"
+  echo "$(semver_to_sort_key "$VER_PARSED_SEMVER")-$(printf '%06d' "$VER_PARSED_BUILD")"
+}
+
+max_release_id() {
   local best="${1:-}"
   local candidate
   for candidate in "$@"; do
     [[ -z "$candidate" ]] && continue
-    if [[ -z "$best" ]] || [[ "$(serial_to_sort_key "$candidate")" > "$(serial_to_sort_key "$best")" ]]; then
+    if [[ -z "$best" ]] || [[ "$(release_id_sort_key "$candidate")" > "$(release_id_sort_key "$best")" ]]; then
       best="$candidate"
     fi
   done
   echo "$best"
 }
 
-highest_serial_in_dist() {
-  local f base serial best=""
+highest_release_id_in_dist() {
+  local f base id best=""
   shopt -s nullglob
-  for f in "$DIST"/payspin-V*-release.apk "$DIST"/payspin-V*-release.ipa; do
+  for f in "$DIST"/payspin-*-release.apk "$DIST"/payspin-*-release.ipa "$DIST"/payspin-*-release.aab "$DIST"/payspin-*-testflight.ipa; do
     base="$(basename "$f")"
-    if [[ "$base" =~ payspin-(V[0-9]+\.[0-9]+[a-z])-release\.(apk|ipa) ]]; then
-      serial="${BASH_REMATCH[1]}"
-      best="$(max_serial "$best" "$serial")"
+    if [[ "$base" =~ payspin-([0-9]+\.[0-9]+\.[0-9]+-build[0-9]+)-(release|testflight)\.(apk|ipa|aab) ]]; then
+      id="${BASH_REMATCH[1]}"
+      best="$(max_release_id "$best" "$id")"
     fi
   done
   shopt -u nullglob
   echo "$best"
 }
 
-increment_serial() {
-  local serial="$1"
-  parse_serial "$serial"
-  local letters="abcdefghijklmnopqrstuvwxyz"
-  local idx=$(( $(printf '%d' "'$SERIAL_LETTER") - 97 ))
-  if (( idx < 25 )); then
-    SERIAL_LETTER="${letters:idx+1:1}"
-  else
-    SERIAL_MINOR=$(( SERIAL_MINOR + 1 ))
-    SERIAL_LETTER="a"
-  fi
-  echo "V${SERIAL_MAJOR}.${SERIAL_MINOR}${SERIAL_LETTER}"
-}
-
 write_version_files() {
-  local serial="$1"
+  local semver="$1"
   local build_number="$2"
-  parse_serial "$serial"
-  local semver="${SERIAL_MAJOR}.${SERIAL_MINOR}.0"
+  parse_semver "$semver"
 
-  sed -i '' "s/static const String serial = '[^']*'/static const String serial = '$serial'/" "$VERSION_DART"
   sed -i '' "s/static const String semver = '[^']*'/static const String semver = '$semver'/" "$VERSION_DART"
   sed -i '' "s/static const int buildNumber = [0-9]*/static const int buildNumber = $build_number/" "$VERSION_DART"
-
   sed -i '' "s/^version: .*/version: ${semver}+${build_number}/" "$PUBSPEC"
+}
+
+bump_semver() {
+  local part="$1"
+  local semver="$2"
+  parse_semver "$semver"
+  case "$part" in
+    patch) VER_PATCH=$(( VER_PATCH + 1 )) ;;
+    minor) VER_MINOR=$(( VER_MINOR + 1 )); VER_PATCH=0 ;;
+    major) VER_MAJOR=$(( VER_MAJOR + 1 )); VER_MINOR=0; VER_PATCH=0 ;;
+    *) echo "Unknown semver part: $part" >&2; return 1 ;;
+  esac
+  echo "${VER_MAJOR}.${VER_MINOR}.${VER_PATCH}"
 }
 
 cmd="${1:-current}"
 case "$cmd" in
   current)
-    read_serial_from_dart
+    release_id
     ;;
   set)
-    serial="${2:?Usage: bump-mobile-version.sh set V1.6a}"
-    parse_serial "$serial"
-    build_number="$(read_build_number_from_dart)"
-    write_version_files "$serial" "$build_number"
-    echo "$serial"
+    semver="${2:?Usage: bump-mobile-version.sh set 0.9.0 [build]}"
+    build_number="${3:-$(read_build_number_from_dart)}"
+    write_version_files "$semver" "$build_number"
+    release_id
     ;;
   next)
-    current="$(read_serial_from_dart)"
-    dist_high="$(highest_serial_in_dist)"
-    base="$(max_serial "$current" "$dist_high")"
-    next="$(increment_serial "$base")"
-    build_number=$(( $(read_build_number_from_dart) + 1 ))
-    write_version_files "$next" "$build_number"
-    echo "$next"
+    current_id="$(release_id)"
+    dist_high="$(highest_release_id_in_dist)"
+    base="$(max_release_id "$current_id" "$dist_high")"
+    if [[ -n "$base" && "$base" != "$current_id" ]]; then
+      parse_release_id "$base"
+      write_version_files "$VER_PARSED_SEMVER" "$(( VER_PARSED_BUILD + 1 ))"
+    else
+      write_version_files "$(read_semver_from_dart)" "$(( $(read_build_number_from_dart) + 1 ))"
+    fi
+    release_id
+    ;;
+  patch|minor|major)
+    next_semver="$(bump_semver "$cmd" "$(read_semver_from_dart)")"
+    write_version_files "$next_semver" "$(( $(read_build_number_from_dart) + 1 ))"
+    release_id
     ;;
   sync-from-dist)
-    current="$(read_serial_from_dart)"
-    dist_high="$(highest_serial_in_dist)"
-    best="$(max_serial "$current" "$dist_high")"
-    if [[ "$best" != "$current" ]]; then
-      build_number=$(( $(read_build_number_from_dart) + 1 ))
-      write_version_files "$best" "$build_number"
+    current_id="$(release_id)"
+    dist_high="$(highest_release_id_in_dist)"
+    best="$(max_release_id "$current_id" "$dist_high")"
+    if [[ -n "$best" && "$best" != "$current_id" ]]; then
+      parse_release_id "$best"
+      write_version_files "$VER_PARSED_SEMVER" "$(( VER_PARSED_BUILD + 1 ))"
     fi
-    echo "$(read_serial_from_dart)"
+    release_id
     ;;
   *)
     echo "Unknown command: $cmd" >&2

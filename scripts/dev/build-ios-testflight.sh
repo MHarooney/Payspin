@@ -28,7 +28,7 @@ APPLE_ID="${APPLE_ID:-payspin.app@gmail.com}"
 
 API_URL="${API_URL:-https://pay.payspin.io/v1}"
 
-SERIAL="$("$BUMP" current)"
+RELEASE_ID="$("$BUMP" current)"
 BUILD_NUM="$(grep "static const int buildNumber" "$MOBILE/lib/core/config/app_version.dart" \
   | sed -E 's/.*buildNumber = ([0-9]+).*/\1/')"
 SEMVER="$(grep "static const String semver" "$MOBILE/lib/core/config/app_version.dart" \
@@ -133,7 +133,7 @@ should_upload() {
   resolve_upload_password >/dev/null 2>&1
 }
 
-echo "==> Building Payspin TestFlight $SERIAL ($SEMVER+$BUILD_NUM)"
+echo "==> Building Payspin TestFlight $RELEASE_ID (store: $SEMVER+$BUILD_NUM)"
 echo "    API_URL=$API_URL"
 echo "    Export: app-store (TestFlight)"
 preflight
@@ -153,7 +153,7 @@ if [[ -z "${IPA_SRC:-}" ]]; then
   exit 1
 fi
 
-OUT="$DIST/payspin-${SERIAL}-testflight.ipa"
+OUT="$DIST/payspin-${RELEASE_ID}-testflight.ipa"
 cp "$IPA_SRC" "$OUT"
 ln -sf "$(basename "$OUT")" "$DIST/payspin-latest-testflight.ipa"
 
@@ -166,7 +166,7 @@ python3 - <<PY
 import json, os
 manifest_path = "$MANIFEST"
 entry = {
-    "serial": "$SERIAL",
+    "releaseId": "$RELEASE_ID",
     "semver": "$SEMVER",
     "buildNumber": int("$BUILD_NUM"),
     "platform": "ios-testflight",
@@ -182,7 +182,7 @@ if os.path.isfile(manifest_path):
         data = json.load(f)
     hist = data.get("history") or []
     prev = data.get("latest")
-    if prev and (prev.get("serial") != entry["serial"] or prev.get("platform") != entry["platform"]):
+    if prev and (prev.get("releaseId") != entry["releaseId"] or prev.get("platform") != entry["platform"]):
         hist.insert(0, prev)
     data["history"] = hist[:20]
 data["latest"] = entry
@@ -205,5 +205,5 @@ fi
 
 if [[ "${SKIP_BUMP:-0}" != "1" ]]; then
   NEXT="$("$BUMP" next)"
-  echo "==> Next build serial: $NEXT"
+  echo "==> Next release id: $NEXT"
 fi

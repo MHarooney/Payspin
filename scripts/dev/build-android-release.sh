@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# Build a release APK into mobile/dist with auto-incrementing serial (V1.6a, V1.6b, …).
+# Build a release APK into mobile/dist with semver + build number.
 #
 # Each run:
-#   1. Uses the serial in app_version.dart for this build
-#   2. Writes payspin-{SERIAL}-release.apk + latest symlink + manifest.json
-#   3. Bumps app_version.dart for the *next* build
+#   1. Uses the version in app_version.dart / pubspec.yaml for this build
+#   2. Writes payspin-{semver}-build{N}-release.apk + latest symlink + manifest.json
+#   3. Bumps build number for the *next* upload
+#
+# Store mapping: semver → versionName, build number → versionCode (via pubspec).
 #
 # Env:
 #   API_URL          — backend base (default prod)
@@ -41,13 +43,13 @@ path.write_text(text)
 PY
 }
 
-SERIAL="$("$BUMP" current)"
+RELEASE_ID="$("$BUMP" current)"
 BUILD_NUM="$(grep "static const int buildNumber" "$MOBILE/lib/core/config/app_version.dart" \
   | sed -E 's/.*buildNumber = ([0-9]+).*/\1/')"
 SEMVER="$(grep "static const String semver" "$MOBILE/lib/core/config/app_version.dart" \
   | sed -E "s/.*semver = '([^']+)'.*/\1/")"
 
-echo "==> Building Payspin $SERIAL ($SEMVER+$BUILD_NUM)"
+echo "==> Building Payspin $RELEASE_ID (store: $SEMVER+$BUILD_NUM)"
 echo "    API_URL=$API_URL"
 sanitize_android_plugins
 cd "$MOBILE"
@@ -55,7 +57,7 @@ cd "$MOBILE"
 flutter build apk --release --dart-define=API_URL="$API_URL"
 
 mkdir -p "$DIST"
-OUT="$DIST/payspin-${SERIAL}-release.apk"
+OUT="$DIST/payspin-${RELEASE_ID}-release.apk"
 cp build/app/outputs/flutter-apk/app-release.apk "$OUT"
 
 # Stable alias for testers / scripts that always want the newest artifact.
@@ -71,10 +73,10 @@ python3 - <<PY
 import json, os
 manifest_path = "$MANIFEST"
 entry = {
-    "serial": "$SERIAL",
+    "releaseId": "$RELEASE_ID",
     "semver": "$SEMVER",
     "buildNumber": int("$BUILD_NUM"),
-    "platform": "android",
+    "platform": "android-apk",
     "artifact": os.path.basename("$OUT"),
     "apiUrl": "$API_URL",
     "sha256": "$SHA256",
@@ -86,7 +88,7 @@ if os.path.isfile(manifest_path):
     with open(manifest_path) as f:
         data = json.load(f)
     hist = data.get("history") or []
-    if data.get("latest") and data["latest"].get("serial") != entry["serial"]:
+    if data.get("latest") and data["latest"].get("releaseId") != entry["releaseId"]:
         hist.insert(0, data["latest"])
     data["history"] = hist[:20]
 data["latest"] = entry
@@ -97,7 +99,7 @@ PY
 
 if [[ "${SKIP_BUMP:-0}" != "1" ]]; then
   NEXT="$("$BUMP" next)"
-  echo "==> Next build serial: $NEXT"
+  echo "==> Next release id: $NEXT"
 fi
 
 echo ""

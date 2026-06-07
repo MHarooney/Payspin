@@ -15,7 +15,7 @@ BUNDLE_ID="payspin.app"
 
 API_URL="${API_URL:-https://pay.payspin.io/v1}"
 
-SERIAL="$("$BUMP" current)"
+RELEASE_ID="$("$BUMP" current)"
 BUILD_NUM="$(grep "static const int buildNumber" "$MOBILE/lib/core/config/app_version.dart" \
   | sed -E 's/.*buildNumber = ([0-9]+).*/\1/')"
 SEMVER="$(grep "static const String semver" "$MOBILE/lib/core/config/app_version.dart" \
@@ -48,7 +48,7 @@ EOF
   echo "    Signing identity OK"
 }
 
-echo "==> Building Payspin iOS $SERIAL ($SEMVER+$BUILD_NUM)"
+echo "==> Building Payspin iOS $RELEASE_ID (store: $SEMVER+$BUILD_NUM)"
 echo "    API_URL=$API_URL"
 preflight
 echo ""
@@ -67,7 +67,7 @@ if [[ -z "${IPA_SRC:-}" ]]; then
   exit 1
 fi
 
-OUT="$DIST/payspin-${SERIAL}-release.ipa"
+OUT="$DIST/payspin-${RELEASE_ID}-release.ipa"
 cp "$IPA_SRC" "$OUT"
 ln -sf "$(basename "$OUT")" "$DIST/payspin-latest-release.ipa"
 
@@ -80,7 +80,7 @@ python3 - <<PY
 import json, os
 manifest_path = "$MANIFEST"
 entry = {
-    "serial": "$SERIAL",
+    "releaseId": "$RELEASE_ID",
     "semver": "$SEMVER",
     "buildNumber": int("$BUILD_NUM"),
     "platform": "ios",
@@ -96,7 +96,7 @@ if os.path.isfile(manifest_path):
         data = json.load(f)
     hist = data.get("history") or []
     prev = data.get("latest")
-    if prev and (prev.get("serial") != entry["serial"] or prev.get("platform") != entry["platform"]):
+    if prev and (prev.get("releaseId") != entry["releaseId"] or prev.get("platform") != entry["platform"]):
         hist.insert(0, prev)
     data["history"] = hist[:20]
 data["latest"] = entry
@@ -107,7 +107,7 @@ PY
 
 if [[ "${SKIP_BUMP:-0}" != "1" ]]; then
   NEXT="$("$BUMP" next)"
-  echo "==> Next build serial: $NEXT"
+  echo "==> Next release id: $NEXT"
 fi
 
 echo ""
