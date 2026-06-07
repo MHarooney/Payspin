@@ -1,4 +1,6 @@
 packages:
   - "backend"
   - "frontend"
+  - "ops-portal/backend"
+  - "ops-portal/frontend"
   - "packages/*"

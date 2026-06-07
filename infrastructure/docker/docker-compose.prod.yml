@@ -87,6 +87,54 @@ services:
     networks:
       - web
 
+  ops-api:
+    image: ${DOCKER_OPS_API_IMAGE:-payspin/ops-api:latest}
+    restart: unless-stopped
+    logging: *default-logging
+    env_file:
+      - .env.production
+    environment:
+      - OPS_API_PORT=3002
+      - OPS_CORS_ORIGIN=${OPS_CORS_ORIGIN:-https://ops.payspin.io}
+      - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET}
+      - ADMIN_JWT_EXPIRES_IN=${ADMIN_JWT_EXPIRES_IN:-15m}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -S -qO /dev/null http://127.0.0.1:3002/admin/v1/dashboard/kpis 2>&1 | grep -q '401'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - internal
+      - web
+
+  ops-web:
+    image: ${DOCKER_OPS_WEB_IMAGE:-payspin/ops-web:latest}
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      - NODE_ENV=production
+      - PORT=3003
+      - HOSTNAME=0.0.0.0
+    depends_on:
+      ops-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3003/login"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - web
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -95,16 +143,19 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      # ":80" = IP-only/no-TLS. Set to a domain for automatic HTTPS.
-      - SITE_ADDRESS=${SITE_ADDRESS:-:80}
+      # Primary payer site + ops portal hostnames (automatic HTTPS via Let's Encrypt).
+      - SITE_ADDRESS=${SITE_ADDRESS:-pay.payspin.io}
+      - OPS_SITE_ADDRESS=${OPS_SITE_ADDRESS:-ops.payspin.io}
       - ACME_EMAIL=${ACME_EMAIL:-payspin.app@gmail.com}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - api
-      - web
+      api:
+        condition: service_healthy
+      web:
+        condition: service_started
     networks:
       - web
 
