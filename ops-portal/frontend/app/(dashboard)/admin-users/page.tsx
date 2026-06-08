@@ -4,6 +4,8 @@ import { AdminRole, AdminStaffListItem } from '@payspin/shared-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { OpsLoadingPanel } from '@/components/ops/emblem-loader';
+import { OpsRowMenu } from '@/components/ops/ops-row-menu';
+import { useOpsToast } from '@/components/ops/ops-toast';
 import { OpsCard, OpsPill, OpsSectionHead } from '@/components/ops/primitives';
 import { apiRequest } from '@/lib/admin-api';
 import { useAuth } from '@/lib/auth';
@@ -48,6 +50,7 @@ function CreateAdminModal({ onSuccess, onClose }: { onSuccess: () => void; onClo
 export default function AdminUsersPage() {
   const qc = useQueryClient();
   const { admin } = useAuth();
+  const { toast } = useOpsToast();
   const [showCreate, setShowCreate] = useState(false);
   const isSuperAdmin = admin?.role === 'SUPER_ADMIN';
 
@@ -59,7 +62,11 @@ export default function AdminUsersPage() {
 
   const deactivate = useMutation({
     mutationFn: (id: string) => apiRequest(`/admin-users/${id}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      toast('Admin deactivated');
+    },
+    onError: (e) => toast(String((e as Error).message), 'fail'),
   });
 
   if (!isSuperAdmin) {
@@ -68,7 +75,12 @@ export default function AdminUsersPage() {
 
   return (
     <div className="content">
-      {showCreate && <CreateAdminModal onSuccess={() => qc.invalidateQueries({ queryKey: ['admin-users'] })} onClose={() => setShowCreate(false)} />}
+      {showCreate && (
+        <CreateAdminModal
+          onSuccess={() => { qc.invalidateQueries({ queryKey: ['admin-users'] }); toast('Admin created'); }}
+          onClose={() => setShowCreate(false)}
+        />
+      )}
 
       <OpsSectionHead title="Admin users" sub="Ops staff management — SUPER_ADMIN only">
         <button className="mini-btn" onClick={() => setShowCreate(true)}>+ New admin</button>
@@ -88,7 +100,15 @@ export default function AdminUsersPage() {
                   <td className="hint">{a.lastLoginAt ? relativeTime(a.lastLoginAt) : '—'}</td>
                   <td>
                     {a.id !== admin?.id && a.isActive && (
-                      <button className="mini-btn danger" disabled={deactivate.isPending} onClick={() => deactivate.mutate(a.id)}>Deactivate</button>
+                      <OpsRowMenu
+                        items={[
+                          {
+                            label: 'Deactivate',
+                            tone: 'danger',
+                            onClick: () => deactivate.mutate(a.id),
+                          },
+                        ]}
+                      />
                     )}
                   </td>
                 </tr>

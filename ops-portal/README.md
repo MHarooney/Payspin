@@ -120,6 +120,19 @@ After deploy, run the cloud smoke test (uses one login — wait 60s if you hit r
 
 Requires `jq` on your machine.
 
+## Users, sandbox testing, and Test Center
+
+- **Users list:** row action menu (edit, reset password, freeze, delete), KPI strip, create-user flow with copyable temp password.
+- **User detail:** admin notes, **Test** tab (create payment link, open payer URL, track payments), cross-links to transactions/webhooks.
+- **Test Center** (`/testing`): run ops health, consumer API, user CRUD, payment link, and webhook checks from the UI.
+- **Env:** set `PAYER_WEB_URL` on the ops API and `NEXT_PUBLIC_PAYER_WEB_URL` on the ops UI (defaults to `http://localhost:3000`).
+
+Local verification:
+
+```bash
+./ops-portal/scripts/preprod-smoke-test.sh
+```
+
 ## Next features (agent prompts)
 
 | Prompt | Purpose |

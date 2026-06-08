@@ -98,6 +98,8 @@ services:
       - OPS_CORS_ORIGIN=${OPS_CORS_ORIGIN:-https://ops.payspin.io}
       - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET}
       - ADMIN_JWT_EXPIRES_IN=${ADMIN_JWT_EXPIRES_IN:-15m}
+      - PAYER_WEB_URL=${PAYER_WEB_URL:-https://pay.payspin.io}
+      - CONSUMER_API_URL=${CONSUMER_API_URL:-http://api:3001/v1}
     depends_on:
       postgres:
         condition: service_healthy

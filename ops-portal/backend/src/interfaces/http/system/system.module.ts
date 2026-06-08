@@ -5,5 +5,6 @@ import { SystemController } from './system.controller';
 @Module({
   controllers: [SystemController],
   providers: [GetSystemHealthUseCase],
+  exports: [GetSystemHealthUseCase],
 })
 export class SystemModule {}

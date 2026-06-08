@@ -2,8 +2,8 @@
 
 import { AdminPaymentLinkListItem, Paginated } from '@payspin/shared-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
 import { OpsLoadingPanel } from '@/components/ops/emblem-loader';
 import { OpsCard, OpsPill, OpsSectionHead } from '@/components/ops/primitives';
 import { apiRequest } from '@/lib/admin-api';
@@ -52,18 +52,31 @@ function ExtendModal({ link, onSuccess, onClose }: { link: AdminPaymentLinkListI
 }
 
 export default function PaymentLinksPage() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const qc = useQueryClient();
   const { admin } = useAuth();
   const canAct = admin?.role === 'SUPER_ADMIN' || admin?.role === 'OPS';
   const [page, setPage] = useState(1);
+  const [urlSearch, setUrlSearch] = useState('');
   const [cancelTarget, setCancelTarget] = useState<AdminPaymentLinkListItem | null>(null);
   const [extendTarget, setExtendTarget] = useState<AdminPaymentLinkListItem | null>(null);
+
+  useEffect(() => {
+    const q = searchParams.get('search');
+    if (q) setUrlSearch(q);
+  }, [searchParams]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['payment-links', page],
     queryFn: () => apiRequest<Paginated<AdminPaymentLinkListItem>>('/payment-links', { query: { page } }),
   });
+
+  const items = useMemo(() => {
+    const list = data?.items ?? [];
+    if (!urlSearch) return list;
+    const q = urlSearch.toLowerCase();
+    return list.filter((l) => l.shortCode.toLowerCase().includes(q) || l.payeeName.toLowerCase().includes(q));
+  }, [data?.items, urlSearch]);
 
   const refresh = () => qc.invalidateQueries({ queryKey: ['payment-links'] });
 
@@ -72,14 +85,14 @@ export default function PaymentLinksPage() {
       {cancelTarget && <CancelModal link={cancelTarget} onSuccess={refresh} onClose={() => setCancelTarget(null)} />}
       {extendTarget && <ExtendModal link={extendTarget} onSuccess={refresh} onClose={() => setExtendTarget(null)} />}
 
-      <OpsSectionHead title="Payment Links" sub={`${data?.total ?? 0} links`} />
+      <OpsSectionHead title="Payment Links" sub={`${data?.total ?? 0} links${urlSearch ? ` · filter: ${urlSearch}` : ''}`} />
       <OpsCard title={undefined} count={undefined}>
         {isLoading ? <OpsLoadingPanel label="Loading links…" size={32} /> : (
           <table>
             <thead><tr><th>Short code</th><th>Payee</th><th>Amount</th><th>Status</th><th>Uses</th><th>Expires</th><th>Actions</th></tr></thead>
             <tbody>
-              {(data?.items ?? []).map((l) => (
-                <tr key={l.id} onClick={() => router.push(`/payment-links/${l.id}`)} style={{ cursor: 'pointer' }}>
+              {items.map((l) => (
+                <tr key={l.id}>
                   <td className="mono">{l.shortCode}</td>
                   <td style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.payeeName}</td>
                   <td>{l.amountCents ? eur(l.amountCents) : <span className="hint">open</span>}</td>
@@ -96,7 +109,7 @@ export default function PaymentLinksPage() {
                   </td>
                 </tr>
               ))}
-              {!data?.items.length && <tr><td colSpan={7}><div className="empty">No payment links found.</div></td></tr>}
+              {!items.length && <tr><td colSpan={7}><div className="empty">No payment links found.</div></td></tr>}
             </tbody>
           </table>
         )}

@@ -13,6 +13,7 @@ import { SystemModule } from './system/system.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { UsersModule } from './users/users.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
+import { TestingModule } from './testing/testing.module';
 import { AdminJwtStrategy } from './guards/admin-jwt.strategy';
 
 @Module({
@@ -31,6 +32,7 @@ import { AdminJwtStrategy } from './guards/admin-jwt.strategy';
     WebhooksModule,
     PaymentLinksModule,
     AdminUsersModule,
+    TestingModule,
   ],
   providers: [AdminJwtStrategy],
 })

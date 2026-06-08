@@ -453,3 +453,51 @@ export interface CreateUserAdminResult {
   tempPassword: string;
 }
 
+export interface CreatePaymentLinkAdminResult {
+  id: string;
+  shortCode: string;
+  payerUrl: string;
+  amountCents: number | null;
+  currency: string;
+  expiresAt: string;
+  payeeUserId: string;
+}
+
+export interface AdminUsersSummary {
+  total: number;
+  online: number;
+  recent: number;
+  pendingKyc: number;
+  frozen: number;
+}
+
+export type TestStepStatus = 'pass' | 'fail' | 'warn';
+
+export interface TestStepResult {
+  id: string;
+  label: string;
+  status: TestStepStatus;
+  detail?: string;
+  durationMs: number;
+}
+
+export interface TestScenarioInfo {
+  id: string;
+  label: string;
+  description: string;
+  mutating: boolean;
+}
+
+export interface TestRunResult {
+  runId: string;
+  startedAt: string;
+  steps: TestStepResult[];
+}
+
+export interface UserTestSetupResult {
+  userId: string;
+  kycStatus: string;
+  status: string;
+  paymentLink: CreatePaymentLinkAdminResult;
+}
+

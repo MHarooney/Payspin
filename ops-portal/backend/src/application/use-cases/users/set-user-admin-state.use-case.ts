@@ -21,18 +21,29 @@ export class SetUserAdminStateUseCase {
 
     const before = await this.prisma.userAdminState.findUnique({ where: { userId } });
 
-    const data = {
-      status: input.status,
-      kycStatus: input.kycStatus,
-      kycTier: input.kycTier,
-      riskLevel: input.riskLevel,
-      frozenReason: input.status === 'FROZEN' ? input.reason : undefined,
+    const data: Record<string, unknown> = {
       updatedByEmail: ctx.email,
     };
+    if (input.status !== undefined) {
+      data.status = input.status;
+      if (input.status === 'FROZEN') {
+        data.frozenReason = input.reason;
+      }
+    }
+    if (input.kycStatus !== undefined) data.kycStatus = input.kycStatus;
+    if (input.kycTier !== undefined) data.kycTier = input.kycTier;
+    if (input.riskLevel !== undefined) data.riskLevel = input.riskLevel;
+    if (input.note !== undefined) data.note = input.note;
 
     const after = await this.prisma.userAdminState.upsert({
       where: { userId },
-      create: { userId, ...data },
+      create: {
+        userId,
+        status: 'ACTIVE',
+        kycStatus: 'PENDING',
+        riskLevel: 'LOW',
+        ...data,
+      },
       update: data,
     });
 
@@ -41,7 +52,9 @@ export class SetUserAdminStateUseCase {
         ? AuditAction.USER_FREEZE
         : input.kycStatus === 'VERIFIED'
           ? AuditAction.KYC_APPROVE
-          : AuditAction.USER_STATE_UPDATE;
+          : input.note !== undefined
+            ? AuditAction.USER_STATE_UPDATE
+            : AuditAction.USER_STATE_UPDATE;
 
     await this.audit.record(
       { adminUserId: ctx.adminUserId, adminEmail: ctx.email, ip: ctx.ip, userAgent: ctx.userAgent },
