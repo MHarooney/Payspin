@@ -146,12 +146,25 @@ export class FakePrisma {
       }
       return row;
     },
+    findUnique: async ({ where, include }: { where: WhereClause; include?: Dict }) => {
+      const found = this.payments.find((p) => matches(p, where));
+      if (!found) return null;
+      const row = { ...found };
+      if (include?.paymentLink) {
+        row.paymentLink = this.paymentLinks.find((l) => l.id === found.paymentLinkId);
+      }
+      return row;
+    },
     count: async ({ where }: { where?: WhereClause }) =>
       this.payments.filter((row) => matches(row, where)).length,
-    findUniqueOrThrow: async ({ where }: { where: WhereClause }) => {
+    findUniqueOrThrow: async ({ where, include }: { where: WhereClause; include?: Dict }) => {
       const p = this.payments.find((row) => matches(row, where));
       if (!p) throw new Error('payment not found');
-      return { ...p };
+      const row = { ...p };
+      if (include?.paymentLink) {
+        row.paymentLink = this.paymentLinks.find((l) => l.id === p.paymentLinkId);
+      }
+      return row;
     },
     create: async ({ data }: { data: Dict }) => {
       const row: Dict = { id: nextId('pay'), yapilyPaymentId: null, completedAt: null, ...data };

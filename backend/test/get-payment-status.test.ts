@@ -4,6 +4,8 @@ import { PaymentStatus } from '@payspin/shared-types';
 import { FakePrisma } from './helpers/fake-prisma';
 import { GetPaymentStatusUseCase } from '../src/application/use-cases/payments/get-payment-status.use-case';
 import { GetPaymentLinkByShortCodeUseCase } from '../src/application/use-cases/payment-links/get-payment-link-by-short-code.use-case';
+import { ReconcilePaymentUseCase } from '../src/application/use-cases/payments/reconcile-payment.use-case';
+import { ExpireStalePaymentsUseCase } from '../src/application/use-cases/payments/expire-stale-payments.use-case';
 
 describe('GetPaymentStatusUseCase', () => {
   it('reconciles PENDING payments with Yapily on poll', async () => {
@@ -20,17 +22,17 @@ describe('GetPaymentStatusUseCase', () => {
     };
     prisma.payments.push(payment);
 
-    const pisGateway = {
-      getPaymentStatus: async () => PaymentStatus.COMPLETED,
-    } as any;
-    const notify = { execute: async () => {} } as any;
-    const getLink = new GetPaymentLinkByShortCodeUseCase(prisma as any);
-    const status = new GetPaymentStatusUseCase(
+    const expire = new ExpireStalePaymentsUseCase({
+      payment: { updateMany: async () => ({ count: 0 }) },
+    } as any);
+    const reconcile = new ReconcilePaymentUseCase(
       prisma as any,
-      getLink,
-      pisGateway,
-      notify,
+      expire,
+      { getPaymentStatus: async () => PaymentStatus.COMPLETED } as any,
+      { execute: async () => {} } as any,
     );
+    const getLink = new GetPaymentLinkByShortCodeUseCase(prisma as any);
+    const status = new GetPaymentStatusUseCase(prisma as any, getLink, reconcile);
 
     const res = await status.execute('poll1', 'pay-poll');
 
@@ -56,16 +58,17 @@ describe('GetPaymentStatusUseCase', () => {
     };
     prisma.payments.push(payment);
 
-    const pisGateway = {
-      getPaymentStatus: async () => PaymentStatus.PENDING,
-    } as any;
-    const getLink = new GetPaymentLinkByShortCodeUseCase(prisma as any);
-    const status = new GetPaymentStatusUseCase(
+    const expire = new ExpireStalePaymentsUseCase({
+      payment: { updateMany: async () => ({ count: 0 }) },
+    } as any);
+    const reconcile = new ReconcilePaymentUseCase(
       prisma as any,
-      getLink,
-      pisGateway,
+      expire,
+      { getPaymentStatus: async () => PaymentStatus.PENDING } as any,
       { execute: async () => {} } as any,
     );
+    const getLink = new GetPaymentLinkByShortCodeUseCase(prisma as any);
+    const status = new GetPaymentStatusUseCase(prisma as any, getLink, reconcile);
 
     const res = await status.execute('poll2', 'pay-pending');
     assert.equal(res.status, PaymentStatus.PENDING);
@@ -91,16 +94,17 @@ describe('GetPaymentStatusUseCase', () => {
     };
     prisma.payments.push(payment);
 
-    const pisGateway = {
-      getPaymentStatus: async () => PaymentStatus.PENDING,
-    } as any;
-    const getLink = new GetPaymentLinkByShortCodeUseCase(prisma as any);
-    const status = new GetPaymentStatusUseCase(
+    const expire = new ExpireStalePaymentsUseCase({
+      payment: { updateMany: async () => ({ count: 0 }) },
+    } as any);
+    const reconcile = new ReconcilePaymentUseCase(
       prisma as any,
-      getLink,
-      pisGateway,
+      expire,
+      { getPaymentStatus: async () => PaymentStatus.PENDING } as any,
       { execute: async () => {} } as any,
     );
+    const getLink = new GetPaymentLinkByShortCodeUseCase(prisma as any);
+    const status = new GetPaymentStatusUseCase(prisma as any, getLink, reconcile);
 
     const res = await status.execute('poll3', 'pay-sandbox');
     assert.equal(res.status, PaymentStatus.COMPLETED);

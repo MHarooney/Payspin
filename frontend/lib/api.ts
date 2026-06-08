@@ -88,6 +88,18 @@ export async function completePayment(
   return res.json();
 }
 
+export async function abandonPayment(code: string, paymentId: string) {
+  const res = await fetch(`${API_URL}/pay/${code}/abandon`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paymentId }),
+  });
+  if (!res.ok) {
+    throw await toApiError(res, 'Could not update the payment status.');
+  }
+  return res.json() as Promise<{ status: string }>;
+}
+
 export async function fetchPaymentStatus(code: string, paymentId: string) {
   const res = await fetch(`${API_URL}/pay/${code}/status/${paymentId}`, {
     cache: 'no-store',

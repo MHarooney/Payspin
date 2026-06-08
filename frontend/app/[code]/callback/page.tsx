@@ -1,4 +1,4 @@
-import { completePayment, fetchPaymentStatus } from '@/lib/api';
+import { abandonPayment, completePayment, fetchPaymentStatus } from '@/lib/api';
 import Link from 'next/link';
 import WebShell from '../../components/WebShell';
 import PayspinLoader from '../../components/PayspinLoader';
@@ -25,6 +25,13 @@ export default async function CallbackPage({
 
   // The bank redirected back without authorising (user cancelled / declined).
   if (cancelled) {
+    if (paymentId) {
+      try {
+        await abandonPayment(code, paymentId);
+      } catch {
+        /* best-effort — payer can still retry once stale expiry runs */
+      }
+    }
     return (
       <ResultCard variant="error" title="Payment was not completed">
         <p className="ps-status__sub">
