@@ -38,7 +38,20 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (exception instanceof YapilyApiError) {
-      this.logger.error(`Yapily error ${exception.status}: ${exception.message}`);
+      // Log status + a safe summary of the Yapily error (never log raw body — it
+      // may contain consent tokens or payment identifiers).
+      let yapilyCode = 'UNKNOWN';
+      let yapilyMessage = '';
+      try {
+        const parsed = JSON.parse(exception.message) as { error?: { code?: number; status?: string; message?: string; source?: string } };
+        yapilyCode = String(parsed?.error?.code ?? exception.status);
+        yapilyMessage = parsed?.error?.message?.slice(0, 120) ?? '';
+      } catch {
+        yapilyMessage = exception.message?.slice(0, 120) ?? '';
+      }
+      this.logger.error(
+        `Yapily error ${exception.status} [${yapilyCode}]: ${yapilyMessage}`,
+      );
       res.status(HttpStatus.BAD_GATEWAY).json({
         statusCode: HttpStatus.BAD_GATEWAY,
         error: 'Bad Gateway',

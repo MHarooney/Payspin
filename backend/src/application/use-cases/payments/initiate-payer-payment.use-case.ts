@@ -3,11 +3,12 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PaymentLinkType, PaymentStatus as PrismaPaymentStatus } from '@prisma/client';
 import { InitiatePaymentResponse } from '@payspin/shared-types';
-import { initiatePaymentSchema } from '@payspin/validators';
+import { initiatePaymentSchema, validateIbanMod97, normalizeIban } from '@payspin/validators';
 import { PIS_GATEWAY, PisGateway } from '@payspin/pisp-provider';
 import { randomBytes } from 'crypto';
 import {
@@ -24,6 +25,8 @@ import { PrismaService } from '../../../infrastructure/persistence/prisma.module
 
 @Injectable()
 export class InitiatePayerPaymentUseCase {
+  private readonly logger = new Logger(InitiatePayerPaymentUseCase.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly getLink: GetPaymentLinkByShortCodeUseCase,
@@ -42,7 +45,20 @@ export class InitiatePayerPaymentUseCase {
       throw new BadRequestException('Amount is required for open-amount links');
     }
 
-    const iban = await this.getDecryptedIban.execute(link.bankAccountId, link.payeeUserId);
+    const rawIban = await this.getDecryptedIban.execute(link.bankAccountId, link.payeeUserId);
+    const iban = normalizeIban(rawIban);
+
+    // Pre-flight IBAN validation: catch invalid IBANs before hitting Yapily
+    // to get a clear 400 instead of a 502 YapilyApiError.
+    if (!validateIbanMod97(iban)) {
+      this.logger.error(
+        `Invalid IBAN on bank account ${link.bankAccountId} (last4: ${iban.slice(-4)}) — mod-97 check failed`,
+      );
+      throw new BadRequestException(
+        'The payee bank account has an invalid IBAN. Please ask the payee to re-verify their bank account.',
+      );
+    }
+
     // Route to a Yapily institution based on the payee IBAN country (NL/DE/GB/…)
     // instead of always hitting a single hardcoded sandbox.
     const { institutionId } = resolveInstitutionForIban(
