@@ -8,8 +8,7 @@ alwaysApply: true
 ## Monorepo
 
 - **pnpm workspace:** `backend/`, `frontend/`, `packages/*`
-- **Standalone:** `mobile/` (Flutter), `infrastructure/`, `scripts/`
-- **Deferred:** `Payspin-portal/` — do not expand unless asked
+- **Standalone:** `mobile/` (Flutter), `ops-portal/`, `infrastructure/`, `scripts/`
 
 ## Principles
 

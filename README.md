@@ -10,7 +10,7 @@ Backend-first TypeScript monorepo + Flutter mobile app.
 | [`frontend/`](frontend/) | Next.js 15 | Payer web — `pay.payspin.io/{code}` |
 | [`mobile/`](mobile/) | **Flutter** | Payee mobile app (iOS + Android) |
 | [`packages/`](packages/) | TypeScript | shared-types, validators, pisp-provider |
-| [`Payspin-portal/`](Payspin-portal/) | React + Firebase | Admin portal (deferred) |
+| [`ops-portal/`](ops-portal/) | NestJS + Next.js | Ops admin — `ops.payspin.io` |
 
 ## Quick start
 

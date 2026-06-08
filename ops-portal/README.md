@@ -9,7 +9,6 @@ platform kill switch. Payspin dark brand (pink `#FC00FF` + teal `#07D8DD`).
 - **Shared infra:** same Postgres (`:5435`) and Redis (`:6381`) as the consumer stack.
 
 > Separate from the consumer `backend/` (`/v1`) and payer `frontend/` (`:3000`).
-> Do **not** confuse with the legacy Firebase `Payspin-portal/`.
 
 ## Quick start (under 5 minutes)
 
