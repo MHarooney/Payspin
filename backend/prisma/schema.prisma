@@ -186,6 +186,156 @@ model CircleMember {
   @@map("circle_members")
 }
 
+// ---------------------------------------------------------------------------
+// Ops Admin Portal (ops-portal/) — additive only. These models back the
+// internal operations portal and never modify the consumer-facing tables
+// above. Migrations are still generated from backend/ as the single source.
+// ---------------------------------------------------------------------------
+
+enum AdminRole {
+  SUPER_ADMIN
+  OPS
+  SUPPORT
+  READ_ONLY
+}
+
+model AdminUser {
+  id           String            @id @default(uuid())
+  email        String            @unique
+  passwordHash String            @map("password_hash")
+  displayName  String?           @map("display_name")
+  role         AdminRole         @default(OPS)
+  isActive     Boolean           @default(true) @map("is_active")
+  lastLoginAt  DateTime?         @map("last_login_at")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+  auditEvents  AdminAuditEvent[]
+
+  @@map("admin_users")
+}
+
+model AdminAuditEvent {
+  id          String     @id @default(uuid())
+  adminUserId String?    @map("admin_user_id")
+  adminEmail  String     @map("admin_email")
+  action      String
+  targetType  String?    @map("target_type")
+  targetId    String?    @map("target_id")
+  before      Json?
+  after       Json?
+  ip          String?
+  userAgent   String?    @map("user_agent")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  adminUser   AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([action])
+  @@map("admin_audit_events")
+}
+
+model FeatureFlag {
+  key            String   @id
+  label          String
+  description    String?
+  enabled        Boolean  @default(false)
+  category       String   @default("platform")
+  updatedByEmail String?  @map("updated_by_email")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@map("feature_flags")
+}
+
+model PlatformConfig {
+  key            String   @id
+  label          String
+  value          String
+  valueType      String   @default("string") @map("value_type")
+  group          String   @default("limits")
+  description    String?
+  updatedByEmail String?  @map("updated_by_email")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([group])
+  @@map("platform_config")
+}
+
+model UserAdminState {
+  userId         String   @id @map("user_id")
+  status         String   @default("ACTIVE")
+  kycTier        String?  @map("kyc_tier")
+  kycStatus      String   @default("PENDING") @map("kyc_status")
+  riskLevel      String   @default("LOW") @map("risk_level")
+  note           String?
+  frozenReason   String?  @map("frozen_reason")
+  updatedByEmail String?  @map("updated_by_email")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("user_admin_states")
+}
+
+model ComplianceAlert {
+  id         String   @id @default(uuid())
+  type       String
+  subject    String
+  subjectRef String?  @map("subject_ref")
+  rule       String
+  severity   String   @default("MEDIUM")
+  status     String   @default("OPEN")
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("compliance_alerts")
+}
+
+model Dispute {
+  id          String   @id @default(uuid())
+  caseRef     String   @unique @map("case_ref")
+  type        String
+  amountCents Int      @map("amount_cents")
+  currency    String   @default("EUR")
+  parties     String
+  status      String   @default("OPEN")
+  note        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("disputes")
+}
+
+model SupportThread {
+  id            String           @id @default(uuid())
+  userRef       String           @map("user_ref")
+  subjectName   String           @map("subject_name")
+  meta          String?
+  status        String           @default("OPEN")
+  unread        Boolean          @default(true)
+  lastMessageAt DateTime         @default(now()) @map("last_message_at")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  messages      SupportMessage[]
+
+  @@index([status, lastMessageAt])
+  @@map("support_threads")
+}
+
+model SupportMessage {
+  id         String        @id @default(uuid())
+  threadId   String        @map("thread_id")
+  direction  String        @default("IN")
+  body       String
+  authorName String        @map("author_name")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  thread     SupportThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@map("support_messages")
+}
+
 enum PaymentLinkStatus {
   ACTIVE
   EXPIRED

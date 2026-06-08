@@ -64,7 +64,6 @@ Details: [infrastructure/hetzner/README.md](../../infrastructure/hetzner/README.
 
 ## Do not
 
-- Expand `Payspin-portal/` unless explicitly requested
 - Use non-Payspin emails for Hetzner/Docker (`payspin.app@gmail.com` only)
 - Commit secrets or `.env` files
 - Add repository abstraction layer to backend without user request (Prisma-in-use-case is intentional)

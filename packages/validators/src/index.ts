@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { normalizeIban, validateIban } from './iban';
 
 export { IBAN_LENGTHS, ibanCountry, normalizeIban, validateIban, validateIbanMod97 } from './iban';
+export * from './admin';
 
 export const createBankAccountSchema = z.object({
   iban: z

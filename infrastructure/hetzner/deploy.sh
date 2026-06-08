@@ -9,11 +9,14 @@ SERVER_IP="${PAYSPIN_SERVER_IP:-}"
 HCLOUD_TOKEN="${HCLOUD_TOKEN:-}"
 IMAGE="${DOCKER_IMAGE:-payspin/api:latest}"
 WEB_IMAGE="${DOCKER_WEB_IMAGE:-payspin/web:latest}"
+OPS_API_IMAGE="${DOCKER_OPS_API_IMAGE:-payspin/ops-api:latest}"
+OPS_WEB_IMAGE="${DOCKER_OPS_WEB_IMAGE:-payspin/ops-web:latest}"
 REMOTE_DIR="/opt/payspin"
 # Hetzner CX servers are amd64; Mac dev machines often build arm64 by default.
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-linux/amd64}"
-# Domain for HTTPS (optional). Leave empty for an IP-only / no-TLS deploy.
-SITE_ADDRESS="${SITE_ADDRESS:-}"
+# Domains for HTTPS (optional). Leave SITE_ADDRESS empty for IP-only payer deploy.
+SITE_ADDRESS="${SITE_ADDRESS:-pay.payspin.io}"
+OPS_SITE_ADDRESS="${OPS_SITE_ADDRESS:-ops.payspin.io}"
 
 if [[ -z "$SERVER_IP" && -n "$HCLOUD_TOKEN" ]]; then
   export HCLOUD_TOKEN
@@ -37,9 +40,13 @@ SCP=(scp -i "$SSH_KEY" -o StrictHostKeyChecking=accept-new)
 if [[ -n "$SITE_ADDRESS" ]]; then
   PUBLIC_API_URL="https://${SITE_ADDRESS}/v1"
   PUBLIC_WEB_URL="https://${SITE_ADDRESS}"
+  PUBLIC_OPS_API_URL="https://${OPS_SITE_ADDRESS}/admin/v1"
+  PUBLIC_OPS_WEB_URL="https://${OPS_SITE_ADDRESS}"
 else
   PUBLIC_API_URL="http://${SERVER_IP}/v1"
   PUBLIC_WEB_URL="http://${SERVER_IP}"
+  PUBLIC_OPS_API_URL="http://${SERVER_IP}/admin/v1"
+  PUBLIC_OPS_WEB_URL="http://${SERVER_IP}"
 fi
 
 echo "==> Building ${IMAGE} (${DOCKER_PLATFORM})"
@@ -97,10 +104,14 @@ REDIS_PASSWORD=${REDIS_PASS}
 REDIS_URL=redis://:${REDIS_PASS}@redis:6379
 PORT=3001
 NODE_ENV=production
-SITE_ADDRESS=${SITE_ADDRESS:-:80}
+SITE_ADDRESS=${SITE_ADDRESS:-pay.payspin.io}
+OPS_SITE_ADDRESS=${OPS_SITE_ADDRESS:-ops.payspin.io}
 ACME_EMAIL=${ACME_EMAIL:-payspin.app@gmail.com}
 API_BASE_URL=${API_BASE}
 PAYER_WEB_URL=${PAYER_WEB}
+OPS_CORS_ORIGIN=${PUBLIC_OPS_WEB_URL}
+ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET:-$(openssl rand -hex 32)}
+ADMIN_JWT_EXPIRES_IN=15m
 MOBILE_CONNECT_REDIRECT=${MOBILE_CONNECT_REDIRECT:-payspin://bank-callback}
 JWT_SECRET=${JWT_SECRET}
 JWT_EXPIRES_IN=7d
@@ -113,23 +124,37 @@ YAPILY_DEFAULT_INSTITUTION=modelo-sandbox
 YAPILY_DEFAULT_COUNTRY=NL
 DOCKER_IMAGE=${IMAGE}
 DOCKER_WEB_IMAGE=${WEB_IMAGE}
+DOCKER_OPS_API_IMAGE=${OPS_API_IMAGE}
+DOCKER_OPS_WEB_IMAGE=${OPS_WEB_IMAGE}
 # IP-only staging deploy: allow internal sandbox gateway until Yapily keys are set.
 PAYSPIN_ALLOW_SANDBOX_GATEWAY=$([[ -z "$SITE_ADDRESS" ]] && echo true || echo false)
 EOF
   "${SCP[@]}" "$ENV_FILE" "root@${SERVER_IP}:${REMOTE_DIR}/.env.production"
 fi
 
-echo "==> Starting stack"
-# --env-file feeds compose interpolation (redis password, SITE_ADDRESS, etc.).
-"${SSH[@]}" "cd ${REMOTE_DIR} && docker compose --env-file .env.production up -d --remove-orphans"
+echo "==> Ensuring ops env keys on server"
+PATCH_ADMIN_JWT="$(openssl rand -hex 32)"
+"${SSH[@]}" "cd ${REMOTE_DIR} && \
+  grep -q '^OPS_SITE_ADDRESS=' .env.production 2>/dev/null || echo 'OPS_SITE_ADDRESS=${OPS_SITE_ADDRESS}' >> .env.production && \
+  grep -q '^OPS_CORS_ORIGIN=' .env.production 2>/dev/null || echo 'OPS_CORS_ORIGIN=${PUBLIC_OPS_WEB_URL}' >> .env.production && \
+  grep -q '^ADMIN_JWT_SECRET=' .env.production 2>/dev/null || echo 'ADMIN_JWT_SECRET=${PATCH_ADMIN_JWT}' >> .env.production && \
+  grep -q '^ADMIN_JWT_EXPIRES_IN=' .env.production 2>/dev/null || echo 'ADMIN_JWT_EXPIRES_IN=15m' >> .env.production && \
+  grep -q '^DOCKER_OPS_API_IMAGE=' .env.production 2>/dev/null || echo 'DOCKER_OPS_API_IMAGE=${OPS_API_IMAGE}' >> .env.production && \
+  grep -q '^DOCKER_OPS_WEB_IMAGE=' .env.production 2>/dev/null || echo 'DOCKER_OPS_WEB_IMAGE=${OPS_WEB_IMAGE}' >> .env.production && \
+  sed -i 's|^SITE_ADDRESS=.*|SITE_ADDRESS=${SITE_ADDRESS}|' .env.production"
 
-echo "==> Waiting for health"
+echo "==> Starting payer stack (api + web + caddy; ops is deploy-ops.sh)"
+# --env-file feeds compose interpolation (redis password, SITE_ADDRESS, etc.).
+"${SSH[@]}" "cd ${REMOTE_DIR} && docker compose --env-file .env.production up -d --remove-orphans postgres redis api web caddy"
+
+echo "==> Waiting for payer health"
 for _ in $(seq 1 36); do
-  # Deep readiness: confirms Postgres + Redis are reachable, not just liveness.
-  if curl -sf "http://${SERVER_IP}/v1/health/ready" >/dev/null 2>&1; then
+  if curl -sf "https://${SITE_ADDRESS}/v1/health/ready" >/dev/null 2>&1; then
     echo ""
-    echo "Deployed successfully."
-    echo "  Health: http://${SERVER_IP}/v1/health/ready"
+    echo "Payer stack deployed successfully."
+    echo "  Payer:  https://${SITE_ADDRESS}"
+    echo "  Health: https://${SITE_ADDRESS}/v1/health/ready"
+    echo "  Ops:    run ./infrastructure/hetzner/deploy-ops.sh"
     echo "  SSH:    ssh -i ${SSH_KEY} root@${SERVER_IP}"
     exit 0
   fi

@@ -19,8 +19,7 @@ Entry point for AI agents (Cursor, Claude Code, etc.) working on this monorepo.
 | `infrastructure/` | Docker, Hetzner | — | local DB + prod deploy |
 | `scripts/dev/` | Bash | — | `payspin-dev` CLI |
 | `resources/docs/` | Markdown | — | specs, runbooks, architecture |
-
-**Out of scope for Phase 1 changes:** `Payspin-portal/` (deferred admin).
+| `ops-portal/` | NestJS, Next.js | pnpm | Ops admin `/admin/v1` |
 
 ## Before you code
 

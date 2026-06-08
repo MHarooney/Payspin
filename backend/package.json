@@ -12,6 +12,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "ops:seed-admin": "tsx prisma/seed-admin.ts",
     "test": "node --import tsx --test test/**/*.test.ts"
   },
   "dependencies": {

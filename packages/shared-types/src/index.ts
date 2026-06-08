@@ -1,3 +1,5 @@
+export * from './admin';
+
 export enum PaymentLinkStatus {
   ACTIVE = 'ACTIVE',
   EXPIRED = 'EXPIRED',

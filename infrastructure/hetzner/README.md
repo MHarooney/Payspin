@@ -51,7 +51,8 @@ If the server already exists:
 
 ```bash
 export PAYSPIN_SERVER_IP='1.2.3.4'
-./infrastructure/hetzner/deploy.sh
+./infrastructure/hetzner/deploy.sh          # payer stack only (api + web)
+./infrastructure/hetzner/deploy-ops.sh      # ops portal only (ops-api + ops-web)
 ```
 
 ## Docker Hub (optional)
@@ -73,7 +74,8 @@ Deploy works **without** Hub push (image is streamed over SSH).
 | `infrastructure/docker/Caddyfile` | Reverse proxy |
 | `backend/.env.production.example` | Env template |
 | `infrastructure/hetzner/provision.sh` | Hetzner server + firewall |
-| `infrastructure/hetzner/deploy.sh` | Remote deploy |
+| `infrastructure/hetzner/deploy.sh` | Payer stack deploy (api + web) |
+| `infrastructure/hetzner/deploy-ops.sh` | Ops portal deploy (ops-api + ops-web) |
 | `infrastructure/hetzner/up.sh` | Provision + deploy |
 
 ## After deploy

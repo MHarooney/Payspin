@@ -19,7 +19,7 @@ backend/     NestJS API
 frontend/    Next.js payer web (pay.payspin.io)
 mobile/      Flutter app (iOS + Android)
 packages/    shared-types, validators, pisp-provider
-Payspin-portal/  Admin (deferred, separate stack)
+ops-portal/  Ops admin (NestJS + Next.js)
 ```
 
 ## API routes (`/v1`)
