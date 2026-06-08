@@ -4,6 +4,7 @@ import { createBankAccountSchema } from '@payspin/validators';
 import { ibanLast4 } from '../../../domain/utils/short-code';
 import { EncryptionService } from '../../../infrastructure/encryption/encryption.service';
 import { PrismaService } from '../../../infrastructure/persistence/prisma.module';
+import { findBankAccountByIban } from './find-bank-account-by-iban';
 import { BankAccountsMapper } from './bank-accounts.mapper';
 
 @Injectable()
@@ -22,9 +23,7 @@ export class CreateBankAccountUseCase {
     // encrypted with a random IV so we can't match on ciphertext — decrypt the
     // user's accounts and compare the normalized value.
     const userAccounts = await this.prisma.bankAccount.findMany({ where: { userId } });
-    const duplicate = userAccounts.find(
-      (a) => this.encryption.decrypt(a.ibanEncrypted, a.ibanIv) === parsed.iban,
-    );
+    const duplicate = findBankAccountByIban(userAccounts, parsed.iban, this.encryption);
     if (duplicate) {
       const updated = await this.prisma.bankAccount.update({
         where: { id: duplicate.id },
