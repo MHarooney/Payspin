@@ -95,6 +95,7 @@ export interface AdminPaymentDetail extends AdminPaymentListItem {
   idempotencyKey: string | null;
   yapilyAuthRequestId: string | null;
   webhookSnapshot: Record<string, unknown> | null;
+  relatedWebhooks: AdminWebhookListItem[];
 }
 
 export interface AdminUserListItem {

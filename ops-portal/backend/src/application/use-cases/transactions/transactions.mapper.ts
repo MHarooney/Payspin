@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AdminPaymentDetail, AdminPaymentListItem, AdminPaymentStatus } from '@payspin/shared-types';
+import { AdminPaymentDetail, AdminPaymentListItem, AdminPaymentStatus, AdminWebhookListItem } from '@payspin/shared-types';
 import type { Payment, PaymentLink, User } from '@prisma/client';
 
 type PaymentWithLink = Payment & {
@@ -23,7 +23,7 @@ export class TransactionsMapper {
     };
   }
 
-  toDetail(p: PaymentWithLink): AdminPaymentDetail {
+  toDetail(p: PaymentWithLink, relatedWebhooks: AdminWebhookListItem[] = []): AdminPaymentDetail {
     return {
       ...this.toListItem(p),
       paymentLinkId: p.paymentLinkId,
@@ -31,6 +31,7 @@ export class TransactionsMapper {
       idempotencyKey: p.idempotencyKey,
       yapilyAuthRequestId: p.yapilyAuthRequestId,
       webhookSnapshot: (p.webhookRaw as Record<string, unknown> | null) ?? null,
+      relatedWebhooks,
     };
   }
 }

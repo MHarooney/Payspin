@@ -18,6 +18,33 @@ export class GetPaymentDetailAdminUseCase {
     if (!payment) {
       throw new NotFoundException('Payment not found');
     }
-    return this.mapper.toDetail(payment);
+
+    const relatedWebhooks = payment.yapilyPaymentId
+      ? await this.findRelatedWebhooks(payment.yapilyPaymentId)
+      : [];
+
+    return this.mapper.toDetail(payment, relatedWebhooks);
+  }
+
+  private async findRelatedWebhooks(yapilyPaymentId: string) {
+    const events = await this.prisma.webhookEvent.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+    return events
+      .filter((e) => {
+        const p = e.payload as Record<string, unknown>;
+        const pid = (p?.['id'] ?? p?.['paymentId']) as string | undefined;
+        return pid === yapilyPaymentId;
+      })
+      .slice(0, 10)
+      .map((e) => ({
+        id: e.id,
+        eventId: e.eventId,
+        eventType: e.eventType,
+        processedAt: e.processedAt?.toISOString() ?? null,
+        linkedPaymentId: yapilyPaymentId,
+        createdAt: e.createdAt.toISOString(),
+      }));
   }
 }

@@ -145,7 +145,7 @@ assert_json_field "users list with presence" "$users_list" '.items | type == "ar
 if echo "$users_list" | jq -e '.items[0]' >/dev/null 2>&1; then
   assert_json_field "users[0] has presence" "$users_list" '.items[0] | has("presence") and has("lastLoginAt") and has("createdAt")'
   user_id=$(echo "$users_list" | jq -r '.items[0].id')
-  assert_json_field "user detail paymentLinks" "$(auth "$BASE/users/$user_id")" 'has("paymentLinks") and has("presence")'
+  assert_json_field "user detail paymentLinks" "$(auth "$BASE/users/$user_id")" 'has("recentPaymentLinks") and has("presence")'
 else
   note "no users in DB for detail check"
 fi
