@@ -98,14 +98,14 @@ export class GetSystemHealthUseCase {
   }
 
   private async checkYapily(): Promise<ServiceHealth> {
-    // Best-effort: the ops portal does not hold Yapily HTTP clients (those live in
-    // the consumer backend via PIS_GATEWAY). We report configuration presence only.
-    const configured = !!this.config.get<string>('YAPILY_APPLICATION_ID');
+    const key = this.config.get<string>('YAPILY_APP_KEY');
+    const secret = this.config.get<string>('YAPILY_APP_SECRET');
+    const configured = !!(key && secret);
     return {
       name: 'Yapily API',
       status: configured ? 'ok' : 'degraded',
       stat: configured ? 'configured' : 'unset',
-      sub: configured ? 'credentials present' : 'no sandbox creds',
+      sub: configured ? 'credentials present' : 'YAPILY_APP_KEY/SECRET missing',
     };
   }
 }

@@ -4,6 +4,7 @@ import { CompletePayerPaymentUseCase } from '../../../application/use-cases/paym
 import { GetPaymentStatusUseCase } from '../../../application/use-cases/payments/get-payment-status.use-case';
 import { GetPublicPaymentViewUseCase } from '../../../application/use-cases/payments/get-public-payment-view.use-case';
 import { InitiatePayerPaymentUseCase } from '../../../application/use-cases/payments/initiate-payer-payment.use-case';
+import { AbandonPayerPaymentUseCase } from '../../../application/use-cases/payments/abandon-payer-payment.use-case';
 
 // Per-IP limit on public payer routes. Tight by default; tunable for ops/tests.
 const PAY_THROTTLE_LIMIT = Number(process.env.PAY_THROTTLE_LIMIT ?? 10);
@@ -16,6 +17,7 @@ export class PaymentsController {
     private readonly initiate: InitiatePayerPaymentUseCase,
     private readonly complete: CompletePayerPaymentUseCase,
     private readonly getStatus: GetPaymentStatusUseCase,
+    private readonly abandon: AbandonPayerPaymentUseCase,
   ) {}
 
   @Get()
@@ -38,5 +40,10 @@ export class PaymentsController {
   @SkipThrottle()
   status(@Param('code') code: string, @Param('paymentId') paymentId: string) {
     return this.getStatus.execute(code, paymentId);
+  }
+
+  @Post('abandon')
+  abandonPayment(@Param('code') code: string, @Body() body: unknown) {
+    return this.abandon.execute(code, body);
   }
 }

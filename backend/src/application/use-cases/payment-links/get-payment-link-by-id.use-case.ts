@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PaymentLinkDetail } from '@payspin/shared-types';
 import { PrismaService } from '../../../infrastructure/persistence/prisma.module';
+import { ReconcilePaymentUseCase } from '../payments/reconcile-payment.use-case';
 import { PaymentLinkStatsUseCase } from './payment-link-stats.use-case';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class GetPaymentLinkByIdUseCase {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stats: PaymentLinkStatsUseCase,
+    private readonly reconcile: ReconcilePaymentUseCase,
   ) {}
 
   async execute(userId: string, id: string): Promise<PaymentLinkDetail> {
@@ -15,6 +17,8 @@ export class GetPaymentLinkByIdUseCase {
       where: { id, payeeUserId: userId },
     });
     if (!link) throw new NotFoundException('Payment link not found');
+
+    await this.reconcile.reconcileLinkPayments(link.id);
 
     const [summary, payments] = await Promise.all([
       this.stats.withStats(link.id, link),

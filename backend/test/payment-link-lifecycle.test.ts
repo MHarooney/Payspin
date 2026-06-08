@@ -7,7 +7,14 @@ import { InitiatePayerPaymentUseCase } from '../src/application/use-cases/paymen
 import { CompletePayerPaymentUseCase } from '../src/application/use-cases/payments/complete-payer-payment.use-case';
 import { GetPaymentStatusUseCase } from '../src/application/use-cases/payments/get-payment-status.use-case';
 
+import { ExpireStalePaymentsUseCase } from '../src/application/use-cases/payments/expire-stale-payments.use-case';
+import { ReconcilePaymentUseCase } from '../src/application/use-cases/payments/reconcile-payment.use-case';
+
 const TEST_IBAN = 'NL91ABNA0417164300';
+
+const noopExpire = {
+  execute: async () => ({ awaitingCancelled: 0, pendingFailed: 0 }),
+} as ExpireStalePaymentsUseCase;
 
 const config = { get: () => 'http://localhost:3000' } as any;
 const decryptedIban = { execute: async () => TEST_IBAN } as any;
@@ -27,6 +34,7 @@ function build(prisma: FakePrisma) {
     prisma as any,
     getLink,
     decryptedIban,
+    noopExpire,
     config,
     pisGateway,
   );
@@ -38,12 +46,13 @@ function build(prisma: FakePrisma) {
     pisGateway,
     notifyPaymentReceived,
   );
-  const status = new GetPaymentStatusUseCase(
+  const reconcile = new ReconcilePaymentUseCase(
     prisma as any,
-    getLink,
+    noopExpire,
     pisGateway,
     notifyPaymentReceived,
   );
+  const status = new GetPaymentStatusUseCase(prisma as any, getLink, reconcile);
   return { getLink, initiate, complete, status };
 }
 

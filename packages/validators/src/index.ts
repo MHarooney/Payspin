@@ -87,6 +87,10 @@ export const completePaymentSchema = z.object({
   consentToken: z.string().min(1).max(4096).optional(),
 });
 
+export const abandonPaymentSchema = z.object({
+  paymentId: z.string().min(1).max(64),
+});
+
 export const connectBankAccountSchema = z.object({
   institutionId: z.string().min(1).max(120).optional(),
 });
@@ -135,6 +139,7 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type CreatePaymentLinkInput = z.infer<typeof createPaymentLinkSchema>;
 export type InitiatePaymentInput = z.infer<typeof initiatePaymentSchema>;
 export type CompletePaymentInput = z.infer<typeof completePaymentSchema>;
+export type AbandonPaymentInput = z.infer<typeof abandonPaymentSchema>;
 export type ConnectBankAccountInput = z.infer<typeof connectBankAccountSchema>;
 export type CompleteBankConnectionInput = z.infer<typeof completeBankConnectionSchema>;
 export type CreateCircleInput = z.infer<typeof createCircleSchema>;

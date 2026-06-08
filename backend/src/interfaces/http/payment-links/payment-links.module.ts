@@ -7,11 +7,12 @@ import { GetPaymentLinkByShortCodeUseCase } from '../../../application/use-cases
 import { ListPaymentLinksUseCase } from '../../../application/use-cases/payment-links/list-payment-links.use-case';
 import { PaymentLinkStatsUseCase } from '../../../application/use-cases/payment-links/payment-link-stats.use-case';
 import { PaymentLinksMapper } from '../../../application/use-cases/payment-links/payment-links.mapper';
+import { PaymentReconciliationModule } from '../../../infrastructure/queue/payment-reconciliation.module';
 import { BankAccountsModule } from '../bank-accounts/bank-accounts.module';
 import { PaymentLinksController } from './payment-links.controller';
 
 @Module({
-  imports: [BankAccountsModule],
+  imports: [BankAccountsModule, PaymentReconciliationModule],
   controllers: [PaymentLinksController],
   providers: [
     PaymentLinksMapper,

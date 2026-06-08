@@ -21,6 +21,7 @@ import {
 } from '../../../domain/utils/institution-routing';
 import { GetDecryptedIbanUseCase } from '../bank-accounts/get-decrypted-iban.use-case';
 import { GetPaymentLinkByShortCodeUseCase } from '../payment-links/get-payment-link-by-short-code.use-case';
+import { ExpireStalePaymentsUseCase } from '../payments/expire-stale-payments.use-case';
 import { PrismaService } from '../../../infrastructure/persistence/prisma.module';
 
 @Injectable()
@@ -31,6 +32,7 @@ export class InitiatePayerPaymentUseCase {
     private readonly prisma: PrismaService,
     private readonly getLink: GetPaymentLinkByShortCodeUseCase,
     private readonly getDecryptedIban: GetDecryptedIbanUseCase,
+    private readonly expireStale: ExpireStalePaymentsUseCase,
     private readonly config: ConfigService,
     @Inject(PIS_GATEWAY) private readonly pisGateway: PisGateway,
   ) {}
@@ -38,6 +40,9 @@ export class InitiatePayerPaymentUseCase {
   async execute(shortCode: string, body?: unknown): Promise<InitiatePaymentResponse> {
     const { amountCents, payerMessage } = initiatePaymentSchema.parse(body ?? {});
     const link = await this.getLink.execute(shortCode);
+
+    // Drop abandoned AWAITING rows so SINGLE links are not blocked forever.
+    await this.expireStale.execute(link.id);
 
     // Fixed-amount links ignore any payer-supplied amount.
     const resolvedAmount = link.amountCents ?? amountCents;
