@@ -7,10 +7,11 @@ import {
 } from '@nestjs/common';
 import { BankAccountSummary } from '@payspin/shared-types';
 import { AIS_GATEWAY, AisGateway } from '@payspin/pisp-provider';
-import { completeBankConnectionSchema } from '@payspin/validators';
+import { completeBankConnectionSchema, normalizeIban } from '@payspin/validators';
 import { extractIbanFromAccount, ibanLast4 } from '../../../domain/utils/short-code';
 import { EncryptionService } from '../../../infrastructure/encryption/encryption.service';
 import { PrismaService } from '../../../infrastructure/persistence/prisma.module';
+import { findBankAccountByIban } from '../bank-accounts/find-bank-account-by-iban';
 import { BankAccountsMapper } from '../bank-accounts/bank-accounts.mapper';
 
 @Injectable()
@@ -49,18 +50,45 @@ export class CompleteBankConnectionUseCase {
       if (match) selected = match;
     }
 
-    const iban = extractIbanFromAccount(selected);
-    if (!iban) {
+    const rawIban = extractIbanFromAccount(selected);
+    if (!rawIban) {
       throw new BadRequestException('Selected account has no IBAN');
     }
+    const iban = normalizeIban(rawIban);
 
     const accountHolder =
       selected.accountNames?.[0]?.name ?? 'Account holder';
     const bankName = selected.institution?.name ?? null;
-    const { ciphertext, iv } = this.encryption.encrypt(iban);
 
     const account = await this.prisma.$transaction(async (tx) => {
-      const existingCount = await tx.bankAccount.count({ where: { userId } });
+      const userAccounts = await tx.bankAccount.findMany({ where: { userId } });
+      const duplicate = findBankAccountByIban(userAccounts, iban, this.encryption);
+
+      // Re-connecting the same IBAN via open banking updates the existing
+      // record instead of inserting another row (manual add already did this).
+      if (duplicate) {
+        const updated = await tx.bankAccount.update({
+          where: { id: duplicate.id },
+          data: {
+            accountHolder,
+            bankName,
+            verified: true,
+            verificationSource: 'YAPILY',
+            yapilyConnectionId: connection.id,
+            yapilyInstitutionId: connection.institutionId,
+          },
+        });
+
+        await tx.bankConnection.update({
+          where: { id: connection.id },
+          data: { status: 'COMPLETED', bankAccountId: updated.id },
+        });
+
+        return updated;
+      }
+
+      const { ciphertext, iv } = this.encryption.encrypt(iban);
+      const existingCount = userAccounts.length;
       const created = await tx.bankAccount.create({
         data: {
           userId,

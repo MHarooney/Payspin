@@ -13,6 +13,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "ops:seed-admin": "tsx prisma/seed-admin.ts",
+    "ops:dedupe-bank-accounts": "tsx prisma/deduplicate-bank-accounts.ts",
     "test": "node --import tsx --test test/**/*.test.ts"
   },
   "dependencies": {

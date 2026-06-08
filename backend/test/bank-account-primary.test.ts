@@ -133,6 +133,19 @@ describe('CreateBankAccountUseCase (auto-primary)', () => {
     const second = await useCase.execute('u1', { iban: 'NL02ABNA0123456789', accountHolder: 'Jane Doe' });
     assert.equal(second.isPrimary, false);
   });
+
+  it('updates an existing account instead of creating a duplicate IBAN', async () => {
+    const first = await useCase.execute('u1', { iban: 'NL91ABNA0417164300', accountHolder: 'Jane Doe' });
+    const again = await useCase.execute('u1', {
+      iban: 'nl91 abna 0417 1643 00',
+      accountHolder: 'Jane Updated',
+      bankName: 'ABN AMRO',
+    });
+    assert.equal(again.id, first.id);
+    assert.equal(again.accountHolder, 'Jane Updated');
+    assert.equal(again.bankName, 'ABN AMRO');
+    assert.equal(db.accounts.length, 1);
+  });
 });
 
 describe('SetPrimaryBankAccountUseCase', () => {
