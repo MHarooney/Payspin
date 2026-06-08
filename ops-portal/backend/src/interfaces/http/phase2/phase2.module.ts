@@ -18,6 +18,7 @@ import { Phase2Controller } from './phase2.controller';
     GetSupportThreadUseCase,
     GetReportSeriesUseCase,
     GetAppControlsUseCase,
+    // PrismaService and AuditService are @Global() — no need to import
   ],
 })
 export class Phase2Module {}

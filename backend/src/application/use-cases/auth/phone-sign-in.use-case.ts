@@ -54,6 +54,13 @@ export class PhoneSignInUseCase {
       orderBy: { createdAt: 'asc' },
     });
     if (existing) {
+      if (existing.deletedAt) {
+        throw new UnauthorizedException('Account not found');
+      }
+      const adminState = await this.prisma.userAdminState.findUnique({ where: { userId: existing.id } });
+      if (adminState?.status === 'FROZEN' || adminState?.status === 'SUSPENDED' || adminState?.status === 'BLOCKED') {
+        throw new UnauthorizedException('Account is temporarily restricted');
+      }
       const user = existing.phoneVerifiedAt
         ? existing
         : await this.prisma.user.update({
@@ -96,14 +103,19 @@ export class PhoneSignInUseCase {
     }
   }
 
-  private buildAuthResponse(user: {
+  private async buildAuthResponse(user: {
     id: string;
     email: string;
     displayName: string | null;
     phoneE164: string | null;
     phoneVerifiedAt: Date | null;
     createdAt: Date;
-  }): AuthResponse {
+  }): Promise<AuthResponse> {
+    const now = new Date();
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: now, lastSeenAt: now },
+    });
     const accessToken = this.jwtService.sign({ sub: user.id, email: user.email });
     return {
       accessToken,

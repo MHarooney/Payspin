@@ -10,6 +10,9 @@ export enum AdminRole {
   READ_ONLY = 'READ_ONLY',
 }
 
+/** Online = lastSeenAt within 5 min. Recent = within 7 days. Never = no login. */
+export type AdminUserPresence = 'online' | 'recent' | 'offline' | 'never';
+
 export interface AdminProfile {
   id: string;
   email: string;
@@ -107,6 +110,11 @@ export interface AdminUserListItem {
   status: string;
   lifetimeVolumeCents: number;
   createdAt: string;
+  lastLoginAt: string | null;
+  lastSeenAt: string | null;
+  presence: AdminUserPresence;
+  registeredDeviceCount: number;
+  isDeleted: boolean;
 }
 
 export interface AdminCircleListItem {
@@ -377,6 +385,70 @@ export interface AdminUserDetail extends AdminUserListItem {
   paymentLinkCount: number;
   bankAccounts: AdminUserBankAccount[];
   recentPayments: AdminPaymentListItem[];
+  recentPaymentLinks: AdminPaymentLinkListItem[];
   circles: AdminUserCircleSummary[];
   adminState: AdminUserStateDto | null;
+  auditEvents: AuditEventDto[];
+  devices: AdminUserDevice[];
 }
+
+export interface AdminUserDevice {
+  id: string;
+  platform: string;
+  lastUpdatedAt: string;
+}
+
+// ---- Webhooks ----
+export interface AdminWebhookListItem {
+  id: string;
+  eventId: string;
+  eventType: string;
+  processedAt: string | null;
+  linkedPaymentId: string | null;
+  createdAt: string;
+}
+
+export interface AdminWebhookDetail extends AdminWebhookListItem {
+  payloadSummary: Record<string, unknown>;
+}
+
+// ---- Payment Links (ops) ----
+export interface AdminPaymentLinkListItem {
+  id: string;
+  shortCode: string;
+  payeeName: string;
+  payeeUserId: string;
+  amountCents: number | null;
+  currency: string;
+  description: string | null;
+  status: string;
+  linkType: string;
+  useCount: number;
+  maxUses: number | null;
+  expiresAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminPaymentLinkDetail extends AdminPaymentLinkListItem {
+  payments: AdminPaymentListItem[];
+}
+
+// ---- Admin Staff (ops staff CRUD) ----
+export interface AdminStaffListItem {
+  id: string;
+  email: string;
+  displayName: string | null;
+  role: AdminRole;
+  isActive: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+// ---- Write payloads (returned from mutations) ----
+export interface CreateUserAdminResult {
+  id: string;
+  email: string;
+  displayName: string | null;
+  tempPassword: string;
+}
+

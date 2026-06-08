@@ -21,11 +21,26 @@ export class LoginUserUseCase {
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
+    if (user.deletedAt) {
+      throw new UnauthorizedException('Account not found');
+    }
 
     const valid = await bcrypt.compare(parsed.password, user.passwordHash);
     if (!valid) {
       throw new UnauthorizedException('Invalid email or password');
     }
+
+    // Check frozen status via admin overlay
+    const adminState = await this.prisma.userAdminState.findUnique({ where: { userId: user.id } });
+    if (adminState?.status === 'FROZEN' || adminState?.status === 'SUSPENDED' || adminState?.status === 'BLOCKED') {
+      throw new UnauthorizedException('Account is temporarily restricted');
+    }
+
+    const now = new Date();
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: now, lastSeenAt: now },
+    });
 
     const accessToken = this.jwtService.sign({
       sub: user.id,

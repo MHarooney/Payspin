@@ -1,17 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { AdminUserListItem, Paginated } from '@payspin/shared-types';
-import { listUsersQuerySchema } from '@payspin/validators';
+import { listUsersAdminQuerySchema } from '@payspin/validators';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/persistence/prisma.module';
+import { computePresence } from '../../../domain/presence';
 
 @Injectable()
 export class ListUsersAdminUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(query: unknown): Promise<Paginated<AdminUserListItem>> {
-    const { page, pageSize, status, search } = listUsersQuerySchema.parse(query);
+    const { page, pageSize, status, search, includeDeleted } = listUsersAdminQuerySchema.parse(query);
 
     const where: Prisma.UserWhereInput = {};
+    if (!includeDeleted) {
+      where.deletedAt = null;
+    }
     if (search) {
       where.OR = [
         { email: { contains: search, mode: 'insensitive' } },
@@ -24,7 +28,10 @@ export class ListUsersAdminUseCase {
       this.prisma.user.count({ where }),
       this.prisma.user.findMany({
         where,
-        include: { bankAccounts: { select: { verified: true } } },
+        include: {
+          bankAccounts: { select: { verified: true } },
+          deviceTokens: { select: { id: true } },
+        },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -56,6 +63,11 @@ export class ListUsersAdminUseCase {
           status: state?.status ?? 'ACTIVE',
           lifetimeVolumeCents: volume._sum.amountCents ?? 0,
           createdAt: u.createdAt.toISOString(),
+          lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
+          lastSeenAt: u.lastSeenAt?.toISOString() ?? null,
+          presence: computePresence(u.lastLoginAt, u.lastSeenAt),
+          registeredDeviceCount: u.deviceTokens.length,
+          isDeleted: u.deletedAt !== null,
         };
       }),
     );
@@ -72,3 +84,5 @@ export class ListUsersAdminUseCase {
     };
   }
 }
+
+

@@ -81,9 +81,87 @@ export const tableRowsQuerySchema = paginationSchema.extend({
   pageSize: z.coerce.number().int().min(1).max(50).default(20),
 });
 
+// ---- User CRUD schemas ----
+export const createUserAdminSchema = z.object({
+  email: z.string().email().max(255),
+  displayName: z.string().trim().max(100).optional(),
+  phoneE164: z.string().regex(/^\+[1-9]\d{6,14}$/, 'Invalid E.164 phone').optional(),
+  tempPassword: z.string().min(8).max(128).optional(),
+});
+
+export const patchUserAdminSchema = z.object({
+  displayName: z.string().trim().max(100).optional(),
+  phoneE164: z.string().regex(/^\+[1-9]\d{6,14}$/, 'Invalid E.164 phone').optional().nullable(),
+  email: z.string().email().max(255).optional(), // SUPER_ADMIN only
+}).refine((d) => Object.keys(d).length > 0, { message: 'Provide at least one field' });
+
+export const resetPasswordAdminSchema = z.object({
+  tempPassword: z.string().min(8).max(128),
+});
+
+// ---- Payment link schemas ----
+export const patchPaymentLinkAdminSchema = z.object({
+  action: z.enum(['cancel', 'extend']),
+  expiresAt: z.string().datetime().optional(), // required for 'extend'
+  reason: z.string().trim().max(500).optional(),
+}).refine(
+  (d) => d.action !== 'extend' || !!d.expiresAt,
+  { message: 'expiresAt required for extend', path: ['expiresAt'] },
+);
+
+// ---- Create payment link on behalf of user ----
+export const createPaymentLinkOpsSchema = z.object({
+  payeeUserId: z.string().uuid(),
+  amountCents: z.number().int().min(1).optional(),
+  currency: z.string().length(3).default('EUR'),
+  description: z.string().trim().max(255).optional(),
+});
+
+// ---- Compliance / Dispute ----
+export const patchComplianceAlertSchema = z.object({
+  status: z.enum(['OPEN', 'INVESTIGATING', 'CLEARED']),
+  note: z.string().trim().max(500).optional(),
+});
+
+export const patchDisputeAdminSchema = z.object({
+  status: z.enum(['OPEN', 'INVESTIGATING', 'RESOLVED', 'CLOSED']),
+  note: z.string().trim().max(500).optional(),
+});
+
+// ---- Support messages ----
+export const createSupportMessageSchema = z.object({
+  body: z.string().trim().min(1).max(2000),
+});
+
+export const patchSupportThreadSchema = z.object({
+  status: z.enum(['OPEN', 'RESOLVED']),
+});
+
+// ---- Admin staff CRUD ----
+export const createAdminStaffSchema = z.object({
+  email: z.string().email().max(255),
+  displayName: z.string().trim().max(100).optional(),
+  role: z.enum(['SUPER_ADMIN', 'OPS', 'SUPPORT', 'READ_ONLY']),
+  tempPassword: z.string().min(8).max(128),
+});
+
+export const patchAdminStaffSchema = z.object({
+  displayName: z.string().trim().max(100).optional(),
+  role: z.enum(['SUPER_ADMIN', 'OPS', 'SUPPORT', 'READ_ONLY']).optional(),
+  isActive: z.boolean().optional(),
+}).refine((d) => Object.keys(d).length > 0, { message: 'Provide at least one field' });
+
+// ---- List queries with deletedAt filter ----
+export const listUsersAdminQuerySchema = paginationSchema.extend({
+  status: z.enum(['ACTIVE', 'FROZEN', 'SUSPENDED', 'BLOCKED']).optional(),
+  search: z.string().trim().max(120).optional(),
+  includeDeleted: z.coerce.boolean().default(false),
+});
+
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type ListPaymentsQuery = z.infer<typeof listPaymentsQuerySchema>;
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
+export type ListUsersAdminQuery = z.infer<typeof listUsersAdminQuerySchema>;
 export type ListCirclesQuery = z.infer<typeof listCirclesQuerySchema>;
 export type DashboardQuery = z.infer<typeof dashboardQuerySchema>;
 export type ReportsQuery = z.infer<typeof reportsQuerySchema>;
@@ -93,3 +171,14 @@ export type KillSwitchInput = z.infer<typeof killSwitchSchema>;
 export type SetUserAdminStateInput = z.infer<typeof setUserAdminStateSchema>;
 export type GlobalSearchQuery = z.infer<typeof globalSearchSchema>;
 export type TableRowsQuery = z.infer<typeof tableRowsQuerySchema>;
+export type CreateUserAdminInput = z.infer<typeof createUserAdminSchema>;
+export type PatchUserAdminInput = z.infer<typeof patchUserAdminSchema>;
+export type ResetPasswordAdminInput = z.infer<typeof resetPasswordAdminSchema>;
+export type PatchPaymentLinkAdminInput = z.infer<typeof patchPaymentLinkAdminSchema>;
+export type PatchComplianceAlertInput = z.infer<typeof patchComplianceAlertSchema>;
+export type PatchDisputeAdminInput = z.infer<typeof patchDisputeAdminSchema>;
+export type CreateSupportMessageInput = z.infer<typeof createSupportMessageSchema>;
+export type PatchSupportThreadInput = z.infer<typeof patchSupportThreadSchema>;
+export type CreateAdminStaffInput = z.infer<typeof createAdminStaffSchema>;
+export type PatchAdminStaffInput = z.infer<typeof patchAdminStaffSchema>;
+

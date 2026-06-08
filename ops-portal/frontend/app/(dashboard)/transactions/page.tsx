@@ -41,6 +41,14 @@ export default function TransactionsPage() {
     },
   });
 
+  const refresh = useMutation({
+    mutationFn: (id: string) => apiRequest(`/transactions/${id}/refresh`, { method: 'POST' }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['transactions'] });
+      qc.invalidateQueries({ queryKey: ['audit'] });
+    },
+  });
+
   const columns: Column<AdminPaymentListItem>[] = [
     { header: 'Tx ID', cell: (t) => <span className="mono">{t.id.slice(0, 10)}</span> },
     { header: 'Payee', cell: (t) => t.payeeName },
@@ -61,6 +69,11 @@ export default function TransactionsPage() {
           {canAct && ['FAILED', 'AWAITING_AUTHORIZATION', 'PENDING'].includes(t.status) && (
             <button className="mini-btn" disabled={retry.isPending} onClick={() => retry.mutate(t.id)}>
               Retry
+            </button>
+          )}
+          {canAct && t.yapilyPaymentId && (
+            <button className="mini-btn" disabled={refresh.isPending} onClick={() => refresh.mutate(t.id)}>
+              Refresh
             </button>
           )}
         </div>

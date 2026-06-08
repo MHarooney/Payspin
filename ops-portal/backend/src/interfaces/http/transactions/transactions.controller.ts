@@ -2,6 +2,7 @@ import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { AdminRole } from '@payspin/shared-types';
 import { GetPaymentDetailAdminUseCase } from '../../../application/use-cases/transactions/get-payment-detail-admin.use-case';
 import { ListPaymentsAdminUseCase } from '../../../application/use-cases/transactions/list-payments-admin.use-case';
+import { RefreshPaymentAdminUseCase } from '../../../application/use-cases/transactions/refresh-payment-admin.use-case';
 import { RetryPaymentAdminUseCase } from '../../../application/use-cases/transactions/retry-payment-admin.use-case';
 import { CurrentAdmin, AdminRequestContext } from '../decorators/current-admin.decorator';
 import { AdminJwtAuthGuard } from '../guards/admin-jwt-auth.guard';
@@ -15,6 +16,7 @@ export class TransactionsController {
     private readonly listPayments: ListPaymentsAdminUseCase,
     private readonly getDetail: GetPaymentDetailAdminUseCase,
     private readonly retryPayment: RetryPaymentAdminUseCase,
+    private readonly refreshPayment: RefreshPaymentAdminUseCase,
   ) {}
 
   @Get()
@@ -31,5 +33,11 @@ export class TransactionsController {
   @Roles(AdminRole.SUPER_ADMIN, AdminRole.OPS)
   retry(@Param('id') id: string, @CurrentAdmin() admin: AdminRequestContext) {
     return this.retryPayment.execute(id, admin);
+  }
+
+  @Post(':id/refresh')
+  @Roles(AdminRole.SUPER_ADMIN, AdminRole.OPS)
+  refresh(@Param('id') id: string, @CurrentAdmin() admin: AdminRequestContext) {
+    return this.refreshPayment.execute(id, admin);
   }
 }
