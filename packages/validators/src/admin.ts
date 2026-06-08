@@ -77,6 +77,10 @@ export const globalSearchSchema = z.object({
   q: z.string().trim().min(1).max(120),
 });
 
+export const tableRowsQuerySchema = paginationSchema.extend({
+  pageSize: z.coerce.number().int().min(1).max(50).default(20),
+});
+
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type ListPaymentsQuery = z.infer<typeof listPaymentsQuerySchema>;
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
@@ -88,3 +92,4 @@ export type UpdatePlatformConfigInput = z.infer<typeof updatePlatformConfigSchem
 export type KillSwitchInput = z.infer<typeof killSwitchSchema>;
 export type SetUserAdminStateInput = z.infer<typeof setUserAdminStateSchema>;
 export type GlobalSearchQuery = z.infer<typeof globalSearchSchema>;
+export type TableRowsQuery = z.infer<typeof tableRowsQuerySchema>;

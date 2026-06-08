@@ -18,6 +18,8 @@ Quick index for AI agents working on Payspin.
 7. [circles-contribution-mvp.md](circles-contribution-mvp.md) — round contribution via MULTI payment links
 8. [circles-phase3-blockchain-prompt.md](circles-phase3-blockchain-prompt.md) — **Monerium + blockchain + all missing Circles features**
 9. [circles-monerium-research.md](circles-monerium-research.md) — Monerium API research seed (agent re-verifies live)
+10. [admin-portal-build-prompt.md](admin-portal-build-prompt.md) — Ops portal initial build (shipped)
+11. **[ops-portal-data-explorer-prompt.md](ops-portal-data-explorer-prompt.md)** — **Data schema explorer, table browser, Users 360°, UI polish** (copy-paste agent prompt)
 
 ## Cursor integration
 

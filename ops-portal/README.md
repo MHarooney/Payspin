@@ -120,6 +120,12 @@ After deploy, run the cloud smoke test (uses one login — wait 60s if you hit r
 
 Requires `jq` on your machine.
 
+## Next features (agent prompts)
+
+| Prompt | Purpose |
+|--------|---------|
+| [docs/agents/ops-portal-data-explorer-prompt.md](../docs/agents/ops-portal-data-explorer-prompt.md) | Schema/relations viewer, table data browser, Users 360°, UI polish |
+
 ## Known gaps / Phase 2 wiring
 
 - **Reports** series are synthesized deterministically — swap `GetReportSeriesUseCase`

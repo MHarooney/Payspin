@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { DashboardKpi } from '@payspin/shared-types';
 import { ReactNode } from 'react';
 
@@ -8,14 +9,16 @@ export function OpsCard({
   count,
   children,
   className,
+  style,
 }: {
   title?: ReactNode;
   count?: ReactNode;
   children: ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
-    <div className={`card${className ? ` ${className}` : ''}`}>
+    <div className={`card${className ? ` ${className}` : ''}`} style={style}>
       {title && (
         <h3>
           {title}
