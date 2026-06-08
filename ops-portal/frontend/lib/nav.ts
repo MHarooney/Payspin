@@ -37,6 +37,7 @@ export const NAV: NavSection[] = [
     section: 'Platform',
     items: [
       { href: '/system', label: 'System Health', icon: '◈', title: 'System Health' },
+      { href: '/testing', label: 'Test Center', icon: '🧪', title: 'Test Center' },
       { href: '/app-controls', label: 'App Controls', icon: '📱', title: 'App Controls' },
       { href: '/config', label: 'Config & Flags', icon: '⚙', title: 'Config & Flags' },
       { href: '/audit', label: 'Audit Log', icon: '▤', title: 'Audit Log' },
@@ -73,5 +74,6 @@ export function titleForPath(path: string): string {
   if (path.startsWith('/data/tables')) return 'Table Explorer';
   if (path.startsWith('/data')) return 'Data Explorer';
   if (path.startsWith('/admin-users')) return 'Admin users';
+  if (path.startsWith('/testing')) return 'Test Center';
   return 'Ops';
 }

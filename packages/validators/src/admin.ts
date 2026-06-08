@@ -63,13 +63,15 @@ export const setUserAdminStateSchema = z
     kycTier: z.enum(['KYC1', 'KYC2']).optional(),
     riskLevel: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
     reason: z.string().trim().max(500).optional(),
+    note: z.string().trim().max(2000).optional(),
   })
   .refine(
     (d) =>
       d.status !== undefined ||
       d.kycStatus !== undefined ||
       d.kycTier !== undefined ||
-      d.riskLevel !== undefined,
+      d.riskLevel !== undefined ||
+      d.note !== undefined,
     { message: 'Provide at least one field to update' },
   );
 
@@ -114,6 +116,15 @@ export const createPaymentLinkOpsSchema = z.object({
   payeeUserId: z.string().uuid(),
   amountCents: z.number().int().min(1).optional(),
   currency: z.string().length(3).default('EUR'),
+  description: z.string().trim().max(255).optional(),
+});
+
+export const runTestingScenariosSchema = z.object({
+  scenarios: z.array(z.enum(['ops_health', 'consumer_api', 'user_crud', 'payment_link', 'webhooks'])).min(1),
+});
+
+export const userTestSetupSchema = z.object({
+  amountCents: z.number().int().min(1).default(100),
   description: z.string().trim().max(255).optional(),
 });
 
@@ -181,4 +192,7 @@ export type CreateSupportMessageInput = z.infer<typeof createSupportMessageSchem
 export type PatchSupportThreadInput = z.infer<typeof patchSupportThreadSchema>;
 export type CreateAdminStaffInput = z.infer<typeof createAdminStaffSchema>;
 export type PatchAdminStaffInput = z.infer<typeof patchAdminStaffSchema>;
+export type CreatePaymentLinkOpsInput = z.infer<typeof createPaymentLinkOpsSchema>;
+export type RunTestingScenariosInput = z.infer<typeof runTestingScenariosSchema>;
+export type UserTestSetupInput = z.infer<typeof userTestSetupSchema>;
 

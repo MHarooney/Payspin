@@ -33,6 +33,7 @@ SCP=(scp -i "$SSH_KEY" -o StrictHostKeyChecking=accept-new)
 
 PUBLIC_OPS_API_URL="https://${OPS_SITE_ADDRESS}/admin/v1"
 PUBLIC_OPS_WEB_URL="https://${OPS_SITE_ADDRESS}"
+PUBLIC_PAYER_WEB_URL="${PAYER_WEB_URL:-https://pay.payspin.io}"
 
 echo "==> Building ${OPS_API_IMAGE} (${DOCKER_PLATFORM})"
 docker build --platform "$DOCKER_PLATFORM" -f "$ROOT/ops-portal/backend/Dockerfile" \
@@ -41,6 +42,7 @@ docker build --platform "$DOCKER_PLATFORM" -f "$ROOT/ops-portal/backend/Dockerfi
 echo "==> Building ${OPS_WEB_IMAGE} (NEXT_PUBLIC_OPS_API_URL=${PUBLIC_OPS_API_URL}, ${DOCKER_PLATFORM})"
 docker build --platform "$DOCKER_PLATFORM" -f "$ROOT/ops-portal/frontend/Dockerfile" \
   --build-arg "NEXT_PUBLIC_OPS_API_URL=${PUBLIC_OPS_API_URL}" \
+  --build-arg "NEXT_PUBLIC_PAYER_WEB_URL=${PUBLIC_PAYER_WEB_URL}" \
   -t "$OPS_WEB_IMAGE" "$ROOT"
 
 echo "==> Pushing ops images to Docker Hub"
@@ -69,6 +71,8 @@ PATCH_ADMIN_JWT="$(openssl rand -hex 32)"
   grep -q '^ADMIN_JWT_EXPIRES_IN=' .env.production 2>/dev/null || echo 'ADMIN_JWT_EXPIRES_IN=15m' >> .env.production && \
   grep -q '^DOCKER_OPS_API_IMAGE=' .env.production 2>/dev/null || echo 'DOCKER_OPS_API_IMAGE=${OPS_API_IMAGE}' >> .env.production && \
   grep -q '^DOCKER_OPS_WEB_IMAGE=' .env.production 2>/dev/null || echo 'DOCKER_OPS_WEB_IMAGE=${OPS_WEB_IMAGE}' >> .env.production && \
+  grep -q '^CONSUMER_API_URL=' .env.production 2>/dev/null || echo 'CONSUMER_API_URL=http://api:3001/v1' >> .env.production && \
+  grep -q '^PAYER_WEB_URL=' .env.production 2>/dev/null || echo 'PAYER_WEB_URL=${PUBLIC_PAYER_WEB_URL}' >> .env.production && \
   sed -i 's|^OPS_SITE_ADDRESS=.*|OPS_SITE_ADDRESS=${OPS_SITE_ADDRESS}|' .env.production && \
   sed -i 's|^OPS_CORS_ORIGIN=.*|OPS_CORS_ORIGIN=${PUBLIC_OPS_WEB_URL}|' .env.production && \
   sed -i 's|^DOCKER_OPS_API_IMAGE=.*|DOCKER_OPS_API_IMAGE=${OPS_API_IMAGE}|' .env.production && \

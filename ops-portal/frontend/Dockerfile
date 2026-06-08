@@ -14,7 +14,9 @@ RUN pnpm install --frozen-lockfile
 
 FROM base AS build
 ARG NEXT_PUBLIC_OPS_API_URL=https://ops.payspin.io/admin/v1
+ARG NEXT_PUBLIC_PAYER_WEB_URL=https://pay.payspin.io
 ENV NEXT_PUBLIC_OPS_API_URL=$NEXT_PUBLIC_OPS_API_URL
+ENV NEXT_PUBLIC_PAYER_WEB_URL=$NEXT_PUBLIC_PAYER_WEB_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/ops-portal/frontend/node_modules ./ops-portal/frontend/node_modules

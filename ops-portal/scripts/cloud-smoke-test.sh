@@ -160,7 +160,15 @@ else
 fi
 
 echo ""
-echo "==> 13. Security (JWT)"
+echo "==> 13. Testing hub + users summary"
+assert_json_field "GET /users/summary" "$(auth "$BASE/users/summary")" 'has("total")'
+assert_json_field "GET /testing/scenarios" "$(auth "$BASE/testing/scenarios")" '. | type == "array"'
+run_safe=$(curl -s -X POST "$BASE/testing/run" -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"scenarios":["ops_health","webhooks"]}')
+assert_json_field "POST /testing/run safe bundle" "$run_safe" 'has("steps")'
+
+echo ""
+echo "==> 14. Security (JWT)"
 assert_code "invalid JWT" "401" "$(curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer bad.token' "$BASE/dashboard/kpis")"
 
 echo ""

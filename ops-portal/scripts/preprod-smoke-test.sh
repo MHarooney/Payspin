@@ -265,6 +265,34 @@ else
 fi
 
 echo ""
+echo "==> 15. Users UX + testing hub"
+summary=$(auth "$BASE/users/summary")
+assert_json_field "GET /users/summary" "$summary" 'has("total") and has("pendingKyc")'
+
+if [[ -n "$USER_ID" ]]; then
+  note_res=$(curl -s -X POST "$BASE/users/$USER_ID/state" -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+    -d '{"note":"Smoke test admin note"}')
+  assert_json_field "POST /users/:id/state note" "$note_res" '.note == "Smoke test admin note"'
+fi
+
+scenarios=$(auth "$BASE/testing/scenarios")
+assert_json_field "GET /testing/scenarios" "$scenarios" '. | type == "array" and length > 0'
+
+# Safe non-mutating run on cloud
+run_res=$(curl -s -X POST "$BASE/testing/run" -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"scenarios":["ops_health","consumer_api","webhooks"]}')
+assert_json_field "POST /testing/run (read-only bundle)" "$run_res" 'has("steps") and (.steps | length) >= 3'
+
+PAYEE_WITH_BANK=$(auth "$BASE/users?pageSize=50" | jq -r '.items[] | select(.bankVerified == true) | .id' | head -1)
+if [[ -n "$PAYEE_WITH_BANK" ]]; then
+  link_res=$(curl -s -X POST "$BASE/payment-links" -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+    -d "{\"payeeUserId\":\"$PAYEE_WITH_BANK\",\"amountCents\":100,\"description\":\"Smoke test link\"}")
+  assert_json_field "POST /payment-links" "$link_res" 'has("payerUrl") and has("shortCode")'
+else
+  note "No user with verified bank — skipping POST /payment-links"
+fi
+
+echo ""
 echo "========================================"
 echo "PASS: $pass  FAIL: $fail  WARN: $warn"
 if [[ "$fail" -gt 0 ]]; then exit 1; fi

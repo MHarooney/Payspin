@@ -3,10 +3,12 @@ import { AdminRole } from '@payspin/shared-types';
 import { CreateUserAdminUseCase } from '../../../application/use-cases/users/create-user-admin.use-case';
 import { DeleteUserAdminUseCase } from '../../../application/use-cases/users/delete-user-admin.use-case';
 import { GetUserDetailAdminUseCase } from '../../../application/use-cases/users/get-user-detail-admin.use-case';
+import { GetUsersSummaryAdminUseCase } from '../../../application/use-cases/users/get-users-summary-admin.use-case';
 import { ListUsersAdminUseCase } from '../../../application/use-cases/users/list-users-admin.use-case';
 import { PatchUserAdminUseCase } from '../../../application/use-cases/users/patch-user-admin.use-case';
 import { ResetPasswordAdminUseCase } from '../../../application/use-cases/users/reset-password-admin.use-case';
 import { SetUserAdminStateUseCase } from '../../../application/use-cases/users/set-user-admin-state.use-case';
+import { UserTestSetupAdminUseCase } from '../../../application/use-cases/users/user-test-setup-admin.use-case';
 import { CurrentAdmin, AdminRequestContext } from '../decorators/current-admin.decorator';
 import { AdminJwtAuthGuard } from '../guards/admin-jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
@@ -17,17 +19,24 @@ import { Roles } from '../guards/roles.decorator';
 export class UsersController {
   constructor(
     private readonly listUsers: ListUsersAdminUseCase,
+    private readonly getSummary: GetUsersSummaryAdminUseCase,
     private readonly getDetail: GetUserDetailAdminUseCase,
     private readonly createUser: CreateUserAdminUseCase,
     private readonly patchUser: PatchUserAdminUseCase,
     private readonly deleteUser: DeleteUserAdminUseCase,
     private readonly resetPassword: ResetPasswordAdminUseCase,
     private readonly setState: SetUserAdminStateUseCase,
+    private readonly testSetup: UserTestSetupAdminUseCase,
   ) {}
 
   @Get()
   list(@Query() query: unknown) {
     return this.listUsers.execute(query);
+  }
+
+  @Get('summary')
+  summary() {
+    return this.getSummary.execute();
   }
 
   @Post()
@@ -67,5 +76,15 @@ export class UsersController {
     @CurrentAdmin() admin: AdminRequestContext,
   ) {
     return this.setState.execute(id, body, admin);
+  }
+
+  @Post(':id/test-setup')
+  @Roles(AdminRole.SUPER_ADMIN, AdminRole.OPS)
+  testSetupRoute(
+    @Param('id') id: string,
+    @Body() body: unknown,
+    @CurrentAdmin() admin: AdminRequestContext,
+  ) {
+    return this.testSetup.execute(id, body, admin);
   }
 }

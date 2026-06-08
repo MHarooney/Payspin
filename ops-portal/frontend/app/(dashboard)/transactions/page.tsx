@@ -6,7 +6,8 @@ import {
   Paginated,
 } from '@payspin/shared-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState, type ReactNode } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Column, OpsDataTable } from '@/components/ops/data-table';
 import { OpsLoadingPanel } from '@/components/ops/emblem-loader';
 import { OpsCard, OpsPill, OpsSectionHead } from '@/components/ops/primitives';
@@ -19,11 +20,17 @@ const STATUSES = ['', 'COMPLETED', 'PENDING', 'PROCESSING', 'AWAITING_AUTHORIZAT
 export default function TransactionsPage() {
   const qc = useQueryClient();
   const { admin } = useAuth();
+  const searchParams = useSearchParams();
   const canAct = admin?.role === 'SUPER_ADMIN' || admin?.role === 'OPS';
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [detailId, setDetailId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const q = searchParams.get('search');
+    if (q) setSearch(q);
+  }, [searchParams]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['transactions', status, search, page],
