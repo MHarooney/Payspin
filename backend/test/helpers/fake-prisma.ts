@@ -68,6 +68,13 @@ export class FakePrisma {
   /** Set to true to simulate a unique-constraint race on user.create. */
   failUserCreateWithP2002 = false;
 
+  userAdminStates: Dict[] = [];
+
+  userAdminState = {
+    findUnique: async ({ where }: { where: { userId?: string } }) =>
+      this.userAdminStates.find((s) => s.userId === where.userId) ?? null,
+  };
+
   user = {
     findUnique: async ({ where }: { where: WhereClause }) =>
       this.users.find((u) => matches(u, where)) ?? null,

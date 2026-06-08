@@ -125,6 +125,7 @@ Requires `jq` on your machine.
 | Prompt | Purpose |
 |--------|---------|
 | [docs/agents/ops-portal-data-explorer-prompt.md](../docs/agents/ops-portal-data-explorer-prompt.md) | Schema/relations viewer, table data browser, Users 360°, UI polish |
+| [docs/agents/ops-portal-preprod-focus-prompt.md](../docs/agents/ops-portal-preprod-focus-prompt.md) | **Pre-prod focus:** webhooks, payment links ops, real reports, consumer flag enforcement |
 
 ## Known gaps / Phase 2 wiring
 

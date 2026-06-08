@@ -1,17 +1,28 @@
 'use client';
 
 import { ComplianceAlertDto } from '@payspin/shared-types';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Column, OpsDataTable } from '@/components/ops/data-table';
 import { OpsCard, OpsKpiStrip, OpsPill, OpsSectionHead } from '@/components/ops/primitives';
 import { apiRequest } from '@/lib/admin-api';
+import { useAuth } from '@/lib/auth';
 
 const SEV_TONE: Record<string, string> = { HIGH: 'fail', MEDIUM: 'pend', LOW: 'blue' };
 
 export default function CompliancePage() {
+  const qc = useQueryClient();
+  const { admin } = useAuth();
+  const canAct = admin?.role === 'SUPER_ADMIN' || admin?.role === 'OPS' || admin?.role === 'SUPPORT';
+
   const { data } = useQuery({
     queryKey: ['compliance'],
     queryFn: () => apiRequest<ComplianceAlertDto[]>('/compliance'),
+  });
+
+  const patch = useMutation({
+    mutationFn: (vars: { id: string; status: string }) =>
+      apiRequest(`/compliance/${vars.id}`, { method: 'PATCH', body: { status: vars.status } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['compliance'] }),
   });
 
   const alerts = data ?? [];
@@ -24,12 +35,21 @@ export default function CompliancePage() {
     { header: 'Subject', cell: (a) => <span className="mono">{a.subject}</span> },
     { header: 'Rule', cell: (a) => a.rule },
     { header: 'Severity', cell: (a) => <OpsPill tone={SEV_TONE[a.severity] ?? 'blue'}>{a.severity}</OpsPill> },
-    { header: 'Status', cell: (a) => <OpsPill tone="pend">{a.status.replace(/_/g, ' ').toLowerCase()}</OpsPill> },
+    { header: 'Status', cell: (a) => <OpsPill tone={a.status === 'CLEARED' ? 'ok' : 'pend'}>{a.status.replace(/_/g, ' ').toLowerCase()}</OpsPill> },
+    {
+      header: 'Actions',
+      cell: (a) => canAct ? (
+        <div className="row-actions">
+          {a.status === 'OPEN' && <button className="mini-btn" onClick={() => patch.mutate({ id: a.id, status: 'INVESTIGATING' })}>Investigate</button>}
+          {a.status !== 'CLEARED' && <button className="mini-btn" onClick={() => patch.mutate({ id: a.id, status: 'CLEARED' })}>Clear</button>}
+        </div>
+      ) : <span className="hint">—</span>,
+    },
   ];
 
   return (
     <>
-      <OpsSectionHead title="Compliance & AML" sub={`${open} open alerts`} preview />
+      <OpsSectionHead title="Compliance & AML" sub={`${open} open alerts`} />
       <OpsKpiStrip
         columns={4}
         kpis={[
@@ -45,3 +65,5 @@ export default function CompliancePage() {
     </>
   );
 }
+
+

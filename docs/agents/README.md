@@ -20,6 +20,7 @@ Quick index for AI agents working on Payspin.
 9. [circles-monerium-research.md](circles-monerium-research.md) — Monerium API research seed (agent re-verifies live)
 10. [admin-portal-build-prompt.md](admin-portal-build-prompt.md) — Ops portal initial build (shipped)
 11. **[ops-portal-data-explorer-prompt.md](ops-portal-data-explorer-prompt.md)** — **Data schema explorer, table browser, Users 360°, UI polish** (copy-paste agent prompt)
+12. **[ops-portal-preprod-focus-prompt.md](ops-portal-preprod-focus-prompt.md)** — **Portal control room: webhooks, payment links, real reports, flag enforcement** (pre-prod, no Yapily registration)
 
 ## Cursor integration
 

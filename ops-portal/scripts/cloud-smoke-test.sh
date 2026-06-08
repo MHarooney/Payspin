@@ -31,7 +31,7 @@ echo "    WEB: $WEB"
 echo ""
 
 echo "==> 1. Public UI routes (SSR)"
-for path in /login / /transactions /users /circles /config /audit /system /compliance /reports /data/schema /data/tables; do
+for path in /login / /transactions /users /circles /config /audit /system /compliance /reports /data/schema /data/tables /webhooks /payment-links; do
   code=$(curl -s -o /dev/null -w '%{http_code}' "$WEB$path")
   assert_code "GET $path" "200" "$code"
 done
@@ -137,7 +137,30 @@ fi
 assert_code "data/tables invalid key" "400" "$(auth -o /dev/null -w '%{http_code}' "$BASE/data/tables/not_a_table/rows")"
 
 echo ""
-echo "==> 11. Security"
+echo "==> 12. Pre-prod focus (webhooks, payment links, users CRUD API)"
+assert_json_field "GET /webhooks" "$(auth "$BASE/webhooks")" '.items | type == "array"'
+assert_json_field "GET /payment-links" "$(auth "$BASE/payment-links")" '.items | type == "array"'
+users_list=$(auth "$BASE/users?limit=3")
+assert_json_field "users list with presence" "$users_list" '.items | type == "array"'
+if echo "$users_list" | jq -e '.items[0]' >/dev/null 2>&1; then
+  assert_json_field "users[0] has presence" "$users_list" '.items[0] | has("presence") and has("lastLoginAt") and has("createdAt")'
+  user_id=$(echo "$users_list" | jq -r '.items[0].id')
+  assert_json_field "user detail paymentLinks" "$(auth "$BASE/users/$user_id")" 'has("paymentLinks") and has("presence")'
+else
+  note "no users in DB for detail check"
+fi
+reports=$(auth "$BASE/reports")
+if echo "$reports" | jq -e '.preview == false' >/dev/null 2>&1; then ok "reports preview false"; else note "reports still preview mode"; fi
+assert_code "GET /admin-users" "200" "$(auth -o /dev/null -w '%{http_code}' "$BASE/admin-users")"
+tx_id=$(auth "$BASE/transactions?pageSize=1" | jq -r '.items[0].id // empty')
+if [[ -n "$tx_id" ]]; then
+  assert_json_field "transaction detail relatedWebhooks" "$(auth "$BASE/transactions/$tx_id")" 'has("relatedWebhooks")'
+else
+  note "no transactions for relatedWebhooks check"
+fi
+
+echo ""
+echo "==> 13. Security (JWT)"
 assert_code "invalid JWT" "401" "$(curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer bad.token' "$BASE/dashboard/kpis")"
 
 echo ""

@@ -29,7 +29,6 @@ export default function FinancePage() {
       <OpsSectionHead
         title="Settlement & reconciliation"
         sub="Ledger vs Yapily / bank confirmation"
-        preview
       />
       <OpsKpiStrip
         columns={4}

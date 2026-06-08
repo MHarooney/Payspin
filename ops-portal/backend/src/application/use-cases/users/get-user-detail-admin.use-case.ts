@@ -6,8 +6,12 @@ import {
   AdminUserBankAccount,
   AdminUserCircleSummary,
   AdminUserStateDto,
+  AuditEventDto,
+  AdminUserDevice,
+  AdminPaymentLinkListItem,
 } from '@payspin/shared-types';
 import { PrismaService } from '../../../infrastructure/persistence/prisma.module';
+import { computePresence } from '../../../domain/presence';
 
 @Injectable()
 export class GetUserDetailAdminUseCase {
@@ -18,6 +22,7 @@ export class GetUserDetailAdminUseCase {
       where: { id: userId },
       include: {
         bankAccounts: true,
+        deviceTokens: { orderBy: { updatedAt: 'desc' } },
       },
     });
 
@@ -33,6 +38,8 @@ export class GetUserDetailAdminUseCase {
       recentPaymentsRaw,
       circlesAsHost,
       memberships,
+      recentLinksRaw,
+      auditEventsRaw,
     ] = await Promise.all([
       this.prisma.userAdminState.findUnique({ where: { userId } }),
       this.prisma.payment.count({ where: { paymentLink: { payeeUserId: userId } } }),
@@ -59,6 +66,16 @@ export class GetUserDetailAdminUseCase {
         select: { circleId: true, payoutOrder: true, circle: { select: { id: true, name: true, status: true } } },
         take: 20,
       }),
+      this.prisma.paymentLink.findMany({
+        where: { payeeUserId: userId },
+        take: 10,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.adminAuditEvent.findMany({
+        where: { targetId: userId, targetType: 'user' },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
     ]);
 
     const bankAccounts: AdminUserBankAccount[] = user.bankAccounts.map((b) => ({
@@ -81,6 +98,22 @@ export class GetUserDetailAdminUseCase {
       yapilyPaymentId: p.yapilyPaymentId,
       initiatedAt: p.initiatedAt.toISOString(),
       completedAt: p.completedAt?.toISOString() ?? null,
+    }));
+
+    const recentPaymentLinks: AdminPaymentLinkListItem[] = recentLinksRaw.map((l) => ({
+      id: l.id,
+      shortCode: l.shortCode,
+      payeeName: user.displayName ?? user.email,
+      payeeUserId: l.payeeUserId,
+      amountCents: l.amountCents,
+      currency: l.currency,
+      description: l.description,
+      status: l.status,
+      linkType: l.linkType,
+      useCount: l.useCount,
+      maxUses: l.maxUses,
+      expiresAt: l.expiresAt?.toISOString() ?? null,
+      createdAt: l.createdAt.toISOString(),
     }));
 
     const hostCircles: AdminUserCircleSummary[] = circlesAsHost.map((c) => ({
@@ -117,6 +150,24 @@ export class GetUserDetailAdminUseCase {
         }
       : null;
 
+    const auditEvents: AuditEventDto[] = auditEventsRaw.map((e) => ({
+      id: e.id,
+      adminEmail: e.adminEmail,
+      action: e.action,
+      targetType: e.targetType,
+      targetId: e.targetId,
+      before: e.before,
+      after: e.after,
+      ip: e.ip,
+      createdAt: e.createdAt.toISOString(),
+    }));
+
+    const devices: AdminUserDevice[] = user.deviceTokens.map((d) => ({
+      id: d.id,
+      platform: d.platform,
+      lastUpdatedAt: d.updatedAt.toISOString(),
+    }));
+
     return {
       id: user.id,
       email: user.email,
@@ -130,12 +181,21 @@ export class GetUserDetailAdminUseCase {
       status: adminState?.status ?? 'ACTIVE',
       lifetimeVolumeCents: volumeAgg._sum.amountCents ?? 0,
       createdAt: user.createdAt.toISOString(),
+      lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+      lastSeenAt: user.lastSeenAt?.toISOString() ?? null,
+      presence: computePresence(user.lastLoginAt, user.lastSeenAt),
+      registeredDeviceCount: user.deviceTokens.length,
+      isDeleted: user.deletedAt !== null,
       paymentCount,
       paymentLinkCount,
       bankAccounts,
       recentPayments,
+      recentPaymentLinks,
       circles,
       adminState: mappedAdminState,
+      auditEvents,
+      devices,
     };
   }
 }
+
