@@ -2,6 +2,7 @@
 
 import { AdminUserListItem, Paginated } from '@payspin/shared-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Column, OpsDataTable } from '@/components/ops/data-table';
 import { OpsLoadingPanel } from '@/components/ops/emblem-loader';
@@ -12,13 +13,60 @@ import { eur, statusPill } from '@/lib/format';
 
 const RISK_TONE: Record<string, string> = { LOW: 'ok', MEDIUM: 'pend', HIGH: 'fail' };
 
+function FreezeModal({
+  user,
+  onConfirm,
+  onClose,
+}: {
+  user: AdminUserListItem;
+  onConfirm: (reason: string) => void;
+  onClose: () => void;
+}) {
+  const [reason, setReason] = useState('');
+  return (
+    <div className="modal-backdrop">
+      <div className="modal" style={{ maxWidth: 440 }}>
+        <h3 style={{ marginBottom: 12 }}>Freeze account</h3>
+        <p style={{ color: 'var(--muted)', marginBottom: 16, fontSize: 13 }}>
+          You are freezing <strong>{user.displayName ?? user.email}</strong>. They will be
+          unable to make or receive payments until unfrozen.
+        </p>
+        <label style={{ display: 'block', marginBottom: 8, fontSize: 12, color: 'var(--muted)' }}>
+          Reason (required)
+        </label>
+        <textarea
+          className="search"
+          style={{ width: '100%', minHeight: 80, resize: 'vertical', marginBottom: 16 }}
+          placeholder="Enter reason for freezing this account…"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button className="mini-btn" onClick={onClose}>
+            Cancel
+          </button>
+          <button
+            className="mini-btn danger"
+            disabled={reason.trim().length < 3}
+            onClick={() => reason.trim().length >= 3 && onConfirm(reason.trim())}
+          >
+            Freeze account
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function UsersPage() {
+  const router = useRouter();
   const qc = useQueryClient();
   const { admin } = useAuth();
   const canAct = admin?.role === 'SUPER_ADMIN' || admin?.role === 'OPS';
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [freezeTarget, setFreezeTarget] = useState<AdminUserListItem | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['users', status, search, page],
@@ -65,7 +113,7 @@ export default function UsersPage() {
       header: 'Actions',
       cell: (u) =>
         canAct ? (
-          <div className="row-actions">
+          <div className="row-actions" onClick={(e) => e.stopPropagation()}>
             {u.kycStatus !== 'VERIFIED' && (
               <button
                 className="mini-btn"
@@ -81,10 +129,7 @@ export default function UsersPage() {
             ) : (
               <button
                 className="mini-btn danger"
-                onClick={() => {
-                  const reason = window.prompt('Reason for freezing this user?') ?? '';
-                  setState.mutate({ id: u.id, body: { status: 'FROZEN', reason } });
-                }}
+                onClick={() => setFreezeTarget(u)}
               >
                 Freeze
               </button>
@@ -98,6 +143,17 @@ export default function UsersPage() {
 
   return (
     <>
+      {freezeTarget && (
+        <FreezeModal
+          user={freezeTarget}
+          onConfirm={(reason) => {
+            setState.mutate({ id: freezeTarget.id, body: { status: 'FROZEN', reason } });
+            setFreezeTarget(null);
+          }}
+          onClose={() => setFreezeTarget(null)}
+        />
+      )}
+
       <OpsSectionHead title="Users & KYC queue" sub={`${data?.total ?? 0} users`} />
       <div className="filters">
         <select
@@ -128,7 +184,13 @@ export default function UsersPage() {
         {isLoading ? (
           <OpsLoadingPanel label="Loading users" />
         ) : (
-          <OpsDataTable columns={columns} rows={data?.items ?? []} rowKey={(u) => u.id} empty="No users found." />
+          <OpsDataTable
+            columns={columns}
+            rows={data?.items ?? []}
+            rowKey={(u) => u.id}
+            empty="No users found."
+            onRowClick={(u) => router.push(`/users/${u.id}`)}
+          />
         )}
       </OpsCard>
 
@@ -148,3 +210,5 @@ export default function UsersPage() {
     </>
   );
 }
+
+

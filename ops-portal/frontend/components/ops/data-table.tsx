@@ -13,11 +13,13 @@ export function OpsDataTable<T>({
   rows,
   empty = 'Nothing to show yet.',
   rowKey,
+  onRowClick,
 }: {
   columns: Column<T>[];
   rows: T[];
   empty?: string;
   rowKey: (row: T, index: number) => string;
+  onRowClick?: (row: T) => void;
 }) {
   if (rows.length === 0) {
     return <OpsEmptyState message={empty} />;
@@ -33,7 +35,11 @@ export function OpsDataTable<T>({
       </thead>
       <tbody>
         {rows.map((row, i) => (
-          <tr key={rowKey(row, i)}>
+          <tr
+            key={rowKey(row, i)}
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
+            style={onRowClick ? { cursor: 'pointer' } : undefined}
+          >
             {columns.map((c) => (
               <td key={c.header}>{c.cell(row)}</td>
             ))}

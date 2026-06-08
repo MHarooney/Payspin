@@ -40,6 +40,13 @@ export const NAV: NavSection[] = [
       { href: '/audit', label: 'Audit Log', icon: '▤', title: 'Audit Log' },
     ],
   },
+  {
+    section: 'Data',
+    items: [
+      { href: '/data/schema', label: 'Schema', icon: '◫', title: 'Schema & Relations' },
+      { href: '/data/tables', label: 'Table Browser', icon: '⊞', title: 'Table Explorer' },
+    ],
+  },
 ];
 
 export function titleForPath(path: string): string {
@@ -51,5 +58,9 @@ export function titleForPath(path: string): string {
   // Detail routes fall back to the section prefix.
   if (path.startsWith('/transactions')) return 'Transactions';
   if (path.startsWith('/circles')) return 'Circles / ROSCA';
+  if (path.startsWith('/users')) return 'Users / KYC';
+  if (path.startsWith('/data/schema')) return 'Schema & Relations';
+  if (path.startsWith('/data/tables')) return 'Table Explorer';
+  if (path.startsWith('/data')) return 'Data Explorer';
   return 'Ops';
 }

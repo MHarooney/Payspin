@@ -12,6 +12,7 @@ export const AuditAction = {
   FLAG_TOGGLE: 'FLAG_TOGGLE',
   KILL_SWITCH_ON: 'KILL_SWITCH_ON',
   KILL_SWITCH_OFF: 'KILL_SWITCH_OFF',
+  DATA_TABLE_VIEW: 'DATA_TABLE_VIEW',
 } as const;
 
 export type AuditActionType = (typeof AuditAction)[keyof typeof AuditAction];

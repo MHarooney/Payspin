@@ -31,7 +31,7 @@ echo "    WEB: $WEB"
 echo ""
 
 echo "==> 1. Public UI routes (SSR)"
-for path in /login / /transactions /users /circles /config /audit /system /compliance /reports; do
+for path in /login / /transactions /users /circles /config /audit /system /compliance /reports /data/schema /data/tables; do
   code=$(curl -s -o /dev/null -w '%{http_code}' "$WEB$path")
   assert_code "GET $path" "200" "$code"
 done
@@ -82,7 +82,13 @@ fi
 
 echo ""
 echo "==> 5. Users & circles"
-assert_json_field "users list" "$(auth "$BASE/users?limit=5")" '.items | type == "array"'
+users_list=$(auth "$BASE/users?limit=5")
+assert_json_field "users list" "$users_list" '.items | type == "array"'
+user_id=$(echo "$users_list" | jq -r '.items[0].id // empty')
+if [[ -n "$user_id" ]]; then
+  assert_json_field "user detail" "$(auth "$BASE/users/$user_id")" ".id == \"$user_id\" and (.paymentCount >= 0)"
+else note "no users in DB"
+fi
 circle_id=$(auth "$BASE/circles?limit=1" | jq -r '.items[0].id // empty')
 if [[ -n "$circle_id" ]]; then
   assert_json_field "circle detail" "$(auth "$BASE/circles/$circle_id")" ".id == \"$circle_id\""
@@ -116,7 +122,22 @@ for ep in compliance disputes finance/exceptions messages reports app-controls; 
 done
 
 echo ""
-echo "==> 10. Security"
+echo "==> 10. Data explorer"
+schema=$(auth "$BASE/data/schema")
+assert_json_field "data/schema models" "$schema" '(.models | length) >= 10'
+tables=$(auth "$BASE/data/tables")
+assert_json_field "data/tables list" "$tables" '(.tables | type == "array") and (.tables | length) >= 1'
+rows=$(auth "$BASE/data/tables/users/rows?pageSize=3")
+assert_json_field "data/tables/users/rows paginated" "$rows" '(.rows | type == "array") and (.total >= 0)'
+if echo "$rows" | jq -e '.rows[] | select(.passwordHash != "***REDACTED***")' >/dev/null 2>&1; then
+  bad "passwordHash not redacted in users row preview"
+else
+  ok "passwordHash redacted in users row preview"
+fi
+assert_code "data/tables invalid key" "400" "$(auth -o /dev/null -w '%{http_code}' "$BASE/data/tables/not_a_table/rows")"
+
+echo ""
+echo "==> 11. Security"
 assert_code "invalid JWT" "401" "$(curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer bad.token' "$BASE/dashboard/kpis")"
 
 echo ""

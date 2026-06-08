@@ -288,3 +288,95 @@ export interface AppControlsResponse {
   defaults: PlatformConfigDto[];
   preview: boolean;
 }
+
+// ---- Data Explorer DTOs ----
+
+export interface SchemaFieldDto {
+  name: string;
+  type: string;
+  isRequired: boolean;
+  isList: boolean;
+  isRelation: boolean;
+  relationName?: string;
+  relationTarget?: string;
+}
+
+export interface SchemaRelationDto {
+  name: string;
+  from: string;
+  to: string;
+  kind: 'one-to-one' | 'one-to-many' | 'many-to-one' | 'many-to-many';
+}
+
+export interface SchemaModelDto {
+  name: string;
+  dbTable: string;
+  fields: SchemaFieldDto[];
+}
+
+export interface SchemaMetadata {
+  models: SchemaModelDto[];
+  relations: SchemaRelationDto[];
+}
+
+export interface TableSummary {
+  tableKey: string;
+  modelName: string;
+  dbTable: string;
+  rowCount: number;
+  group: 'consumer' | 'ops';
+}
+
+export interface TableSummaryList {
+  tables: TableSummary[];
+  cachedAt: string;
+}
+
+export interface TableRowsPreview {
+  tableKey: string;
+  columns: string[];
+  rows: Record<string, unknown>[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+// ---- User 360° DTOs ----
+
+export interface AdminUserBankAccount {
+  id: string;
+  ibanLast4: string;
+  bankName: string | null;
+  accountHolder: string;
+  verified: boolean;
+  isPrimary: boolean;
+}
+
+export interface AdminUserStateDto {
+  status: string;
+  kycTier: string | null;
+  kycStatus: string;
+  riskLevel: string;
+  note: string | null;
+  frozenReason: string | null;
+  updatedByEmail: string | null;
+  updatedAt: string;
+}
+
+export interface AdminUserCircleSummary {
+  id: string;
+  name: string;
+  status: string;
+  role: 'host' | 'member';
+  payoutOrder: number | null;
+}
+
+export interface AdminUserDetail extends AdminUserListItem {
+  paymentCount: number;
+  paymentLinkCount: number;
+  bankAccounts: AdminUserBankAccount[];
+  recentPayments: AdminPaymentListItem[];
+  circles: AdminUserCircleSummary[];
+  adminState: AdminUserStateDto | null;
+}

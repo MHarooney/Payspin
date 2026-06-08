@@ -1282,3 +1282,346 @@ tr:hover td {
     overflow-x: auto;
   }
 }
+
+/* ── Modal ─────────────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(3px);
+}
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 90%;
+  max-width: 520px;
+  box-shadow: var(--shadow);
+}
+
+/* ── Back link ──────────────────────────────────────────────────────── */
+.back-link {
+  color: var(--muted);
+  font-size: 12px;
+  transition: color 0.15s;
+}
+.back-link:hover {
+  color: var(--accent);
+}
+
+/* ── Schema Explorer ─────────────────────────────────────────────────── */
+.schema-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.schema-sidebar {
+  min-height: 400px;
+  overflow-y: auto;
+}
+.schema-main {
+  min-height: 400px;
+}
+.schema-model-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 13px;
+  transition: all 0.12s;
+  margin-bottom: 2px;
+  text-align: left;
+}
+.schema-model-btn:hover {
+  background: var(--panel-2);
+}
+.schema-model-btn.active {
+  background: var(--accent-2-dim);
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}
+.schema-model-name {
+  font-weight: 600;
+}
+.schema-model-count {
+  font-size: 10px;
+  color: var(--muted);
+}
+.schema-detail-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.schema-model-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.schema-dbtable {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--muted);
+}
+.schema-section-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.schema-fields-table {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.schema-fields-head {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 0.7fr;
+  padding: 8px 12px;
+  background: var(--panel-2);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+.schema-field-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 0.7fr;
+  padding: 9px 12px;
+  border-top: 1px solid var(--border);
+  align-items: center;
+  font-size: 12px;
+}
+.schema-field-row:hover {
+  background: var(--panel-2);
+}
+.schema-field-name {
+  font-size: 12px;
+}
+.schema-relation-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: monospace;
+  padding: 0;
+  text-align: left;
+}
+.schema-relation-link:hover {
+  text-decoration: underline;
+}
+.schema-relations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px;
+}
+.schema-relation-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.schema-rel-model {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 0;
+}
+.schema-rel-model:hover {
+  color: var(--accent-2);
+}
+.schema-rel-arrow {
+  flex: 1;
+  text-align: center;
+}
+
+/* ── Table Browser ───────────────────────────────────────────────────── */
+.pill-banner {
+  background: var(--amber-dim);
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+}
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.table-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text);
+}
+.table-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.table-card-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.table-card-key {
+  color: var(--muted);
+  font-size: 11px;
+}
+.table-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+.table-card-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.table-browser-card {
+  overflow: hidden;
+}
+.table-browser-meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.table-browser-scroll {
+  overflow-x: auto;
+  max-height: 60vh;
+}
+.table-browser {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+.table-browser th {
+  background: var(--panel-2);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  padding: 8px 10px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+}
+.table-browser td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.table-cell.redacted {
+  color: var(--muted);
+  font-style: italic;
+}
+.table-cell.copyable {
+  cursor: copy;
+}
+.table-cell.copyable:hover {
+  background: var(--accent-dim);
+}
+.table-browser-pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  justify-content: center;
+}
+
+/* ── User 360° ────────────────────────────────────────────────────────── */
+.user-hero {
+  margin-bottom: 0;
+}
+.user-hero-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.user-hero-info {
+  flex: 1;
+  min-width: 0;
+}
+.user-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+.field-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.field-label {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 120px;
+}
+.activity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.activity-row:last-child {
+  border: 0;
+}
+.activity-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Misc UI polish ────────────────────────────────────────────────────── */
+.hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+.mono {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+}
+tr:hover td {
+  background: var(--panel-2);
+}
+
