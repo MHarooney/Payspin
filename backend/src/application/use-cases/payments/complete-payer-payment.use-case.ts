@@ -6,10 +6,11 @@ import {
 } from '@nestjs/common';
 import { PaymentStatus as PrismaPaymentStatus } from '@prisma/client';
 import { PaymentPublicStatus, PaymentStatus } from '@payspin/shared-types';
-import { completePaymentSchema } from '@payspin/validators';
+import { completePaymentSchema, normalizeIban } from '@payspin/validators';
 import { PIS_GATEWAY, PisGateway } from '@payspin/pisp-provider';
 import { buildPaymentRequest } from '../../../infrastructure/yapily/payment-request.factory';
 import { nextStatusAfterPayment } from '../../../domain/utils/payment-link-state';
+import { resolvePayeeAccount } from '../../../domain/utils/payee-account';
 import {
   isSandboxAutoSettleEnabled,
   resolveSandboxPaymentStatus,
@@ -69,14 +70,16 @@ export class CompletePayerPaymentUseCase {
       throw new BadRequestException('Payment is missing initiation data');
     }
 
-    const iban = await this.getDecryptedIban.execute(
-      link.bankAccountId,
-      link.payeeUserId,
+    const iban = normalizeIban(
+      await this.getDecryptedIban.execute(link.bankAccountId, link.payeeUserId),
     );
+    // Build the payee with the same scheme rules used at initiation: UK banks
+    // need SORT_CODE + ACCOUNT_NUMBER (GBP), SEPA banks use the IBAN.
+    const payee = resolvePayeeAccount(iban, payment.currency);
     const paymentRequest = buildPaymentRequest({
       amountCents: payment.amountCents,
-      currency: payment.currency,
-      beneficiaryIban: iban,
+      currency: payee.currency,
+      payeeIdentifications: payee.identifications,
       beneficiaryName: link.bankAccount.accountHolder,
       reference: link.description ?? `Payspin ${link.shortCode}`,
       idempotencyKey: payment.idempotencyKey,

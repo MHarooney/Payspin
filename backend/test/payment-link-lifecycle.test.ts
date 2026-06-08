@@ -191,6 +191,46 @@ describe('payment link lifecycle', () => {
     assert.equal(polled.status, PaymentStatus.COMPLETED);
   });
 
+  it('allows a Yapily/open-banking IBAN that fails the mod-97 checksum (sandbox)', async () => {
+    // The Ozone modelo-sandbox returns test IBANs (e.g. GB29OZON…) that
+    // intentionally fail the mod-97 checksum. Because the account was verified
+    // through open banking, the IBAN is authoritative and must NOT be blocked.
+    const prisma = new FakePrisma();
+    prisma.seedLink({
+      shortCode: 'sandbox1',
+      __bankAccount: { accountHolder: 'Holder', verificationSource: 'YAPILY' },
+    });
+    const getLink = new GetPaymentLinkByShortCodeUseCase(prisma as any);
+    const initiate = new InitiatePayerPaymentUseCase(
+      prisma as any,
+      getLink,
+      { execute: async () => 'GB29OZON10000109010103' } as any,
+      noopExpire,
+      config,
+      pisGateway,
+    );
+    const init = await initiate.execute('sandbox1');
+    assert.ok(init.paymentId);
+  });
+
+  it('rejects a manually-entered IBAN that fails the mod-97 checksum', async () => {
+    const prisma = new FakePrisma();
+    prisma.seedLink({
+      shortCode: 'manualbad1',
+      __bankAccount: { accountHolder: 'Holder', verificationSource: 'MANUAL' },
+    });
+    const getLink = new GetPaymentLinkByShortCodeUseCase(prisma as any);
+    const initiate = new InitiatePayerPaymentUseCase(
+      prisma as any,
+      getLink,
+      { execute: async () => 'NL00ABNA0000000000' } as any,
+      noopExpire,
+      config,
+      pisGateway,
+    );
+    await assert.rejects(() => initiate.execute('manualbad1'), /invalid IBAN/);
+  });
+
   it('never persists a plaintext IBAN in the payment snapshot', async () => {
     const prisma = new FakePrisma();
     prisma.seedLink({ shortCode: 'redact1' });

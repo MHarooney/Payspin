@@ -19,6 +19,7 @@ import {
   institutionConfigFromEnv,
   resolveInstitutionForIban,
 } from '../../../domain/utils/institution-routing';
+import { resolvePayeeAccount } from '../../../domain/utils/payee-account';
 import { GetDecryptedIbanUseCase } from '../bank-accounts/get-decrypted-iban.use-case';
 import { GetPaymentLinkByShortCodeUseCase } from '../payment-links/get-payment-link-by-short-code.use-case';
 import { ExpireStalePaymentsUseCase } from '../payments/expire-stale-payments.use-case';
@@ -53,9 +54,15 @@ export class InitiatePayerPaymentUseCase {
     const rawIban = await this.getDecryptedIban.execute(link.bankAccountId, link.payeeUserId);
     const iban = normalizeIban(rawIban);
 
-    // Pre-flight IBAN validation: catch invalid IBANs before hitting Yapily
-    // to get a clear 400 instead of a 502 YapilyApiError.
-    if (!validateIbanMod97(iban)) {
+    // Pre-flight IBAN validation: catch manually-typed invalid IBANs before
+    // hitting Yapily to get a clear 400 instead of a 502 YapilyApiError.
+    //
+    // Open-banking (Yapily) accounts are skipped: the IBAN is returned by the
+    // bank itself and is authoritative. Sandbox/test banks (e.g. the Ozone
+    // modelo-sandbox `GB29OZON…` accounts) ship IBANs that fail the mod-97
+    // checksum; those are handled below by substituting a payable sandbox IBAN.
+    const isOpenBankingVerified = link.bankAccount.verificationSource === 'YAPILY';
+    if (!isOpenBankingVerified && !validateIbanMod97(iban)) {
       this.logger.error(
         `Invalid IBAN on bank account ${link.bankAccountId} (last4: ${iban.slice(-4)}) — mod-97 check failed`,
       );
@@ -64,8 +71,13 @@ export class InitiatePayerPaymentUseCase {
       );
     }
 
-    // Route to a Yapily institution based on the payee IBAN country (NL/DE/GB/…)
-    // instead of always hitting a single hardcoded sandbox.
+    // Build the payee using each scheme's domestic-payment rules: UK banks
+    // need SORT_CODE + ACCOUNT_NUMBER (GBP), SEPA banks use the IBAN (EUR).
+    // Derived purely from the IBAN — no bank- or test-specific values.
+    const payee = resolvePayeeAccount(iban, link.currency);
+
+    // Route to a Yapily institution based on the payee IBAN country
+    // (NL/DE/GB/…) instead of always hitting a single hardcoded sandbox.
     const { institutionId } = resolveInstitutionForIban(
       iban,
       institutionConfigFromEnv((key) => this.config.get<string>(key)),
@@ -76,8 +88,8 @@ export class InitiatePayerPaymentUseCase {
 
     const paymentRequest = buildPaymentRequest({
       amountCents: resolvedAmount,
-      currency: link.currency,
-      beneficiaryIban: iban,
+      currency: payee.currency,
+      payeeIdentifications: payee.identifications,
       beneficiaryName: link.bankAccount.accountHolder,
       // Prefer the payer's own note (shows on their bank statement, Tikkie-style);
       // otherwise fall back to the link description, then a stable code.
