@@ -2,15 +2,19 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/design_system/theme/payspin_motion.dart';
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_ambient_background.dart';
-import '../../core/design_system/widgets/payspin_confirm_dialog.dart';
+import '../../core/design_system/widgets/payspin_finance_particles.dart';
+import '../../core/design_system/widgets/payspin_glass_surface.dart';
 import '../../core/design_system/widgets/payspin_lock_keypad.dart';
 import '../../core/design_system/widgets/payspin_passcode_dots.dart';
 import '../../core/design_system/widgets/payspin_radial_glow.dart';
 import '../../core/security/app_lock_service.dart';
+import 'forgot_passcode_flow.dart';
 
 IconData biometricIconFor(BiometricKind kind) {
   switch (kind) {
@@ -33,14 +37,14 @@ class LockScreen extends StatefulWidget {
     super.key,
     required this.service,
     required this.onUnlocked,
-    required this.onForgot,
+    required this.onPasscodeReset,
+    required this.onSignOutFallback,
   });
 
   final AppLockService service;
   final VoidCallback onUnlocked;
-
-  /// Invoked by "Forgot your passcode?" — host signs out and resets the lock.
-  final VoidCallback onForgot;
+  final VoidCallback onPasscodeReset;
+  final VoidCallback onSignOutFallback;
 
   @override
   State<LockScreen> createState() => _LockScreenState();
@@ -51,6 +55,7 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
   bool _error = false;
   bool _biometricEnabled = false;
   bool _busy = false;
+  bool _entered = false;
   String? _notice;
   LockCapability _cap = LockCapability.empty;
   String _name = '';
@@ -64,6 +69,9 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     _init();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _entered = true);
+    });
   }
 
   @override
@@ -88,6 +96,12 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
   }
 
   bool get _showBiometricKey => _biometricEnabled && _cap.hasBiometrics;
+
+  String? get _greetingFirstName {
+    final trimmed = _name.trim();
+    if (trimmed.isEmpty) return null;
+    return trimmed.split(RegExp(r'\s+')).first;
+  }
 
   Future<void> _runBiometric() async {
     if (_busy) return;
@@ -142,25 +156,52 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
     }
     HapticFeedback.heavyImpact();
     setState(() => _error = true);
-    _shake.forward(from: 0);
+    if (!PayspinMotion.reduced(context)) {
+      _shake.forward(from: 0);
+    }
     await Future<void>.delayed(const Duration(milliseconds: 450));
     if (mounted) setState(() => _pin = '');
+  }
+
+  Future<void> _forgotPasscode() async {
+    if (!mounted) return;
+
+    final result = await showForgotPasscodeFlow(context);
+    switch (result) {
+      case ForgotPasscodeResult.otpVerified:
+        widget.onPasscodeReset();
+      case ForgotPasscodeResult.signOut:
+        widget.onSignOutFallback();
+      case ForgotPasscodeResult.supportSubmitted:
+      case ForgotPasscodeResult.canceled:
+      case null:
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.psColors;
-    return Scaffold(
-      backgroundColor: colors.bg,
-      body: PayspinAmbientBackground(
-        child: Stack(
+    final reduced = PayspinMotion.reduced(context);
+    final firstName = _greetingFirstName;
+
+    Widget body = PayspinAmbientBackground(
+      intensity: 0.65,
+      child: Stack(
         children: [
           const Positioned.fill(
-            child: PayspinRadialGlow(size: 360, animate: false, alignment: Alignment(0, -0.7)),
+            child: PayspinRadialGlow(
+              size: 320,
+              animate: true,
+              alignment: Alignment(0, -0.55),
+            ),
           ),
+          if (!reduced) const PayspinFinanceParticles(intensity: 0.2),
           SafeArea(
             child: Column(
               children: [
+                const SizedBox(height: 16),
+                const _LockHero(),
                 const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -168,21 +209,26 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                     children: [
                       Text(
                         'Welcome back.',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: colors.textPrimary,
-                            ),
+                        style: GoogleFonts.raleway(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: colors.textPrimary,
+                        ),
                       ),
-                      if (_name.isNotEmpty) ...[
+                      if (firstName != null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          firstName,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(fontSize: 15, color: PayspinTokens.mint),
+                        ),
+                      ],
+                      if (_name.isNotEmpty && firstName != _name.trim()) ...[
                         const SizedBox(height: 4),
                         Text(
                           _name,
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontSize: 15,
-                                color: colors.textMuted,
-                              ),
+                          style: GoogleFonts.inter(fontSize: 13, color: colors.textMuted),
                         ),
                       ],
                     ],
@@ -192,7 +238,7 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                 AnimatedBuilder(
                   animation: _shake,
                   builder: (context, child) {
-                    final dx = _error ? _shakeOffset(_shake.value) : 0.0;
+                    final dx = _error && !reduced ? _shakeOffset(_shake.value) : 0.0;
                     return Transform.translate(offset: Offset(dx, 0), child: child);
                   },
                   child: PayspinPasscodeDots(
@@ -202,18 +248,22 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                   ),
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
-                  height: 20,
-                  child: _notice != null
-                      ? Text(
-                          _notice!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                fontSize: 12,
-                                color: PayspinTokens.mustard,
-                              ),
-                        )
-                      : null,
-                ),
+                if (_notice != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: PayspinGlassSurface(
+                      tier: PayspinGlassTier.flat,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shadow: false,
+                      child: Text(
+                        _notice!,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(fontSize: 12, color: PayspinTokens.mustard),
+                      ),
+                    ),
+                  )
+                else
+                  const SizedBox(height: 20),
                 const Spacer(),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -224,51 +274,141 @@ class _LockScreenState extends State<LockScreen> with SingleTickerProviderStateM
                     onBiometric: _runBiometric,
                   ),
                 ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: _busy ? null : _confirmForgot,
-                  style: TextButton.styleFrom(
-                    backgroundColor: PayspinTokens.pink.withValues(alpha: 0.12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  ),
-                  child: Text(
-                    'Forgot your passcode?',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: PayspinTokens.pink,
-                        ),
-                  ),
-                ),
+                const SizedBox(height: 12),
+                _ForgotPasscodeButton(onTap: _busy ? null : _forgotPasscode),
                 const SizedBox(height: 20),
               ],
             ),
           ),
         ],
-        ),
       ),
     );
-  }
 
-  Future<void> _confirmForgot() async {
-    final confirmed = await showPayspinConfirmDialog(
-      context,
-      title: 'Forgot your passcode?',
-      message: 'To reset it, you\'ll be signed out and need to log in again. '
-          'Your data stays safe.',
-      confirmLabel: 'Sign out & reset',
-      destructive: true,
-      icon: Icons.lock_reset,
+    if (!reduced) {
+      body = AnimatedOpacity(opacity: _entered ? 1 : 0, duration: PayspinMotion.medium, child: body);
+    }
+
+    return Scaffold(
+      backgroundColor: colors.bg,
+      body: body,
     );
-    if (confirmed) widget.onForgot();
   }
 
-  /// Damped horizontal oscillation for the wrong-passcode shake.
   double _shakeOffset(double t) {
     const amplitude = 10.0;
     return amplitude * (1 - t) * math.sin(t * 3 * 2 * math.pi);
+  }
+}
+
+class _LockHero extends StatefulWidget {
+  const _LockHero();
+
+  @override
+  State<_LockHero> createState() => _LockHeroState();
+}
+
+class _LockHeroState extends State<_LockHero> with SingleTickerProviderStateMixin {
+  late final AnimationController _glow = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2400),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _glow.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.psColors;
+    final reduced = PayspinMotion.reduced(context);
+
+    Widget buildRing(double glowT) {
+      return Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: PayspinTokens.gradientPink,
+          boxShadow: [
+            BoxShadow(
+              color: PayspinTokens.mint.withValues(alpha: reduced ? 0.2 : 0.15 + 0.1 * glowT),
+              blurRadius: reduced ? 16 : 20 + 8 * glowT,
+              spreadRadius: reduced ? 0 : 2 * glowT,
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(3),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colors.bg,
+              border: Border.all(color: colors.glassBorder),
+            ),
+            child: const Icon(Icons.lock_outline, color: PayspinTokens.mint, size: 32),
+          ),
+        ),
+      );
+    }
+
+    return reduced
+        ? buildRing(0)
+        : AnimatedBuilder(animation: _glow, builder: (context, _) => buildRing(_glow.value));
+  }
+}
+
+class _ForgotPasscodeButton extends StatefulWidget {
+  const _ForgotPasscodeButton({this.onTap});
+
+  final VoidCallback? onTap;
+
+  @override
+  State<_ForgotPasscodeButton> createState() => _ForgotPasscodeButtonState();
+}
+
+class _ForgotPasscodeButtonState extends State<_ForgotPasscodeButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.psColors;
+    final reduced = PayspinMotion.reduced(context);
+    final enabled = widget.onTap != null;
+    final scale = (_pressed && enabled && !reduced) ? 0.98 : 1.0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: AnimatedScale(
+        scale: scale,
+        duration: PayspinMotion.fast,
+        child: Material(
+          color: colors.glassFill,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
+            side: BorderSide(color: colors.glassBorder),
+          ),
+          child: InkWell(
+            onTap: widget.onTap,
+            onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
+            onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
+            onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
+            borderRadius: BorderRadius.circular(PayspinTokens.radiusPill),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Text(
+                'Forgot your passcode?',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: enabled ? PayspinTokens.pink : colors.textHint,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

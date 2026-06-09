@@ -41,6 +41,8 @@ class _FakeAuthRepo implements AuthRepository {
       throw UnimplementedError();
   @override
   Future<void> signOut() async {}
+  @override
+  Future<bool> reauthenticateViaPhone(String idToken) async => true;
 }
 
 class _FakeBankRepo implements BankAccountRepository {

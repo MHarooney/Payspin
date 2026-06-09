@@ -5,9 +5,38 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../constants/phone_country_codes.dart';
 import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
+import 'payspin_glass_surface.dart';
 import 'payspin_underline_field.dart';
 
-/// Phone row from [screens.jsx] `Step2Phone`: glass country pill + mint underline input + inline list.
+/// Formats digits into a readable E.164 preview (`+31 612 345 678`).
+String formatPhoneE164Preview(String dialCode, String raw) {
+  final digits = raw.replaceAll(RegExp(r'\D'), '');
+  if (digits.isEmpty) return dialCode;
+  final buf = StringBuffer(dialCode);
+  for (var i = 0; i < digits.length; i++) {
+    if (i == 0) {
+      buf.write(' ');
+    } else if (i % 3 == 0) {
+      buf.write(' ');
+    }
+    buf.write(digits[i]);
+  }
+  return buf.toString();
+}
+
+/// Minimum digit count for a plausible national number per dial code.
+bool isPhoneDigitsValid(String dialCode, String raw) {
+  final digits = raw.replaceAll(RegExp(r'\D'), '');
+  if (digits.length < 6) return false;
+  return switch (dialCode) {
+    '+31' => digits.length >= 9,
+    '+49' => digits.length >= 10,
+    '+44' => digits.length >= 10,
+    _ => digits.length >= 8,
+  };
+}
+
+/// Phone row: glass country pill + mint underline input + E.164 preview.
 class PayspinPhoneInputRow extends StatefulWidget {
   const PayspinPhoneInputRow({
     super.key,
@@ -31,116 +60,86 @@ class PayspinPhoneInputRow extends StatefulWidget {
 }
 
 class _PayspinPhoneInputRowState extends State<PayspinPhoneInputRow> {
-  // The dropdown lives in the root [Overlay] via an [OverlayEntry] positioned
-  // from the anchor's real global rect. A Positioned child overflowing the
-  // local Stack used to paint but never hit-test (taps were dropped); an
-  // overlay entry is hit-tested independently, so list items respond.
-  final GlobalKey _anchorKey = GlobalKey();
-  OverlayEntry? _entry;
-
-  bool get _open => _entry != null;
-
   PhoneCountry get _selected =>
       phoneCountryByDialCode(widget.selectedDialCode) ?? defaultPhoneCountry;
 
-  void _toggleCountry() {
-    if (_open) {
-      _close();
-    } else {
-      // Drop the keyboard so the list isn't fighting the bottom inset.
-      FocusManager.instance.primaryFocus?.unfocus();
-      _openDropdown();
-    }
-  }
-
-  void _openDropdown() {
-    final box = _anchorKey.currentContext?.findRenderObject() as RenderBox?;
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-    if (box == null || overlay == null) return;
-
-    final topLeft = box.localToGlobal(Offset.zero, ancestor: overlay);
-    final size = box.size;
-    final screen = overlay.size;
-    const gap = 8.0;
-    const maxDropdownHeight = 280.0;
-
-    // Prefer opening below the row; flip above if there isn't room.
-    final spaceBelow = screen.height - (topLeft.dy + size.height) - gap;
-    final openAbove = spaceBelow < 200 && topLeft.dy > spaceBelow;
-    final maxHeight =
-        (openAbove ? topLeft.dy - gap : spaceBelow).clamp(120.0, maxDropdownHeight);
-
-    _entry = OverlayEntry(
-      builder: (_) {
-        return Stack(
-          children: [
-            // Full-screen dismiss barrier.
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _close,
-              ),
-            ),
-            Positioned(
-              left: topLeft.dx,
-              width: size.width,
-              top: openAbove ? null : topLeft.dy + size.height + gap,
-              bottom: openAbove ? screen.height - topLeft.dy + gap : null,
-              child: _CountryDropdown(
-                selected: _selected,
-                maxHeight: maxHeight,
-                onPick: _pickCountry,
-              ),
-            ),
-          ],
-        );
-      },
+  void _openCountrySheet() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _CountryPickerSheet(
+        selected: _selected,
+        onPick: (country) {
+          widget.onDialCodeChanged(country.dialCode);
+          Navigator.of(context).pop();
+        },
+      ),
     );
-    Overlay.of(context).insert(_entry!);
-    setState(() {});
-  }
-
-  void _close() {
-    _entry?.remove();
-    _entry = null;
-    if (mounted) setState(() {});
-  }
-
-  void _pickCountry(PhoneCountry country) {
-    widget.onDialCodeChanged(country.dialCode);
-    _close();
-  }
-
-  @override
-  void dispose() {
-    _entry?.remove();
-    _entry = null;
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      key: _anchorKey,
-      crossAxisAlignment: CrossAxisAlignment.end,
+    final colors = context.psColors;
+    final preview = formatPhoneE164Preview(widget.selectedDialCode, widget.phoneController.text);
+    final valid = isPhoneDigitsValid(widget.selectedDialCode, widget.phoneController.text);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _CountryPill(
-          country: _selected,
-          isOpen: _open,
-          onTap: _toggleCountry,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _CountryPill(country: _selected, onTap: _openCountrySheet),
+            const SizedBox(width: 14),
+            Expanded(
+              child: PayspinUnderlineField(
+                controller: widget.phoneController,
+                hintText: widget.phoneHint,
+                autofocus: widget.autofocusPhone,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
+                ],
+                onChanged: (v) {
+                  widget.onPhoneChanged?.call(v);
+                  setState(() {});
+                },
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: PayspinUnderlineField(
-            controller: widget.phoneController,
-            hintText: widget.phoneHint,
-            autofocus: widget.autofocusPhone,
-            keyboardType: TextInputType.phone,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9 ]')),
-            ],
-            onChanged: widget.onPhoneChanged,
-          ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                preview,
+                style: GoogleFonts.inter(fontSize: 12, color: colors.textMuted, letterSpacing: 0.02),
+              ),
+            ),
+            if (valid)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: PayspinTokens.mint.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(color: PayspinTokens.mint.withValues(alpha: 0.35)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_rounded, size: 14, color: PayspinTokens.mint),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Valid',
+                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: PayspinTokens.mint),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ],
     );
@@ -148,14 +147,9 @@ class _PayspinPhoneInputRowState extends State<PayspinPhoneInputRow> {
 }
 
 class _CountryPill extends StatelessWidget {
-  const _CountryPill({
-    required this.country,
-    required this.isOpen,
-    required this.onTap,
-  });
+  const _CountryPill({required this.country, required this.onTap});
 
   final PhoneCountry country;
-  final bool isOpen;
   final VoidCallback onTap;
 
   @override
@@ -163,11 +157,7 @@ class _CountryPill extends StatelessWidget {
     final colors = context.psColors;
     return Material(
       color: colors.glassFill,
-      shape: StadiumBorder(
-        side: BorderSide(
-          color: isOpen ? colors.borderActive : colors.border,
-        ),
-      ),
+      shape: StadiumBorder(side: BorderSide(color: colors.border)),
       child: InkWell(
         onTap: onTap,
         customBorder: const StadiumBorder(),
@@ -186,11 +176,7 @@ class _CountryPill extends StatelessWidget {
                   color: colors.textPrimary,
                 ),
               ),
-              Icon(
-                isOpen ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                size: 14,
-                color: colors.textMuted,
-              ),
+              Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: colors.textMuted),
             ],
           ),
         ),
@@ -199,24 +185,17 @@ class _CountryPill extends StatelessWidget {
   }
 }
 
-/// Country picker body shown in the overlay: a search field (filters by name,
-/// ISO, or dial code via [PhoneCountry.matchesQuery]) over the country list.
-class _CountryDropdown extends StatefulWidget {
-  const _CountryDropdown({
-    required this.selected,
-    required this.onPick,
-    this.maxHeight = 280,
-  });
+class _CountryPickerSheet extends StatefulWidget {
+  const _CountryPickerSheet({required this.selected, required this.onPick});
 
   final PhoneCountry selected;
   final ValueChanged<PhoneCountry> onPick;
-  final double maxHeight;
 
   @override
-  State<_CountryDropdown> createState() => _CountryDropdownState();
+  State<_CountryPickerSheet> createState() => _CountryPickerSheetState();
 }
 
-class _CountryDropdownState extends State<_CountryDropdown> {
+class _CountryPickerSheetState extends State<_CountryPickerSheet> {
   final TextEditingController _search = TextEditingController();
   final FocusNode _searchFocus = FocusNode();
   List<PhoneCountry> _results = kPhoneCountries;
@@ -225,7 +204,6 @@ class _CountryDropdownState extends State<_CountryDropdown> {
   void initState() {
     super.initState();
     _search.addListener(_onQueryChanged);
-    // Open straight into search so a user can type the country immediately.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _searchFocus.requestFocus();
     });
@@ -249,32 +227,82 @@ class _CountryDropdownState extends State<_CountryDropdown> {
   @override
   Widget build(BuildContext context) {
     final colors = context.psColors;
-    return Material(
-      color: colors.bgElevated,
-      elevation: 8,
-      shadowColor: Colors.black.withValues(alpha: 0.4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-        side: BorderSide(color: colors.border),
-      ),
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.72;
+
+    return PayspinGlassSurface(
+      tier: PayspinGlassTier.overlay,
+      borderRadius: 28,
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + MediaQuery.viewPaddingOf(context).bottom),
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: widget.maxHeight),
+        constraints: BoxConstraints(maxHeight: maxHeight),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildSearchField(),
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'Select country',
+              style: GoogleFonts.raleway(fontSize: 18, fontWeight: FontWeight.w800, color: colors.textPrimary),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _search,
+              focusNode: _searchFocus,
+              style: GoogleFonts.inter(fontSize: 14, color: colors.textPrimary),
+              cursorColor: colors.fieldAccent,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: 'Search country or code',
+                hintStyle: GoogleFonts.inter(fontSize: 14, color: colors.textHint),
+                prefixIcon: Icon(Icons.search_rounded, size: 18, color: colors.textMuted),
+                prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                filled: true,
+                fillColor: colors.glassFill,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
+                  borderSide: BorderSide(color: colors.border),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
+                  borderSide: BorderSide(color: colors.border),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
+                  borderSide: BorderSide(color: colors.borderActive),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             Flexible(
               child: _results.isEmpty
-                  ? _buildEmptyState()
+                  ? Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'No countries found',
+                        style: GoogleFonts.inter(fontSize: 13, color: colors.textMuted),
+                      ),
+                    )
                   : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
                       shrinkWrap: true,
-                      keyboardDismissBehavior:
-                          ScrollViewKeyboardDismissBehavior.onDrag,
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                       itemCount: _results.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 2),
-                      itemBuilder: (context, index) =>
-                          _buildCountryRow(_results[index]),
+                      itemBuilder: (_, i) => _CountryRow(
+                        country: _results[i],
+                        selected: _results[i].dialCode == widget.selected.dialCode,
+                        onTap: () => widget.onPick(_results[i]),
+                      ),
                     ),
             ),
           ],
@@ -282,62 +310,23 @@ class _CountryDropdownState extends State<_CountryDropdown> {
       ),
     );
   }
+}
 
-  Widget _buildSearchField() {
-    final colors = context.psColors;
-    return Padding(
-      padding: const EdgeInsets.all(6),
-      child: TextField(
-        controller: _search,
-        focusNode: _searchFocus,
-        style: GoogleFonts.inter(fontSize: 14, color: colors.textPrimary),
-        cursorColor: colors.fieldAccent,
-        textInputAction: TextInputAction.search,
-        decoration: InputDecoration(
-          isDense: true,
-          hintText: 'Search country or code',
-          hintStyle: GoogleFonts.inter(fontSize: 14, color: colors.textHint),
-          prefixIcon: Icon(Icons.search_rounded, size: 18, color: colors.textMuted),
-          prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-          filled: true,
-          fillColor: colors.glassFill,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
-            borderSide: BorderSide(color: colors.border),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
-            borderSide: BorderSide(color: colors.border),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(PayspinTokens.radiusInput),
-            borderSide: BorderSide(color: colors.borderActive),
-          ),
-        ),
-      ),
-    );
-  }
+class _CountryRow extends StatelessWidget {
+  const _CountryRow({required this.country, required this.selected, required this.onTap});
 
-  Widget _buildEmptyState() {
-    final colors = context.psColors;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
-      child: Text(
-        'No countries found',
-        style: GoogleFonts.inter(fontSize: 13, color: colors.textMuted),
-      ),
-    );
-  }
+  final PhoneCountry country;
+  final bool selected;
+  final VoidCallback onTap;
 
-  Widget _buildCountryRow(PhoneCountry country) {
+  @override
+  Widget build(BuildContext context) {
     final colors = context.psColors;
-    final isSelected = country.dialCode == widget.selected.dialCode;
     return Material(
-      color: isSelected ? colors.glassFill : Colors.transparent,
+      color: selected ? colors.glassFill : Colors.transparent,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
-        onTap: () => widget.onPick(country),
+        onTap: onTap,
         borderRadius: BorderRadius.circular(10),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -360,10 +349,10 @@ class _CountryDropdownState extends State<_CountryDropdown> {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isSelected ? colors.fieldAccent : colors.textMuted,
+                  color: selected ? colors.fieldAccent : colors.textMuted,
                 ),
               ),
-              if (isSelected) ...[
+              if (selected) ...[
                 const SizedBox(width: 8),
                 Icon(Icons.check_rounded, size: 16, color: colors.fieldAccent),
               ],

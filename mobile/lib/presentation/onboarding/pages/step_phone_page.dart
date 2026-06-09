@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/di/injection.dart';
 import '../../../core/constants/phone_country_codes.dart';
+import '../../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
+import '../../../core/design_system/widgets/payspin_onboarding_journey.dart';
 import '../../../core/design_system/widgets/payspin_onboarding_shell.dart';
 import '../../../core/design_system/widgets/payspin_phone_input_row.dart';
 import '../../../core/firebase/phone_auth_service.dart';
@@ -35,8 +38,6 @@ class _StepPhonePageState extends State<StepPhonePage> {
     _phone = TextEditingController(text: draft.phone);
   }
 
-  /// Cold-start restore: splash may route here with an empty cubit when phone
-  /// was saved but Firebase never returned a verification id.
   Future<void> _maybeRestoreDraft() async {
     final cubit = context.read<OnboardingCubit>();
     if (cubit.state.phone.trim().isNotEmpty) return;
@@ -61,8 +62,6 @@ class _StepPhonePageState extends State<StepPhonePage> {
     return '$_country$digits';
   }
 
-  /// Starts Firebase SMS on the phone step so the OTP screen is code-entry
-  /// only (no reCAPTCHA webview interrupting step 3).
   Future<void> _continue() async {
     final cubit = context.read<OnboardingCubit>();
     cubit.updatePhone(_phone.text);
@@ -113,11 +112,12 @@ class _StepPhonePageState extends State<StepPhonePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.psColors;
     final cubit = context.read<OnboardingCubit>();
-    final canContinue = _phone.text.trim().length >= 6 && !_sending;
+    final canContinue = isPhoneDigitsValid(_country, _phone.text) && !_sending;
+
     return PayspinOnboardingShell(
-      step: 2,
-      totalSteps: 5,
+      journey: OnboardingJourneySpec.phone,
       title: const Text('What is your\nmobile number?'),
       subtitle: _sending
           ? 'Sending a verification code to your phone…'
@@ -136,6 +136,19 @@ class _StepPhonePageState extends State<StepPhonePage> {
               cubit.updatePhone(v);
               setState(() => _error = null);
             },
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Icon(Icons.lock_outline_rounded, size: 14, color: PayspinTokens.mint.withValues(alpha: 0.7)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Only used to verify it\'s you',
+                  style: GoogleFonts.inter(fontSize: 12, color: colors.textMuted, height: 1.4),
+                ),
+              ),
+            ],
           ),
           if (_error != null) ...[
             const SizedBox(height: 14),

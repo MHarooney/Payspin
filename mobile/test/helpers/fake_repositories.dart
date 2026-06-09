@@ -26,6 +26,7 @@ class FakePaymentLinkRepository implements PaymentLinkRepository {
   Object? cancelError;
   int listCount = 0;
   int cancelCount = 0;
+  int createCount = 0;
 
   @override
   Future<List<PaymentLink>> listLinks() async {
@@ -40,10 +41,41 @@ class FakePaymentLinkRepository implements PaymentLinkRepository {
 
   @override
   Future<PaymentLink> createLink({int? amountCents, String? description, String? bankAccountId}) async {
+    createCount++;
     lastAmountCents = amountCents;
     lastDescription = description;
     lastBankAccountId = bankAccountId;
-    return links.first;
+    if (links.isEmpty) {
+      return PaymentLink(
+        id: 'created-$createCount',
+        shortCode: 'new$createCount',
+        amountCents: amountCents,
+        currency: 'EUR',
+        description: description,
+        status: 'ACTIVE',
+        createdAt: '2026-01-01T10:00:00.000Z',
+        payUrl: 'https://pay/new$createCount',
+        completedPaymentCount: 0,
+        totalReceivedCents: 0,
+      );
+    }
+    final base = links.first;
+    return PaymentLink(
+      id: base.id,
+      shortCode: base.shortCode,
+      amountCents: amountCents ?? base.amountCents,
+      currency: base.currency,
+      description: description ?? base.description,
+      status: base.status,
+      createdAt: base.createdAt,
+      payUrl: base.payUrl,
+      completedPaymentCount: base.completedPaymentCount,
+      totalReceivedCents: base.totalReceivedCents,
+      linkType: base.linkType,
+      maxUses: base.maxUses,
+      useCount: base.useCount,
+      expiresAt: base.expiresAt,
+    );
   }
 
   @override
@@ -111,10 +143,11 @@ class FakeBankAccountRepository implements BankAccountRepository {
 
 class FakeAuthRepository implements AuthRepository {
   bool session = false;
+  User? user;
   @override
   Future<bool> hasSession() async => session;
   @override
-  Future<User?> currentUser() async => null;
+  Future<User?> currentUser() async => user;
   @override
   Future<AuthSession> register({required String email, required String password, String? displayName}) async =>
       AuthSession(accessToken: 't', user: User(id: 'u', email: email, displayName: displayName, createdAt: 'now'));
@@ -134,6 +167,8 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<User> updateDisplayName(String name) async =>
       User(id: 'u', email: 'a@b.com', displayName: name, createdAt: 'now');
+  @override
+  Future<bool> reauthenticateViaPhone(String idToken) async => true;
 }
 
 class FakeNotificationRepository implements NotificationRepository {

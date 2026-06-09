@@ -11,6 +11,7 @@ import '../core/l10n/locale_controller.dart';
 import '../core/l10n/payspin_localizations.dart';
 import '../core/security/app_lock_controller.dart';
 import '../core/security/app_lock_service.dart';
+import '../domain/repositories/auth_repository.dart';
 import '../presentation/security/lock_screen.dart';
 import 'di/injection.dart';
 import 'router.dart';
@@ -87,9 +88,19 @@ class _AppLockGateState extends State<_AppLockGate> {
 
   void _onChange() => setState(() {});
 
-  Future<void> _forgot() async {
+  Future<void> _onPasscodeReset() async {
     await _service.disableLock();
     _controller.markDisabled();
+    final name = await _service.displayName();
+    if (!mounted) return;
+    widget.router.go('/security/setup', extra: name);
+  }
+
+  Future<void> _onSignOutFallback() async {
+    await _service.disableLock();
+    _controller.markDisabled();
+    await sl<AuthRepository>().signOut();
+    if (!mounted) return;
     widget.router.go('/welcome');
   }
 
@@ -102,10 +113,17 @@ class _AppLockGateState extends State<_AppLockGate> {
         children: [
           widget.child,
           if (_controller.isLocked)
-            LockScreen(
-              service: _service,
-              onUnlocked: _controller.unlock,
-              onForgot: _forgot,
+            // Dedicated navigator so forgot-passcode modals paint above the lock
+            // overlay instead of behind it on the GoRouter navigator.
+            Navigator(
+              onGenerateRoute: (_) => MaterialPageRoute<void>(
+                builder: (_) => LockScreen(
+                  service: _service,
+                  onUnlocked: _controller.unlock,
+                  onPasscodeReset: _onPasscodeReset,
+                  onSignOutFallback: _onSignOutFallback,
+                ),
+              ),
             ),
         ],
       ),

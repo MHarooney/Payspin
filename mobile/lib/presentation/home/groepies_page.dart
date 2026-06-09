@@ -8,6 +8,8 @@ import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_empty_state.dart';
 import '../../core/design_system/widgets/payspin_explainer_sheet.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
+import '../../core/design_system/widgets/payspin_morphing_sliver_header.dart';
+import '../../core/design_system/widgets/payspin_shell_tab_headers.dart';
 import '../../core/design_system/widgets/payspin_skeleton.dart';
 import '../../core/errors/api_exception.dart';
 import '../../core/state/circles_refresh_notifier.dart';
@@ -15,7 +17,7 @@ import '../../domain/entities/circle.dart';
 import '../../domain/repositories/circle_repository.dart';
 import '../circles/circle_row.dart';
 
-/// Groepies tab body — keep inside [HomePage] scroll so header + tabs stay visible.
+/// Groepies tab body with morphing sliver header.
 class GroepiesTabContent extends StatefulWidget {
   const GroepiesTabContent({super.key});
 
@@ -62,42 +64,76 @@ class _GroepiesTabContentState extends State<GroepiesTabContent> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Padding(
-        padding: EdgeInsets.fromLTRB(20, 0, 20, 120),
-        child: Column(
-          children: [
-            PayspinSkeletonRow(),
-            PayspinSkeletonRow(),
-            PayspinSkeletonRow(),
-          ],
-        ),
-      );
-    }
-    if (_error != null) {
-      return PayspinEmptyState(
-        emoji: '😕',
-        title: 'Could not load Groepies',
-        subtitle: _error!,
-        primary: PayspinGradientPillButton(label: 'Try again', onPressed: _load),
-      );
-    }
-    if (_circles.isEmpty) {
-      return _emptyState(context);
-    }
     return RefreshIndicator(
       onRefresh: _load,
       color: PayspinTokens.pink,
-      child: ListView.builder(
+      child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-        itemCount: _circles.length,
-        itemBuilder: (_, i) => CircleRow(
-          circle: _circles[i],
-          onTap: () => context.push('/circles/${_circles[i].id}'),
-        ),
+        slivers: [
+          PayspinMorphingSliverHeader(
+            expandedHeight: PayspinGroepiesShellHeaderMetrics.expandedHeight,
+            collapsedHeight: PayspinGroepiesShellHeaderMetrics.collapsedHeight,
+            builder: (ctx, t, _) => PayspinGroepiesShellHeader(t: t),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+          ..._bodySlivers(context),
+        ],
       ),
     );
+  }
+
+  List<Widget> _bodySlivers(BuildContext context) {
+    if (_loading) {
+      return const [
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(20, 0, 20, 120),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              children: [
+                PayspinSkeletonRow(),
+                PayspinSkeletonRow(),
+                PayspinSkeletonRow(),
+              ],
+            ),
+          ),
+        ),
+      ];
+    }
+    if (_error != null) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: PayspinEmptyState(
+            emoji: '😕',
+            title: 'Could not load Groepies',
+            subtitle: _error!,
+            primary: PayspinGradientPillButton(label: 'Try again', onPressed: _load),
+          ),
+        ),
+      ];
+    }
+    if (_circles.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: _emptyState(context),
+        ),
+      ];
+    }
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, i) => CircleRow(
+              circle: _circles[i],
+              onTap: () => context.push('/circles/${_circles[i].id}'),
+            ),
+            childCount: _circles.length,
+          ),
+        ),
+      ),
+    ];
   }
 
   Widget _emptyState(BuildContext context) {
@@ -140,6 +176,6 @@ class GroepiesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SafeArea(child: GroepiesTabContent());
+    return const GroepiesTabContent();
   }
 }

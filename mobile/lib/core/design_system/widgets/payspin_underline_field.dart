@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/payspin_motion.dart';
 import '../theme/payspin_semantic_colors.dart';
+import '../tokens/payspin_tokens.dart';
 
 /// Underline text field matching [screens.jsx] onboarding/send inputs:
-/// mint text + mint caret when filled; hint at 35% white; active pink underline.
+/// mint text + mint caret when filled; hint at 35% white; active mint gradient underline.
 class PayspinUnderlineField extends StatefulWidget {
   const PayspinUnderlineField({
     super.key,
@@ -19,12 +21,11 @@ class PayspinUnderlineField extends StatefulWidget {
     this.showVisibilityToggle = false,
     this.onChanged,
     this.textInputAction,
-    /// Text color when the field has a value. Defaults to the theme
-    /// [PayspinSemanticColors.fieldAccent] (pink in light, mint in dark).
-    /// Step 5 (full name) overrides with the semantic primary text colour.
     this.filledTextColor,
     this.filledLetterSpacing = 0,
     this.inputFormatters,
+    this.caretGlow = false,
+    this.trailing,
   });
 
   final TextEditingController controller;
@@ -40,6 +41,8 @@ class PayspinUnderlineField extends StatefulWidget {
   final Color? filledTextColor;
   final double filledLetterSpacing;
   final List<TextInputFormatter>? inputFormatters;
+  final bool caretGlow;
+  final Widget? trailing;
 
   @override
   State<PayspinUnderlineField> createState() => _PayspinUnderlineFieldState();
@@ -47,6 +50,7 @@ class PayspinUnderlineField extends StatefulWidget {
 
 class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
   late bool _obscured;
+  final FocusNode _focus = FocusNode();
 
   static const _fieldDecoration = InputDecoration(
     border: InputBorder.none,
@@ -78,6 +82,7 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
     super.initState();
     _obscured = widget.obscureText;
     widget.controller.addListener(_onControllerChanged);
+    _focus.addListener(_onControllerChanged);
   }
 
   @override
@@ -95,6 +100,7 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
   @override
   void dispose() {
     widget.controller.removeListener(_onControllerChanged);
+    _focus.dispose();
     super.dispose();
   }
 
@@ -103,6 +109,8 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
   bool get _isObscured => widget.showVisibilityToggle ? _obscured : widget.obscureText;
 
   bool get _hasValue => widget.controller.text.isNotEmpty;
+
+  bool get _focused => _focus.hasFocus;
 
   Color _valueColorOf(BuildContext context) =>
       widget.filledTextColor ?? context.psColors.fieldAccent;
@@ -123,12 +131,11 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
   @override
   Widget build(BuildContext context) {
     final colors = context.psColors;
-    final accent = _valueColorOf(context);
+    final accent = _hasValue ? PayspinTokens.mint : _valueColorOf(context);
     final hasValue = _hasValue;
     final fieldStyle = _fieldStyle(hasValue: hasValue, hintColor: colors.textHint, valueColor: accent);
+    final reduced = PayspinMotion.reduced(context);
 
-    // Isolate from [PayspinTheme] glass-filled [InputDecorationTheme] so typed
-    // text uses [fieldStyle], not colorScheme.onSurface (white).
     return Theme(
       data: Theme.of(context).copyWith(
         inputDecorationTheme: _fieldDecorationTheme,
@@ -145,24 +152,33 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
-                child: TextField(
-                  controller: widget.controller,
-                  autofocus: widget.autofocus,
-                  maxLength: widget.maxLength,
-                  textCapitalization: widget.textCapitalization,
-                  keyboardType: widget.keyboardType,
-                  inputFormatters: widget.inputFormatters,
-                  obscureText: _isObscured,
-                  textInputAction: widget.textInputAction,
-                  onChanged: widget.onChanged,
+                child: AnimatedDefaultTextStyle(
+                  duration: reduced ? Duration.zero : const Duration(milliseconds: 200),
                   style: fieldStyle,
-                  cursorColor: accent,
-                  decoration: _fieldDecoration.copyWith(
-                    hintText: widget.hintText,
-                    hintStyle: _fieldStyle(hasValue: false, hintColor: colors.textHint, valueColor: accent),
+                  child: TextField(
+                    controller: widget.controller,
+                    focusNode: _focus,
+                    autofocus: widget.autofocus,
+                    maxLength: widget.maxLength,
+                    textCapitalization: widget.textCapitalization,
+                    keyboardType: widget.keyboardType,
+                    inputFormatters: widget.inputFormatters,
+                    obscureText: _isObscured,
+                    textInputAction: widget.textInputAction,
+                    onChanged: widget.onChanged,
+                    style: fieldStyle,
+                    cursorColor: accent,
+                    decoration: _fieldDecoration.copyWith(
+                      hintText: widget.hintText,
+                      hintStyle: _fieldStyle(hasValue: false, hintColor: colors.textHint, valueColor: accent),
+                    ),
                   ),
                 ),
               ),
+              if (widget.trailing != null) ...[
+                const SizedBox(width: 8),
+                widget.trailing!,
+              ],
               if (widget.showVisibilityToggle) ...[
                 const SizedBox(width: 8),
                 IconButton(
@@ -180,9 +196,34 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
             ],
           ),
           const SizedBox(height: 8),
-          Container(
-            height: 1,
-            color: hasValue ? colors.borderActive : colors.border,
+          SizedBox(
+            height: _focused && widget.caretGlow ? 3 : 2,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(color: hasValue || _focused ? colors.borderActive.withValues(alpha: 0.35) : colors.border),
+                if (_focused)
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: reduced ? Duration.zero : const Duration(milliseconds: 200),
+                    curve: PayspinMotion.easeEnter,
+                    builder: (_, t, __) => FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: t,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: PayspinTokens.gradientPink,
+                          boxShadow: widget.caretGlow
+                              ? [BoxShadow(color: PayspinTokens.mint.withValues(alpha: 0.35 * t), blurRadius: 8)]
+                              : null,
+                        ),
+                      ),
+                    ),
+                  )
+                else if (hasValue)
+                  const DecoratedBox(decoration: BoxDecoration(gradient: PayspinTokens.gradientPink)),
+              ],
+            ),
           ),
         ],
       ),

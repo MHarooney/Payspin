@@ -16,12 +16,16 @@ class PayspinPromoGradientCard extends StatefulWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.swipeRevealProgress = 0,
+    this.useOpaqueSwipeBacking = false,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final double swipeRevealProgress;
+  final bool useOpaqueSwipeBacking;
 
   @override
   State<PayspinPromoGradientCard> createState() => _PayspinPromoGradientCardState();
@@ -29,6 +33,80 @@ class PayspinPromoGradientCard extends StatefulWidget {
 
 class _PayspinPromoGradientCardState extends State<PayspinPromoGradientCard> {
   bool _pressed = false;
+
+  Widget _buildCard(PayspinSemanticColors colors) {
+    final chevronOpacity = (1 - (widget.swipeRevealProgress * 1.4)).clamp(0.0, 1.0);
+
+    Widget card = PayspinGlassSurface(
+      tier: PayspinGlassTier.raised,
+      gradientBorder: true,
+      borderRadius: 20,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: PayspinTokens.gradientPink,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: PayspinTokens.pink.withValues(alpha: 0.30),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Icon(widget.icon, color: PayspinTokens.onBrand, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.raleway(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    color: colors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  widget.subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(fontSize: 12.5, color: colors.textMuted, height: 1.3),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Opacity(
+            opacity: chevronOpacity,
+            child: Icon(Icons.arrow_forward_ios_rounded, size: 14, color: colors.textMuted),
+          ),
+        ],
+      ),
+    );
+
+    if (widget.useOpaqueSwipeBacking) {
+      card = DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.bgElevated,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: colors.glassBorder),
+        ),
+        child: card,
+      );
+    }
+
+    return card;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,59 +127,7 @@ class _PayspinPromoGradientCardState extends State<PayspinPromoGradientCard> {
           scale: _pressed ? 0.98 : 1,
           duration: PayspinMotion.fast,
           curve: Curves.easeOut,
-          child: PayspinGlassSurface(
-            tier: PayspinGlassTier.raised,
-            gradientBorder: true,
-            borderRadius: 20,
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: PayspinTokens.gradientPink,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: PayspinTokens.pink.withValues(alpha: 0.30),
-                        blurRadius: 16,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Icon(widget.icon, color: PayspinTokens.onBrand, size: 24),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.raleway(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        widget.subtitle,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(fontSize: 12.5, color: colors.textMuted, height: 1.3),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.arrow_forward_ios_rounded, size: 14, color: colors.textMuted),
-              ],
-            ),
-          ),
+          child: _buildCard(colors),
         ),
       ),
     );

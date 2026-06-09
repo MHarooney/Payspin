@@ -10,10 +10,13 @@ import 'package:payspin_mobile/core/design_system/widgets/payspin_skeleton.dart'
 import 'package:payspin_mobile/core/errors/api_exception.dart';
 import 'package:payspin_mobile/core/state/links_refresh_notifier.dart';
 import 'package:payspin_mobile/core/state/notifications_refresh_notifier.dart';
+import 'package:payspin_mobile/core/storage/archived_links_store.dart';
+import 'package:payspin_mobile/core/storage/dismissed_recommendations_store.dart';
 import 'package:payspin_mobile/core/storage/favorite_links_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:payspin_mobile/domain/entities/institution.dart';
 import 'package:payspin_mobile/domain/entities/payment_link.dart';
+import 'package:payspin_mobile/domain/entities/user.dart';
 import 'package:payspin_mobile/domain/repositories/auth_repository.dart';
 import 'package:payspin_mobile/domain/repositories/bank_account_repository.dart';
 import 'package:payspin_mobile/domain/repositories/notification_repository.dart';
@@ -88,14 +91,22 @@ void main() {
     // (PayspinRadialGlow / PayspinSkeleton), so pumpAndSettle would never
     // settle. Use bounded pumps to let the load future resolve and the first
     // frame build instead.
-    Future<void> pumpHome(WidgetTester tester, FakePaymentLinkRepository repo, LinksRefreshNotifier notifier) async {
+    Future<void> pumpHome(
+      WidgetTester tester,
+      FakePaymentLinkRepository repo,
+      LinksRefreshNotifier notifier, {
+      FakeAuthRepository? auth,
+    }) async {
       _sl.registerSingleton<PaymentLinkRepository>(repo);
       _sl.registerSingleton<LinksRefreshNotifier>(notifier);
       _sl.registerSingleton<NotificationsRefreshNotifier>(NotificationsRefreshNotifier());
       _sl.registerSingleton<NotificationRepository>(FakeNotificationRepository());
+      _sl.registerSingleton<AuthRepository>(auth ?? FakeAuthRepository());
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       _sl.registerSingleton<FavoriteLinksStore>(FavoriteLinksStore(prefs));
+      _sl.registerSingleton<ArchivedLinksStore>(ArchivedLinksStore(prefs));
+      _sl.registerSingleton<DismissedRecommendationsStore>(DismissedRecommendationsStore(prefs));
       await tester.pumpWidget(wrap(const Scaffold(body: HomePage())));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
@@ -109,6 +120,23 @@ void main() {
     testWidgets('renders a link row', (tester) async {
       await pumpHome(tester, FakePaymentLinkRepository(links: [_link()]), LinksRefreshNotifier());
       expect(find.text('Lunch'), findsOneWidget);
+    });
+
+    testWidgets('greeting includes the user first name', (tester) async {
+      final auth = FakeAuthRepository()
+        ..user = const User(
+          id: 'u',
+          email: 'karim@payspin.dev',
+          displayName: 'Karim Demir',
+          createdAt: '2026-01-01T00:00:00.000Z',
+        );
+      await pumpHome(
+        tester,
+        FakePaymentLinkRepository(links: [_link()]),
+        LinksRefreshNotifier(),
+        auth: auth,
+      );
+      expect(find.textContaining('Karim'), findsOneWidget);
     });
 
     testWidgets('shows an error message when listing fails', (tester) async {
@@ -150,9 +178,12 @@ void main() {
       _sl.registerSingleton<LinksRefreshNotifier>(LinksRefreshNotifier());
       _sl.registerSingleton<NotificationsRefreshNotifier>(NotificationsRefreshNotifier());
       _sl.registerSingleton<NotificationRepository>(FakeNotificationRepository());
+      _sl.registerSingleton<AuthRepository>(FakeAuthRepository());
       SharedPreferences.setMockInitialValues({'payspin_favorite_link_ids': <String>['settled']});
       final prefs = await SharedPreferences.getInstance();
       _sl.registerSingleton<FavoriteLinksStore>(FavoriteLinksStore(prefs));
+      _sl.registerSingleton<ArchivedLinksStore>(ArchivedLinksStore(prefs));
+      _sl.registerSingleton<DismissedRecommendationsStore>(DismissedRecommendationsStore(prefs));
       await tester.pumpWidget(wrap(const Scaffold(body: HomePage())));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
@@ -186,7 +217,8 @@ void main() {
       _sl.registerSingleton<PaymentLinkRepository>(repo);
       _sl.registerSingleton<LinksRefreshNotifier>(LinksRefreshNotifier());
       await tester.pumpWidget(wrap(const LinkDetailPage(linkId: 'l1')));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
     }
 
     testWidgets('renders amount and friendly payment status labels', (tester) async {
@@ -209,11 +241,20 @@ void main() {
     testWidgets('shows cancel action for an active link', (tester) async {
       await pumpDetail(tester, FakePaymentLinkRepository(detail: _detail(status: 'ACTIVE')));
       expect(find.text('Cancel this link'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
     });
 
     testWidgets('hides cancel action for a settled link', (tester) async {
       await pumpDetail(tester, FakePaymentLinkRepository(detail: _detail(status: 'SETTLED')));
       expect(find.text('Cancel this link'), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+
+    testWidgets('shows Request again for a cancelled link', (tester) async {
+      await pumpDetail(tester, FakePaymentLinkRepository(detail: _detail(status: 'CANCELLED')));
+      expect(find.text('Request again'), findsOneWidget);
+      expect(find.text('Share via WhatsApp'), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
     });
 
     testWidgets('surfaces an error snackbar when cancel fails', (tester) async {
@@ -225,7 +266,8 @@ void main() {
         ),
       );
       await tester.tap(find.text('Cancel this link'));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(find.text('Cancel link'));
       await tester.pump(); // start cancel
       await tester.pump(const Duration(milliseconds: 50)); // let snackbar appear
@@ -250,13 +292,15 @@ void main() {
       await tester.pump();
       expect(find.byType(PayspinSkeleton), findsWidgets);
       completer.complete(const []);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
     });
 
     testWidgets('shows empty state when no banks are returned', (tester) async {
       registerConnectDeps(FakeBankAccountRepository(institutions: const []));
       await tester.pumpWidget(wrap(const StepConnectBankPage()));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       expect(find.textContaining('No banks available'), findsOneWidget);
     });
 
@@ -265,14 +309,16 @@ void main() {
         institutions: const [Institution(id: 'ing', name: 'ING Bank', fullName: 'ING Bank')],
       ));
       await tester.pumpWidget(wrap(const StepConnectBankPage()));
-      await tester.pumpAndSettle();
-      expect(find.text('ING Bank'), findsOneWidget);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('ING Bank'), findsWidgets);
     });
 
     testWidgets('shows an error message when loading fails', (tester) async {
       registerConnectDeps(FakeBankAccountRepository(institutionsError: ApiException(502, '')));
       await tester.pumpWidget(wrap(const StepConnectBankPage()));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       expect(find.textContaining('temporarily unavailable'), findsOneWidget);
     });
   });

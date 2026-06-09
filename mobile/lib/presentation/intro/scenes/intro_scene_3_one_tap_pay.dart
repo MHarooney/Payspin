@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/design_system/theme/payspin_motion.dart';
 import '../../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
+import '../../../core/design_system/widgets/payspin_glass_surface.dart';
+import '../intro_mini_confetti.dart';
+import '../intro_narrative.dart';
+import '../intro_scene_lifecycle.dart';
 
-/// Scene 3 — a phone shows a Payspin pay link; a single tap flips it to a
-/// success state.
+/// Scene 3 — phone pay link; one tap → success + mini confetti.
 class IntroScene3 extends StatefulWidget {
-  const IntroScene3({super.key});
+  const IntroScene3({super.key, this.sceneIndex = 2});
+
+  final int sceneIndex;
 
   @override
   State<IntroScene3> createState() => _IntroScene3State();
 }
 
 class _IntroScene3State extends State<IntroScene3>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, IntroSceneLifecycle {
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 3600),
@@ -26,6 +32,7 @@ class _IntroScene3State extends State<IntroScene3>
     if (!WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.disableAnimations) {
       _c.repeat();
     }
+    bindIntroLoop(controller: _c, sceneIndex: widget.sceneIndex);
   }
 
   @override
@@ -37,7 +44,7 @@ class _IntroScene3State extends State<IntroScene3>
   @override
   Widget build(BuildContext context) {
     if (PayspinMotion.reduced(context)) {
-      return const _Phone(t: 0.75);
+      return const _Phone(t: 0.55);
     }
     return AnimatedBuilder(
       animation: _c,
@@ -53,63 +60,89 @@ class _Phone extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.psColors;
-    // Tap happens at ~0.45, success holds afterwards.
     final tap = ((t - 0.4) / 0.1).clamp(0.0, 1.0);
     final paid = ((t - 0.5) / 0.2).clamp(0.0, 1.0);
     final pressed = tap > 0 && tap < 1;
+    final confetti = paid > 0.3 ? ((paid - 0.3) / 0.7).clamp(0.0, 1.0) : 0.0;
 
     return Center(
-      child: Container(
-        width: 200,
-        height: 300,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: colors.bgElevated,
-          borderRadius: BorderRadius.circular(34),
-          border: Border.all(color: colors.glassBorder, width: 2),
-          boxShadow: PayspinTokens.fabShadow,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: Container(
-            color: colors.bg,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                const SizedBox(height: 12),
-                Text('€24,50',
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w900,
-                    )),
-                const SizedBox(height: 4),
-                Text('Dinner • via Payspin',
-                    style: TextStyle(color: colors.textMuted, fontSize: 12)),
-                const Spacer(),
-                if (paid < 0.5)
-                  Transform.scale(
-                    scale: pressed ? 0.95 : 1.0,
-                    child: Container(
-                      width: double.infinity,
-                      height: 48,
+      child: FittedBox(
+        fit: BoxFit.contain,
+        child: SizedBox(
+          width: 188,
+          height: 248,
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              if (confetti > 0)
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: IntroMiniConfetti(progress: confetti),
+                ),
+              PayspinGlassSurface(
+                tier: PayspinGlassTier.raised,
+                glow: true,
+                gradientBorder: true,
+                padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 4,
                       decoration: BoxDecoration(
-                        gradient: PayspinTokens.gradientPink,
-                        borderRadius: BorderRadius.circular(14),
+                        color: colors.glassBorder,
+                        borderRadius: BorderRadius.circular(3),
                       ),
-                      alignment: Alignment.center,
-                      child: const Text('Pay',
-                          style: TextStyle(
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      IntroNarrative.demoAmount,
+                      style: GoogleFonts.raleway(
+                        color: colors.textPrimary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        height: 1.05,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${IntroNarrative.demoLabel} • ${IntroNarrative.demoVia}',
+                      style: GoogleFonts.inter(
+                        color: colors.textMuted,
+                        fontSize: 11,
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    if (paid < 0.5)
+                      Transform.scale(
+                        scale: pressed ? 0.94 : 1.0,
+                        child: Container(
+                          width: double.infinity,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            gradient: PayspinTokens.gradientPink,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            'Pay',
+                            style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
-                              fontSize: 16)),
-                    ),
-                  )
-                else
-                  _success(paid),
-                const SizedBox(height: 20),
-              ],
-            ),
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      _success(paid),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -119,27 +152,27 @@ class _Phone extends StatelessWidget {
   Widget _success(double p) {
     final scale = Curves.easeOutBack.transform(p.clamp(0.0, 1.0));
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Transform.scale(
           scale: scale,
           child: Container(
-            width: 56,
-            height: 56,
+            width: 42,
+            height: 42,
             decoration: const BoxDecoration(
-              color: PayspinTokens.green,
+              gradient: PayspinTokens.gradientPink,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_rounded, color: Colors.white, size: 32),
+            child: const Icon(Icons.check_rounded, color: Colors.white, size: 24),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 6),
         Opacity(
           opacity: p,
-          child: const Text('Paid',
-              style: TextStyle(
-                  color: PayspinTokens.green,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15)),
+          child: const Text(
+            'Paid',
+            style: TextStyle(color: PayspinTokens.green, fontWeight: FontWeight.w800, fontSize: 14),
+          ),
         ),
       ],
     );

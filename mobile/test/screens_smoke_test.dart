@@ -63,6 +63,7 @@ void main() {
     testWidgets('welcome', (tester) async {
       await pumpRoute(tester, router, '/welcome');
       expect(find.text('Get started'), findsOneWidget);
+      expect(find.textContaining('Log in'), findsOneWidget);
     });
 
     testWidgets('login', (tester) async {
@@ -73,6 +74,7 @@ void main() {
     testWidgets('onboarding name — underline field renders', (tester) async {
       await pumpRoute(tester, router, '/onboarding/name');
       expect(find.text('What should we call you?'), findsOneWidget);
+      expect(find.text('You'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -90,6 +92,8 @@ void main() {
 
     testWidgets('onboarding connect bank', (tester) async {
       await pumpRoute(tester, router, '/onboarding/connect');
+      expect(find.text('Connect your bank'), findsWidgets);
+      expect(find.text('Get paid'), findsOneWidget);
       // Drain secure-storage read timeout started in initState.
       await tester.pump(const Duration(seconds: 4));
       expect(tester.takeException(), isNull);
@@ -107,7 +111,11 @@ void main() {
 
     testWidgets('onboarding success', (tester) async {
       await pumpRoute(tester, router, '/onboarding/success');
+      await tester.pump(const Duration(milliseconds: 2500));
       expect(find.text('Nice!'), findsOneWidget);
+      expect(find.text('Secure your account'), findsOneWidget);
+      expect(find.text('Welcome aboard. Send and request payments in seconds.'), findsOneWidget);
+      expect(find.text('One last step — lock your app'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

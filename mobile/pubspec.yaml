@@ -1,7 +1,7 @@
 name: payspin_mobile
 description: Payspin mobile app — P2P payment links (Flutter)
 publish_to: "none"
-version: 1.7.0+23
+version: 1.7.0+24
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -33,6 +33,7 @@ dependencies:
   local_auth: ^3.0.1
   crypto: ^3.0.7
   sensors_plus: ^7.0.0
+  flutter_earth_globe: ^2.2.1
 
 dev_dependencies:
   flutter_test:
@@ -69,4 +70,5 @@ flutter:
     - assets/images/payspin_emblem_qr_center_light.png
     - assets/images/payspin_wordmark.png
     - assets/images/payspin_logo_lockup.png
+    - assets/textures/
     - shorebird.yaml

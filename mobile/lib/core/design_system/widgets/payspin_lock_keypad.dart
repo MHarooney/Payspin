@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../theme/payspin_motion.dart';
 import '../theme/payspin_semantic_colors.dart';
 import '../tokens/payspin_tokens.dart';
 
@@ -47,8 +48,7 @@ class PayspinLockKeypad extends StatelessWidget {
             _digit('0', colors),
             _action(
               colors,
-              child: Icon(Icons.backspace_outlined,
-                  color: colors.textBody, size: 26),
+              child: Icon(Icons.backspace_outlined, color: colors.textBody, size: 26),
               onTap: onBackspace,
             ),
           ],
@@ -97,7 +97,7 @@ class PayspinLockKeypad extends StatelessWidget {
       );
 }
 
-class _KeypadButton extends StatelessWidget {
+class _KeypadButton extends StatefulWidget {
   const _KeypadButton({required this.child, required this.colors, this.onTap});
 
   final Widget child;
@@ -105,19 +105,39 @@ class _KeypadButton extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
+  State<_KeypadButton> createState() => _KeypadButtonState();
+}
+
+class _KeypadButtonState extends State<_KeypadButton> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
+    final reduced = PayspinMotion.reduced(context);
+    final scale = (_pressed && !reduced) ? 0.94 : 1.0;
+
     return Padding(
       padding: const EdgeInsets.all(6),
-      child: Material(
-        color: Colors.transparent,
-        shape: const CircleBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          highlightColor: colors.glassFill,
-          splashColor: colors.surfaceRaised,
-          child: Center(child: child),
+      child: AnimatedScale(
+        scale: scale,
+        duration: PayspinMotion.fast,
+        curve: PayspinMotion.easeEnter,
+        child: Material(
+          color: widget.colors.glassFill,
+          shape: CircleBorder(
+            side: BorderSide(color: widget.colors.glassBorder),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: widget.onTap,
+            onTapDown: widget.onTap == null ? null : (_) => setState(() => _pressed = true),
+            onTapUp: widget.onTap == null ? null : (_) => setState(() => _pressed = false),
+            onTapCancel: widget.onTap == null ? null : () => setState(() => _pressed = false),
+            customBorder: const CircleBorder(),
+            highlightColor: widget.colors.surfaceRaised,
+            splashColor: PayspinTokens.mint.withValues(alpha: 0.12),
+            child: Center(child: widget.child),
+          ),
         ),
       ),
     );

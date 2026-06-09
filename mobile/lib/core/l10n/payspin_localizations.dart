@@ -346,29 +346,33 @@ class PayspinLocalizations {
       });
 
   // —— Home dashboard ——
-  String homeGreeting(int hour) {
+  String homeGreeting(int hour, {String? name}) {
+    final String base;
     if (hour < 12) {
-      return _pick({
+      base = _pick({
         'en': 'Good morning',
         'nl': 'Goedemorgen',
         'de': 'Guten Morgen',
         'ar': 'صباح الخير',
       });
-    }
-    if (hour < 18) {
-      return _pick({
+    } else if (hour < 18) {
+      base = _pick({
         'en': 'Good afternoon',
         'nl': 'Goedemiddag',
         'de': 'Guten Tag',
         'ar': 'مساء الخير',
       });
+    } else {
+      base = _pick({
+        'en': 'Good evening',
+        'nl': 'Goedenavond',
+        'de': 'Guten Abend',
+        'ar': 'مساء الخير',
+      });
     }
-    return _pick({
-      'en': 'Good evening',
-      'nl': 'Goedenavond',
-      'de': 'Guten Abend',
-      'ar': 'مساء الخير',
-    });
+    final trimmed = name?.trim();
+    if (trimmed == null || trimmed.isEmpty) return base;
+    return '$base, $trimmed';
   }
 
   // Quick actions.
@@ -466,6 +470,13 @@ class PayspinLocalizations {
         'ar': 'ابدأ طلبًا مشابهًا لـ "$description".',
       });
 
+  String recRequestAgainSubtitleAmount(String amountLabel) => _pick({
+        'en': 'Start a similar request for $amountLabel.',
+        'nl': 'Start een vergelijkbaar verzoek voor $amountLabel.',
+        'de': 'Starte eine ähnliche Anfrage über $amountLabel.',
+        'ar': 'ابدأ طلبًا مشابهًا بمبلغ $amountLabel.',
+      });
+
   String get recGroepiesTitle => _pick({
         'en': 'Split with Groepies',
         'nl': 'Splitsen met Groepies',
@@ -535,6 +546,125 @@ class PayspinLocalizations {
         'nl': 'Je kunt maximaal 8 favorieten vastzetten.',
         'de': 'Du kannst bis zu 8 Favoriten anheften.',
         'ar': 'يمكنك تثبيت 8 مفضلات كحد أقصى.',
+      });
+
+  String get showQr => _pick({
+        'en': 'Show QR',
+        'nl': 'QR tonen',
+        'de': 'QR anzeigen',
+        'ar': 'عرض رمز QR',
+      });
+
+  String get requestAgain => _pick({
+        'en': 'Request again',
+        'nl': 'Opnieuw aanvragen',
+        'de': 'Erneut anfordern',
+        'ar': 'اطلب مرة أخرى',
+      });
+
+  String get hideFromRecent => _pick({
+        'en': 'Hide from recent',
+        'nl': 'Verbergen in recent',
+        'de': 'Aus „Zuletzt“ ausblenden',
+        'ar': 'إخفاء من الأخيرة',
+      });
+
+  String get hiddenFromRecent => _pick({
+        'en': 'Hidden from recent',
+        'nl': 'Verborgen in recent',
+        'de': 'Aus „Zuletzt“ ausgeblendet',
+        'ar': 'مخفي من الأخيرة',
+      });
+
+  String get undoHide => _pick({
+        'en': 'Undo',
+        'nl': 'Ongedaan maken',
+        'de': 'Rückgängig',
+        'ar': 'تراجع',
+      });
+
+  String get linkCantBeShared => _pick({
+        'en': 'This link can\'t be shared',
+        'nl': 'Deze link kan niet worden gedeeld',
+        'de': 'Dieser Link kann nicht geteilt werden',
+        'ar': 'لا يمكن مشاركة هذا الرابط',
+      });
+
+  String get cancelLinkTitle => _pick({
+        'en': 'Cancel this link?',
+        'nl': 'Deze link annuleren?',
+        'de': 'Diesen Link stornieren?',
+        'ar': 'إلغاء هذا الرابط؟',
+      });
+
+  String get cancelLinkMessage => _pick({
+        'en': 'Anyone with the link will no longer be able to pay it. This can\'t be undone.',
+        'nl': 'Iedereen met de link kan er niet meer mee betalen. Dit kan niet ongedaan worden gemaakt.',
+        'de': 'Wer den Link hat, kann damit nicht mehr bezahlen. Das lässt sich nicht rückgängig machen.',
+        'ar': 'لن يتمكن أي شخص لديه الرابط من الدفع عبره. لا يمكن التراجع عن ذلك.',
+      });
+
+  String get cancelLinkConfirm => _pick({
+        'en': 'Cancel link',
+        'nl': 'Link annuleren',
+        'de': 'Link stornieren',
+        'ar': 'إلغاء الرابط',
+      });
+
+  String get keepLink => _pick({
+        'en': 'Keep link',
+        'nl': 'Link behouden',
+        'de': 'Link behalten',
+        'ar': 'الإبقاء على الرابط',
+      });
+
+  String get linkCancelled => _pick({
+        'en': 'Payment link cancelled',
+        'nl': 'Betaallink geannuleerd',
+        'de': 'Zahlungslink storniert',
+        'ar': 'تم إلغاء رابط الدفع',
+      });
+
+  String get filterAll => _pick({
+        'en': 'All',
+        'nl': 'Alles',
+        'de': 'Alle',
+        'ar': 'الكل',
+      });
+
+  String get filterActive => _pick({
+        'en': 'Active',
+        'nl': 'Actief',
+        'de': 'Aktiv',
+        'ar': 'نشط',
+      });
+
+  String get filterPaid => _pick({
+        'en': 'Paid',
+        'nl': 'Betaald',
+        'de': 'Bezahlt',
+        'ar': 'مدفوع',
+      });
+
+  String get swipeMore => _pick({
+        'en': 'More',
+        'nl': 'Meer',
+        'de': 'Mehr',
+        'ar': 'المزيد',
+      });
+
+  String get swipeHide => _pick({
+        'en': 'Hide',
+        'nl': 'Verberg',
+        'de': 'Ausblenden',
+        'ar': 'إخفاء',
+      });
+
+  String get dismissRecommendation => _pick({
+        'en': 'Dismiss',
+        'nl': 'Sluiten',
+        'de': 'Ausblenden',
+        'ar': 'تجاهل',
       });
 
   // —— Intro storyboard ——
@@ -632,6 +762,12 @@ class PayspinLocalizations {
         _ => {'en': 'All over Europe', 'nl': 'Heel Europa', 'de': 'Ganz Europa', 'ar': 'كل أوروبا'},
       });
 
+  String introProfessionLabel(int i) => _pick(switch (i) {
+        0 => {'en': 'Photographer', 'nl': 'Fotograaf', 'de': 'Fotograf', 'ar': 'مصور'},
+        1 => {'en': 'Tradesperson', 'nl': 'Vakman', 'de': 'Handwerker', 'ar': 'حرفي'},
+        _ => {'en': 'Freelancer', 'nl': 'Freelancer', 'de': 'Freelancer', 'ar': 'مستقل'},
+      });
+
   // —— Notifications ——
   String get notificationsTitle => _pick({
         'en': 'Notifications',
@@ -716,6 +852,62 @@ class PayspinLocalizations {
         'nl': 'Deel via WhatsApp',
         'de': 'Über WhatsApp teilen',
         'ar': 'مشاركة عبر واتساب',
+      });
+
+  String get saveLink => _pick({
+        'en': 'Save link',
+        'nl': 'Link opslaan',
+        'de': 'Link speichern',
+        'ar': 'حفظ الرابط',
+      });
+
+  String get linkSaved => _pick({
+        'en': 'Link saved — share anytime',
+        'nl': 'Link opgeslagen — deel wanneer je wilt',
+        'de': 'Link gespeichert — jederzeit teilen',
+        'ar': 'تم حفظ الرابط — شاركه في أي وقت',
+      });
+
+  String get moreSharingOptions => _pick({
+        'en': 'More sharing options',
+        'nl': 'Meer deelopties',
+        'de': 'Weitere Teilen-Optionen',
+        'ar': 'خيارات مشاركة أخرى',
+      });
+
+  String get moreApps => _pick({
+        'en': 'More apps',
+        'nl': 'Meer apps',
+        'de': 'Mehr Apps',
+        'ar': 'تطبيقات أخرى',
+      });
+
+  String get paymentsSection => _pick({
+        'en': 'Payments',
+        'nl': 'Betalingen',
+        'de': 'Zahlungen',
+        'ar': 'المدفوعات',
+      });
+
+  String get noPaymentsYet => _pick({
+        'en': 'No payments yet — waiting for the first.',
+        'nl': 'Nog geen betalingen — wachten op de eerste.',
+        'de': 'Noch keine Zahlungen — warten auf die erste.',
+        'ar': 'لا توجد مدفوعات بعد — في انتظار الأولى.',
+      });
+
+  String get cancelThisLink => _pick({
+        'en': 'Cancel this link',
+        'nl': 'Deze link annuleren',
+        'de': 'Diesen Link stornieren',
+        'ar': 'إلغاء هذا الرابط',
+      });
+
+  String get shareUnavailable => _pick({
+        'en': 'Sharing is not available on this device right now.',
+        'nl': 'Delen is op dit apparaat nu niet beschikbaar.',
+        'de': 'Teilen ist auf diesem Gerät gerade nicht verfügbar.',
+        'ar': 'المشاركة غير متاحة على هذا الجهاز حالياً.',
       });
 
   String get payInto => _pick({

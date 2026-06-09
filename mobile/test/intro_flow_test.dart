@@ -5,6 +5,7 @@ import 'package:payspin_mobile/core/design_system/theme/payspin_theme.dart';
 import 'package:payspin_mobile/core/l10n/locale_controller.dart';
 import 'package:payspin_mobile/core/l10n/payspin_localizations.dart';
 import 'package:payspin_mobile/presentation/intro/payspin_intro_flow.dart';
+import 'package:payspin_mobile/presentation/intro/payspin_intro_progress_rail.dart';
 import 'package:payspin_mobile/presentation/intro/scenes/intro_scene_1_bill_to_links.dart';
 
 Widget _app(Widget child, {Locale locale = const Locale('en')}) => MaterialApp(
@@ -32,6 +33,9 @@ void main() {
         for (var i = 0; i < 4; i++) {
           expect(l10n.introValueWord(i).trim(), isNotEmpty);
         }
+        for (var i = 0; i < 3; i++) {
+          expect(l10n.introProfessionLabel(i).trim(), isNotEmpty);
+        }
         expect(l10n.introSkip.trim(), isNotEmpty);
         expect(l10n.introGetStarted.trim(), isNotEmpty);
       });
@@ -54,11 +58,32 @@ void main() {
       expect(find.text(l10n.introSkip), findsOneWidget);
       expect(find.text(l10n.introNext), findsOneWidget);
 
-      await tester.tap(find.text(l10n.introNext));
+      await tester.tap(find.byKey(const Key('intro_next')));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
       await tester.pump(const Duration(milliseconds: 400));
+      // Scene 2 (the 3D globe) mounts lazily as the page settles and schedules a
+      // post-frame load timer; pump again so it fires before teardown.
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
 
       expect(find.text(l10n.introSceneTitle(2)), findsOneWidget);
+      // The globe loads a bundled texture; the test harness can't decode assets,
+      // so tolerate only that specific load error.
+      final exception = tester.takeException();
+      expect(
+        exception == null ||
+            exception.toString().contains('Unable to load asset'),
+        isTrue,
+        reason: 'unexpected exception during scene transition: $exception',
+      );
+    });
+
+    testWidgets('progress rail pumps without error', (tester) async {
+      await tester.pumpWidget(
+        _app(const PayspinIntroProgressRail(count: 5, active: 2, pageOffset: 2.2)),
+      );
+      await tester.pump(const Duration(milliseconds: 400));
       expect(tester.takeException(), isNull);
     });
 

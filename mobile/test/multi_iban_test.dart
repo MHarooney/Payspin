@@ -85,14 +85,24 @@ void main() {
     testWidgets('hides the selector when the user has a single IBAN', (tester) async {
       bank.accounts = [_acc('ba1', '1111', primary: true)];
       await tester.pumpWidget(_themed(const SendNamePage(amountLabel: '€10.00', amountCents: 1000)));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
       expect(find.text('Pay into'), findsNothing);
+    });
+
+    testWidgets('Save link is available with a single IBAN and no description', (tester) async {
+      bank.accounts = [_acc('ba1', '1111', primary: true)];
+      await tester.pumpWidget(_themed(const SendNamePage(amountLabel: '€10.00', amountCents: 1000)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text('Save link'), findsOneWidget);
     });
 
     testWidgets('shows the selector and switches the chosen IBAN when >1', (tester) async {
       bank.accounts = [_acc('ba1', '1111', primary: true), _acc('ba2', '2222')];
       await tester.pumpWidget(_themed(const SendNamePage(amountLabel: '€10.00', amountCents: 1000)));
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
 
       // Primary IBAN is preselected in the inline selector.
       expect(find.text('Pay into'), findsOneWidget);

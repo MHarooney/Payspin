@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { LoginUserUseCase } from '../../../application/use-cases/auth/login-user.use-case';
 import { PhoneSignInUseCase } from '../../../application/use-cases/auth/phone-sign-in.use-case';
 import { RegisterUserUseCase } from '../../../application/use-cases/auth/register-user.use-case';
+import { ReauthenticatePhoneUseCase } from '../../../application/use-cases/auth/reauthenticate-phone.use-case';
 import { VerifyPhoneUseCase } from '../../../application/use-cases/auth/verify-phone.use-case';
 import { AuthController } from './auth.controller';
 
@@ -32,7 +33,13 @@ import { AuthController } from './auth.controller';
     }),
   ],
   controllers: [AuthController],
-  providers: [RegisterUserUseCase, LoginUserUseCase, VerifyPhoneUseCase, PhoneSignInUseCase],
+  providers: [
+    RegisterUserUseCase,
+    LoginUserUseCase,
+    VerifyPhoneUseCase,
+    ReauthenticatePhoneUseCase,
+    PhoneSignInUseCase,
+  ],
   exports: [JwtModule],
 })
 export class AuthModule {}

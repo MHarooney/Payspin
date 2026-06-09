@@ -9,6 +9,8 @@ void showPayspinSnackBar(
   BuildContext context,
   String message, {
   bool success = false,
+  String? actionLabel,
+  VoidCallback? onAction,
 }) {
   final colors = context.psColors;
   final messenger = ScaffoldMessenger.of(context);
@@ -16,6 +18,7 @@ void showPayspinSnackBar(
   messenger.showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
+      duration: onAction != null ? const Duration(seconds: 5) : const Duration(seconds: 4),
       backgroundColor: colors.bgElevated,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
@@ -35,6 +38,13 @@ void showPayspinSnackBar(
           ),
         ],
       ),
+      action: actionLabel != null && onAction != null
+          ? SnackBarAction(
+              label: actionLabel,
+              textColor: PayspinTokens.mint,
+              onPressed: onAction,
+            )
+          : null,
     ),
   );
 }

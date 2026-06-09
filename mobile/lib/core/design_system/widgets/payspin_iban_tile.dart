@@ -83,7 +83,7 @@ class PayspinIbanTile extends StatelessWidget {
                         ),
                         if (isPrimary) ...[
                           const SizedBox(width: 8),
-                          const _PrimaryBadge(),
+                          const PayspinPrimaryBadge(),
                         ],
                       ],
                     ),
@@ -108,8 +108,9 @@ class PayspinIbanTile extends StatelessWidget {
   }
 }
 
-class _PrimaryBadge extends StatelessWidget {
-  const _PrimaryBadge();
+/// Pink gradient pill shown next to the primary linked IBAN.
+class PayspinPrimaryBadge extends StatelessWidget {
+  const PayspinPrimaryBadge({super.key});
 
   @override
   Widget build(BuildContext context) {

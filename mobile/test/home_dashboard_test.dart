@@ -109,6 +109,28 @@ void main() {
     expect(d.shareTarget?.id, 'active');
   });
 
+  test('archived links are excluded from recent', () {
+    final d = HomeDashboard.from([
+      link(id: 'a', status: 'SETTLED', createdAt: DateTime(2026, 6, 8)),
+      link(id: 'b', status: 'SETTLED', createdAt: DateTime(2026, 6, 7)),
+    ], const {}, archivedIds: {'a'}, now: now);
+    expect(d.recent.map((l) => l.id), ['b']);
+  });
+
+  test('dismissed recommendations are excluded', () {
+    final d = HomeDashboard.from(
+      [
+        link(id: 'a', status: 'SETTLED', description: 'Pizza night', createdAt: DateTime(2026, 6, 8)),
+        link(id: 'b', status: 'ACTIVE', description: 'Sushi', createdAt: DateTime(2026, 6, 7)),
+      ],
+      const {},
+      dismissedRecommendations: {HomeRecommendation.groepies},
+      now: now,
+    );
+    expect(d.recommended.contains(HomeRecommendation.groepies), isFalse);
+    expect(d.recommended.contains(HomeRecommendation.requestAgain), isTrue);
+  });
+
   test('recommended: request-again from settled + groepies, capped at 2', () {
     final d = HomeDashboard.from([
       link(id: 'a', status: 'SETTLED', description: 'Pizza night', createdAt: DateTime(2026, 6, 8)),

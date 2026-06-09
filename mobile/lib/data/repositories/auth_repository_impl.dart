@@ -63,4 +63,7 @@ class AuthRepositoryImpl implements AuthRepository {
     _cachedUser = mapUser(await _api.updateProfile(displayName: name));
     return _cachedUser!;
   }
+
+  @override
+  Future<bool> reauthenticateViaPhone(String idToken) => _api.reauthenticatePhone(idToken: idToken);
 }

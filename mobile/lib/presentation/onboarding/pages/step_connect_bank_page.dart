@@ -7,7 +7,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/di/injection.dart';
 import '../../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
+import '../../../core/design_system/widgets/payspin_explainer_sheet.dart';
+import '../../../core/design_system/widgets/payspin_glass_surface.dart';
 import '../../../core/design_system/widgets/payspin_gradient_pill_button.dart';
+import '../../../core/design_system/widgets/payspin_onboarding_journey.dart';
+import '../../../core/design_system/widgets/payspin_onboarding_shell.dart';
 import '../../../core/design_system/widgets/payspin_skeleton.dart';
 import '../../../core/errors/api_exception.dart';
 import '../../../domain/entities/institution.dart';
@@ -70,15 +74,12 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
 
   Future<void> _connect() async {
     final institution = _selected;
-    // Capture draft before any async gap (no BuildContext use afterwards).
     final draft = context.read<OnboardingCubit>().state;
     setState(() {
       _connecting = true;
       _error = null;
     });
     try {
-      // Open-banking endpoints are authenticated. During brand-new onboarding
-      // the account doesn't exist yet, so register first using the draft.
       if (!await _auth.hasSession()) {
         await _auth.register(
           email: draft.email.trim(),
@@ -111,8 +112,6 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
 
       if (!mounted) return;
       if (_existing) {
-        // Adding a bank to an existing account — back to the bank list,
-        // no app-lock setup again.
         context.go('/bank-accounts');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Bank connected')),
@@ -123,7 +122,6 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
     } on _ConnectFlowException catch (e) {
       if (mounted) setState(() => _error = e.message);
     } catch (e) {
-      // flutter_web_auth_2 throws PlatformException on user cancel.
       final message = e.toString().contains('CANCELED') ||
               e.toString().contains('canceled')
           ? 'Bank connection was cancelled.'
@@ -134,109 +132,104 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
     }
   }
 
+  void _showSecuritySheet() {
+    PayspinExplainerSheet.show(
+      context,
+      title: 'How we keep this safe',
+      steps: const [
+        (emoji: '🔐', title: 'Secure redirect', body: 'You sign in directly with your bank in a protected browser window.'),
+        (emoji: '✅', title: 'Your consent', body: 'You choose what Payspin can access. We only read account details needed to receive payments.'),
+        (emoji: '🚫', title: 'No passwords stored', body: 'We never see or store your bank login. Open banking handles authentication.'),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.psColors;
-    return Scaffold(
-      backgroundColor: colors.bg,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () => context.go(
-                        _existing ? '/bank-accounts' : '/onboarding/otp'),
-                    icon: Icon(Icons.arrow_back,
-                        color: colors.textPrimary),
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 32, minHeight: 32),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Connect your bank',
-                style: GoogleFonts.raleway(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w800,
-                  color: colors.textPrimary,
-                  height: 1.15,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Securely link your bank so payments land in the right account. '
-                'We never store your bank login.',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: colors.textMuted,
-                  height: 1.6,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Expanded(child: _buildBody()),
-              if (_error != null) ...[
-                Text(
-                  _error!,
-                  style: const TextStyle(
-                      color: PayspinTokens.error, fontSize: 13),
-                ),
-                const SizedBox(height: 12),
-              ],
-              PayspinGradientPillButton(
-                label: 'Connect your bank',
-                icon: const Icon(Icons.account_balance,
-                    color: PayspinTokens.onBrand, size: 20),
-                loading: _connecting,
-                onPressed: _loading || _institutions.isEmpty || _connecting
-                    ? null
-                    : _connect,
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: _connecting
-                    ? null
-                    : () => context.go(_existing
-                        ? '/onboarding/iban?existing=1'
-                        : '/onboarding/iban'),
-                child: Text(
-                  'Enter IBAN manually instead',
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: colors.textPrimary,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+    final canConnect = !_loading && _institutions.isNotEmpty && !_connecting;
+
+    return PayspinOnboardingShell(
+      journey: OnboardingJourneySpec.connect,
+      title: const Text('Connect your bank'),
+      subtitle: 'Securely link your bank so payments land in the right account. We never store your bank login.',
+      onBack: () => context.go(_existing ? '/bank-accounts' : '/onboarding/otp'),
+      footerStyle: OnboardingFooterStyle.pill,
+      nextLabel: 'Connect your bank',
+      nextIcon: Icons.account_balance,
+      nextLoading: _connecting,
+      onNext: canConnect ? _connect : null,
+      footer: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (_error != null) ...[
+            Text(_error!, style: const TextStyle(color: PayspinTokens.error, fontSize: 13)),
+            const SizedBox(height: 12),
+          ],
+          PayspinGradientPillButton(
+            label: 'Connect your bank',
+            icon: const Icon(Icons.account_balance, color: PayspinTokens.onBrand, size: 20),
+            loading: _connecting,
+            onPressed: canConnect ? _connect : null,
           ),
-        ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _connecting
+                ? null
+                : () => context.go(_existing
+                    ? '/onboarding/iban?existing=1'
+                    : '/onboarding/iban'),
+            child: Text(
+              'Enter IBAN manually instead',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: colors.textPrimary,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: _connecting
+                ? null
+                : () => context.go(_existing
+                    ? '/onboarding/iban?existing=1&foreign=1'
+                    : '/onboarding/iban?foreign=1'),
+            child: Text(
+              'Foreign IBAN?',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: colors.textMuted,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: _showSecuritySheet,
+            child: Text(
+              'How we keep this safe',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: PayspinTokens.mint),
+            ),
+          ),
+        ],
       ),
+      child: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     final colors = context.psColors;
+
     if (_loading) {
       return ListView.separated(
-        itemCount: 5,
+        shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
+        itemCount: 5,
         separatorBuilder: (_, __) => const SizedBox(height: 8),
-        itemBuilder: (_, __) => Container(
+        itemBuilder: (_, __) => PayspinGlassSurface(
+          tier: PayspinGlassTier.flat,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-          decoration: BoxDecoration(
-            color: colors.glassFill,
-            borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-            border: Border.all(color: colors.border),
-          ),
           child: const Row(
             children: [
               PayspinSkeleton(width: 28, height: 28, radius: 8),
@@ -247,67 +240,137 @@ class _StepConnectBankPageState extends State<StepConnectBankPage> {
         ),
       );
     }
+
     if (_institutions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'No banks available right now.',
-              style: GoogleFonts.inter(
-                  fontSize: 14, color: colors.textMuted),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: _loadInstitutions,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      return Column(
+        children: [
+          Text(
+            'No banks available right now.',
+            style: GoogleFonts.inter(fontSize: 14, color: colors.textMuted),
+          ),
+          const SizedBox(height: 12),
+          TextButton(onPressed: _loadInstitutions, child: const Text('Retry')),
+        ],
       );
     }
-    return ListView.separated(
-      itemCount: _institutions.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (_, i) {
-        final inst = _institutions[i];
-        final selected = inst.id == _selected?.id;
-        return Material(
-          color: selected
-              ? PayspinTokens.pink.withValues(alpha: 0.12)
-              : colors.glassFill,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-            side: BorderSide(
-              color: selected ? colors.borderActive : colors.border,
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_selected != null) ...[
+          PayspinGlassSurface(
+            tier: PayspinGlassTier.raised,
+            gradientBorder: true,
+            glow: true,
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: PayspinTokens.pink.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.account_balance, color: PayspinTokens.pink, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _selected!.name,
+                        style: GoogleFonts.raleway(fontSize: 15, fontWeight: FontWeight.w700, color: colors.textPrimary),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Secured by open banking',
+                        style: GoogleFonts.inter(fontSize: 12, color: colors.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          child: InkWell(
-            onTap: () => setState(() => _selected = inst),
-            borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      inst.name,
-                      style: GoogleFonts.inter(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                  ),
-                  if (selected)
-                    const Icon(Icons.check_circle,
-                        color: PayspinTokens.pink, size: 20),
-                ],
+          const SizedBox(height: 16),
+        ],
+        ...List.generate(_institutions.length, (i) {
+          final inst = _institutions[i];
+          final selected = inst.id == _selected?.id;
+          return Padding(
+            padding: EdgeInsets.only(bottom: i < _institutions.length - 1 ? 8 : 0),
+            child: _InstitutionCard(
+              institution: inst,
+              selected: selected,
+              onTap: () => setState(() => _selected = inst),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+}
+
+class _InstitutionCard extends StatelessWidget {
+  const _InstitutionCard({
+    required this.institution,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Institution institution;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.psColors;
+
+    return PayspinGlassSurface(
+      tier: PayspinGlassTier.flat,
+      gradientBorder: selected,
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: colors.glassFill,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: colors.border),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              institution.name.isNotEmpty ? institution.name[0].toUpperCase() : '?',
+              style: GoogleFonts.raleway(fontWeight: FontWeight.w800, color: colors.textPrimary),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              institution.name,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: colors.textPrimary,
               ),
             ),
           ),
-        );
-      },
+          AnimatedScale(
+            scale: selected ? 1 : 0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutBack,
+            child: selected
+                ? const Icon(Icons.check_circle, color: PayspinTokens.pink, size: 20)
+                : const SizedBox(width: 20),
+          ),
+        ],
+      ),
     );
   }
 }
