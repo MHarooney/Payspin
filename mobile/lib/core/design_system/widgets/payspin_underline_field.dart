@@ -82,7 +82,7 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
     super.initState();
     _obscured = widget.obscureText;
     widget.controller.addListener(_onControllerChanged);
-    _focus.addListener(_onControllerChanged);
+    _focus.addListener(_onFocusChanged);
   }
 
   @override
@@ -105,6 +105,20 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
   }
 
   void _onControllerChanged() => setState(() {});
+
+  void _onFocusChanged() {
+    setState(() {});
+    if (!_focus.hasFocus) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_focus.hasFocus) return;
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.25,
+        duration: PayspinMotion.fast,
+        curve: PayspinMotion.easeEnter,
+      );
+    });
+  }
 
   bool get _isObscured => widget.showVisibilityToggle ? _obscured : widget.obscureText;
 
@@ -152,25 +166,31 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
-                child: AnimatedDefaultTextStyle(
-                  duration: reduced ? Duration.zero : const Duration(milliseconds: 200),
-                  style: fieldStyle,
-                  child: TextField(
-                    controller: widget.controller,
-                    focusNode: _focus,
-                    autofocus: widget.autofocus,
-                    maxLength: widget.maxLength,
-                    textCapitalization: widget.textCapitalization,
-                    keyboardType: widget.keyboardType,
-                    inputFormatters: widget.inputFormatters,
-                    obscureText: _isObscured,
-                    textInputAction: widget.textInputAction,
-                    onChanged: widget.onChanged,
-                    style: fieldStyle,
-                    cursorColor: accent,
-                    decoration: _fieldDecoration.copyWith(
-                      hintText: widget.hintText,
-                      hintStyle: _fieldStyle(hasValue: false, hintColor: colors.textHint, valueColor: accent),
+                child: SizedBox(
+                  height: 36,
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: TextField(
+                      controller: widget.controller,
+                      focusNode: _focus,
+                      autofocus: widget.autofocus,
+                      maxLength: widget.maxLength,
+                      textCapitalization: widget.textCapitalization,
+                      keyboardType: widget.keyboardType,
+                      inputFormatters: widget.inputFormatters,
+                      obscureText: _isObscured,
+                      textInputAction: widget.textInputAction,
+                      onChanged: widget.onChanged,
+                      style: fieldStyle,
+                      cursorColor: accent,
+                      decoration: _fieldDecoration.copyWith(
+                        hintText: widget.hintText,
+                        hintStyle: _fieldStyle(
+                          hasValue: false,
+                          hintColor: colors.textHint,
+                          valueColor: accent,
+                        ),
+                      ),
                     ),
                   ),
                 ),
