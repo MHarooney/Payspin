@@ -32,6 +32,26 @@ void main() {
       expect(l10n.getStarted, 'Aan de slag');
       expect(l10n.navScanQr, 'QR scannen');
     });
+
+    test('Dutch home dashboard strings', () {
+      const l10n = PayspinLocalizations(Locale('nl'));
+      expect(l10n.quickActionNewLink, 'Nieuwe link');
+      expect(l10n.quickActionShareLast, 'Laatste delen');
+      expect(l10n.sectionFavorites, 'Favorieten');
+      expect(l10n.sectionRecommended, 'Aanbevolen voor jou');
+      expect(l10n.sectionRecentLinks, 'Recente links');
+      expect(l10n.paidOfTotal(2, 3), '2 van 3 betaald');
+      expect(l10n.homeGreeting(9), 'Goedemorgen');
+      expect(l10n.homeGreeting(20), 'Goedenavond');
+      expect(l10n.copyLink, 'Link kopiëren');
+    });
+
+    test('English home greeting buckets', () {
+      const l10n = PayspinLocalizations(Locale('en'));
+      expect(l10n.homeGreeting(8), 'Good morning');
+      expect(l10n.homeGreeting(14), 'Good afternoon');
+      expect(l10n.homeGreeting(22), 'Good evening');
+    });
   });
 
   group('LocaleController', () {

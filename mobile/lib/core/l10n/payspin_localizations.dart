@@ -345,6 +345,198 @@ class PayspinLocalizations {
         'ar': 'جارٍ التحميل',
       });
 
+  // —— Home dashboard ——
+  String homeGreeting(int hour) {
+    if (hour < 12) {
+      return _pick({
+        'en': 'Good morning',
+        'nl': 'Goedemorgen',
+        'de': 'Guten Morgen',
+        'ar': 'صباح الخير',
+      });
+    }
+    if (hour < 18) {
+      return _pick({
+        'en': 'Good afternoon',
+        'nl': 'Goedemiddag',
+        'de': 'Guten Tag',
+        'ar': 'مساء الخير',
+      });
+    }
+    return _pick({
+      'en': 'Good evening',
+      'nl': 'Goedenavond',
+      'de': 'Guten Abend',
+      'ar': 'مساء الخير',
+    });
+  }
+
+  // Quick actions.
+  String get quickActionNewLink => _pick({
+        'en': 'New link',
+        'nl': 'Nieuwe link',
+        'de': 'Neuer Link',
+        'ar': 'رابط جديد',
+      });
+
+  String get quickActionScan => _pick({
+        'en': 'Scan',
+        'nl': 'Scannen',
+        'de': 'Scannen',
+        'ar': 'مسح',
+      });
+
+  String get quickActionShareLast => _pick({
+        'en': 'Share last',
+        'nl': 'Laatste delen',
+        'de': 'Letzten teilen',
+        'ar': 'مشاركة الأخير',
+      });
+
+  String get quickActionShareLastHint => _pick({
+        'en': 'No payable link to share yet',
+        'nl': 'Nog geen betaalbare link om te delen',
+        'de': 'Noch kein zahlbarer Link zum Teilen',
+        'ar': 'لا يوجد رابط قابل للدفع للمشاركة بعد',
+      });
+
+  String get quickActionGroepies => _pick({
+        'en': 'Groepies',
+        'nl': 'Groepies',
+        'de': 'Groepies',
+        'ar': 'مجموعات',
+      });
+
+  // Section headers.
+  String get sectionActiveRequest => _pick({
+        'en': 'Active request',
+        'nl': 'Actief verzoek',
+        'de': 'Aktive Anfrage',
+        'ar': 'طلب نشط',
+      });
+
+  String get sectionFavorites => _pick({
+        'en': 'Favorites',
+        'nl': 'Favorieten',
+        'de': 'Favoriten',
+        'ar': 'المفضلة',
+      });
+
+  String get sectionRecommended => _pick({
+        'en': 'Recommended for you',
+        'nl': 'Aanbevolen voor jou',
+        'de': 'Für dich empfohlen',
+        'ar': 'موصى به لك',
+      });
+
+  String get sectionRecentLinks => _pick({
+        'en': 'Recent links',
+        'nl': 'Recente links',
+        'de': 'Letzte Links',
+        'ar': 'الروابط الأخيرة',
+      });
+
+  /// "2 of 3 paid" progress for a capped MULTI link.
+  String paidOfTotal(int paid, int total) => _pick({
+        'en': '$paid of $total paid',
+        'nl': '$paid van $total betaald',
+        'de': '$paid von $total bezahlt',
+        'ar': 'دُفع $paid من $total',
+      });
+
+  String receivedCount(int count) => _pick({
+        'en': '$count received',
+        'nl': '$count ontvangen',
+        'de': '$count erhalten',
+        'ar': 'تم استلام $count',
+      });
+
+  // Recommended cards.
+  String get recRequestAgainTitle => _pick({
+        'en': 'Request again',
+        'nl': 'Opnieuw aanvragen',
+        'de': 'Erneut anfordern',
+        'ar': 'اطلب مرة أخرى',
+      });
+
+  String recRequestAgainSubtitle(String description) => _pick({
+        'en': 'Start a similar request to "$description".',
+        'nl': 'Start een vergelijkbaar verzoek voor "$description".',
+        'de': 'Starte eine ähnliche Anfrage zu "$description".',
+        'ar': 'ابدأ طلبًا مشابهًا لـ "$description".',
+      });
+
+  String get recGroepiesTitle => _pick({
+        'en': 'Split with Groepies',
+        'nl': 'Splitsen met Groepies',
+        'de': 'Mit Groepies teilen',
+        'ar': 'قسّم مع Groepies',
+      });
+
+  String get recGroepiesSubtitle => _pick({
+        'en': 'Track shared expenses with friends.',
+        'nl': 'Houd gedeelde kosten bij met vrienden.',
+        'de': 'Behalte geteilte Ausgaben mit Freunden im Blick.',
+        'ar': 'تتبّع المصاريف المشتركة مع الأصدقاء.',
+      });
+
+  String get recDinnerTitle => _pick({
+        'en': 'Create a dinner split',
+        'nl': 'Maak een dinersplit',
+        'de': 'Rechnung fürs Essen teilen',
+        'ar': 'أنشئ تقسيم عشاء',
+      });
+
+  String get recDinnerSubtitle => _pick({
+        'en': 'Share one bill across the whole table.',
+        'nl': 'Deel één rekening met de hele tafel.',
+        'de': 'Teile eine Rechnung mit dem ganzen Tisch.',
+        'ar': 'شارك فاتورة واحدة مع الطاولة كاملة.',
+      });
+
+  // Long-press / row power actions.
+  String get addToFavorites => _pick({
+        'en': 'Add to favorites',
+        'nl': 'Aan favorieten toevoegen',
+        'de': 'Zu Favoriten hinzufügen',
+        'ar': 'أضف إلى المفضلة',
+      });
+
+  String get removeFromFavorites => _pick({
+        'en': 'Remove from favorites',
+        'nl': 'Uit favorieten verwijderen',
+        'de': 'Aus Favoriten entfernen',
+        'ar': 'إزالة من المفضلة',
+      });
+
+  String get copyLink => _pick({
+        'en': 'Copy link',
+        'nl': 'Link kopiëren',
+        'de': 'Link kopieren',
+        'ar': 'نسخ الرابط',
+      });
+
+  String get linkCopied => _pick({
+        'en': 'Link copied',
+        'nl': 'Link gekopieerd',
+        'de': 'Link kopiert',
+        'ar': 'تم نسخ الرابط',
+      });
+
+  String get shareLink => _pick({
+        'en': 'Share link',
+        'nl': 'Link delen',
+        'de': 'Link teilen',
+        'ar': 'مشاركة الرابط',
+      });
+
+  String get favoritesFull => _pick({
+        'en': 'You can pin up to 8 favorites.',
+        'nl': 'Je kunt maximaal 8 favorieten vastzetten.',
+        'de': 'Du kannst bis zu 8 Favoriten anheften.',
+        'ar': 'يمكنك تثبيت 8 مفضلات كحد أقصى.',
+      });
+
   // —— Intro storyboard ——
   String get introSkip => _pick({
         'en': 'Skip',
