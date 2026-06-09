@@ -227,15 +227,25 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = context.psColors;
-    final maxHeight = MediaQuery.sizeOf(context).height * 0.72;
+    final media = MediaQuery.of(context);
+    final keyboardInset = media.viewInsets.bottom;
+    final safeBottom = media.padding.bottom;
+    // Keep the sheet above the keyboard and within the remaining space so the
+    // search field and results never get covered when the user types.
+    final available = media.size.height - keyboardInset - media.padding.top - 24;
+    final maxHeight = available.clamp(260.0, media.size.height * 0.72);
 
-    return PayspinGlassSurface(
-      tier: PayspinGlassTier.overlay,
-      borderRadius: 28,
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + MediaQuery.viewPaddingOf(context).bottom),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: Column(
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(bottom: keyboardInset),
+      child: PayspinGlassSurface(
+        tier: PayspinGlassTier.overlay,
+        borderRadius: 28,
+        padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + (keyboardInset > 0 ? 0 : safeBottom)),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Center(
@@ -306,6 +316,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                     ),
             ),
           ],
+          ),
         ),
       ),
     );
