@@ -1,7 +1,7 @@
 name: payspin_mobile
 description: Payspin mobile app — P2P payment links (Flutter)
 publish_to: "none"
-version: 1.7.0+20
+version: 1.7.0+21
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
