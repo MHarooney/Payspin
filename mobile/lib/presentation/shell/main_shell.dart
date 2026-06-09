@@ -90,6 +90,13 @@ class _MainShellState extends State<MainShell> {
       body: Stack(
         children: [
           PayspinAmbientBackground(child: body),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: PayspinBottomNav(currentIndex: _index, onTap: _onTap),
+          ),
+          // FAB last so it stays above the bottom bar when dragged there.
           if (showFab)
             Positioned.fill(
               child: PayspinDraggableFab(
@@ -98,7 +105,6 @@ class _MainShellState extends State<MainShell> {
             ),
         ],
       ),
-      bottomNavigationBar: PayspinBottomNav(currentIndex: _index, onTap: _onTap),
     );
   }
 }
