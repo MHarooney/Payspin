@@ -163,9 +163,6 @@ void main() {
       expect(find.text('Recent links'), findsOneWidget);
       // Capped MULTI progress label.
       expect(find.text('2 of 3 paid'), findsOneWidget);
-      // Quick actions row.
-      expect(find.text('New link'), findsOneWidget);
-      expect(find.text('Scan'), findsOneWidget);
     });
 
     testWidgets('reloads when the refresh notifier bumps', (tester) async {

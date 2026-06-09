@@ -17,7 +17,6 @@ import '../../core/design_system/widgets/payspin_gradient_text.dart';
 import '../../core/design_system/widgets/payspin_home_section_header.dart';
 import '../../core/design_system/widgets/payspin_brand_mark.dart';
 import '../../core/design_system/widgets/payspin_promo_gradient_card.dart';
-import '../../core/design_system/widgets/payspin_quick_actions_row.dart';
 import '../../core/design_system/widgets/payspin_skeleton.dart';
 import '../../core/design_system/widgets/payspin_snackbar.dart';
 import '../../core/design_system/widgets/payspin_tikkie_row.dart';
@@ -268,11 +267,8 @@ class _HomePageState extends State<HomePage> {
     // Greeting.
     section(
       _greeting(l10n),
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
     );
-
-    // Quick actions.
-    section(_quickActions(data, l10n), padding: const EdgeInsets.fromLTRB(20, 0, 20, 24));
 
     // Active request hero.
     if (data.activeHero != null) {
@@ -333,35 +329,6 @@ class _HomePageState extends State<HomePage> {
         l10n.homeGreeting(DateTime.now().hour),
         style: GoogleFonts.inter(fontSize: 13, color: context.psColors.textMuted, fontWeight: FontWeight.w500),
       ),
-    );
-  }
-
-  Widget _quickActions(HomeDashboard data, PayspinLocalizations l10n) {
-    final hasShareTarget = data.shareTarget != null;
-    return PayspinQuickActionsRow(
-      actions: [
-        PayspinQuickAction(
-          icon: Icons.add_rounded,
-          label: l10n.quickActionNewLink,
-          onTap: () => context.push('/send/amount'),
-        ),
-        PayspinQuickAction(
-          icon: Icons.qr_code_scanner_rounded,
-          label: l10n.quickActionScan,
-          onTap: () => context.push('/scan'),
-        ),
-        PayspinQuickAction(
-          icon: Icons.ios_share_rounded,
-          label: l10n.quickActionShareLast,
-          onTap: hasShareTarget ? () => _shareLink(data.shareTarget!) : null,
-          semanticHint: hasShareTarget ? null : l10n.quickActionShareLastHint,
-        ),
-        PayspinQuickAction(
-          icon: Icons.groups_rounded,
-          label: l10n.quickActionGroepies,
-          onTap: () => context.push('/home/groepies'),
-        ),
-      ],
     );
   }
 
@@ -462,17 +429,6 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Quick-actions placeholder.
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                PayspinSkeleton(width: 56, height: 56, radius: 18),
-                PayspinSkeleton(width: 56, height: 56, radius: 18),
-                PayspinSkeleton(width: 56, height: 56, radius: 18),
-                PayspinSkeleton(width: 56, height: 56, radius: 18),
-              ],
-            ),
-            SizedBox(height: 24),
             // Active-hero placeholder.
             PayspinSkeleton(width: double.infinity, height: 96, radius: 22),
             SizedBox(height: 24),
