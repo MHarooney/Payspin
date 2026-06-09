@@ -71,7 +71,38 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(_wrap(const IntroScene2(sceneIndex: 1)));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: PayspinTheme.dark(),
+        locale: const Locale('en'),
+        supportedLocales: LocaleController.supportedLocales,
+        localizationsDelegates: const [
+          PayspinLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: IntroSceneScope(
+            pageOffset: 1,
+            offsetListenable: ValueNotifier(1),
+            child: Scaffold(
+              body: SizedBox(
+                height: 700,
+                width: 400,
+                child: Column(
+                  children: [
+                    const Expanded(flex: 5, child: IntroScene2(sceneIndex: 1)),
+                    const Expanded(flex: 3, child: SizedBox()),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
