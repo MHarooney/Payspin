@@ -16,6 +16,7 @@ import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_snackbar.dart';
 import '../../core/design_system/widgets/payspin_status_chip.dart';
 import '../../core/errors/api_exception.dart';
+import '../../core/l10n/payspin_localizations.dart';
 import '../../core/utils/payment_visuals.dart';
 import '../../data/services/share_service.dart';
 import '../../domain/entities/payment_link.dart';
@@ -317,6 +318,19 @@ class _LinkDetailPageState extends State<LinkDetailPage> {
                         _noPaymentsYet()
                       else
                         ...List.generate(link.payments.length, (i) => _timelineTile(link.payments[i], i == link.payments.length - 1)),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: () => context.push(
+                            '/support/new?contextRef=${widget.linkId}&category=PAYMENT',
+                          ),
+                          icon: Icon(Icons.support_agent, size: 18, color: context.psColors.textMuted),
+                          label: Text(
+                            context.l10n.supportNeedHelp,
+                            style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: context.psColors.textMuted),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

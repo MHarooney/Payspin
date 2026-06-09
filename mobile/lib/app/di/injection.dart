@@ -12,6 +12,7 @@ import '../../core/security/app_lock_service.dart';
 import '../../core/state/circles_refresh_notifier.dart';
 import '../../core/state/links_refresh_notifier.dart';
 import '../../core/state/notifications_refresh_notifier.dart';
+import '../../core/state/support_refresh_notifier.dart';
 import '../../data/datasources/payspin_api_client.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/repositories/bank_account_repository_impl.dart';
@@ -19,12 +20,14 @@ import '../../data/repositories/circle_repository_impl.dart';
 import '../../data/repositories/notification_repository_impl.dart';
 import '../../data/repositories/onboarding_repository_impl.dart';
 import '../../data/repositories/payment_link_repository_impl.dart';
+import '../../data/repositories/support_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/bank_account_repository.dart';
 import '../../domain/repositories/circle_repository.dart';
 import '../../domain/repositories/notification_repository.dart';
 import '../../domain/repositories/onboarding_repository.dart';
 import '../../domain/repositories/payment_link_repository.dart';
+import '../../domain/repositories/support_repository.dart';
 import '../../domain/usecases/complete_onboarding_usecase.dart';
 import '../../domain/usecases/validate_iban_usecase.dart';
 import '../../domain/usecases/verify_otp_usecase.dart';
@@ -52,12 +55,13 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton(LinksRefreshNotifier.new);
   sl.registerLazySingleton(CirclesRefreshNotifier.new);
   sl.registerLazySingleton(NotificationsRefreshNotifier.new);
+  sl.registerLazySingleton(SupportRefreshNotifier.new);
   sl.registerLazySingleton(RemoteConfigService.new);
   sl.registerLazySingleton(OnboardingProgressStore.new);
   sl.registerLazySingleton(AppLockService.new);
   sl.registerLazySingleton(() => AppLockController(sl()));
   sl.registerLazySingleton(() => PhoneAuthService(sl()));
-  sl.registerLazySingleton(() => PushService(sl(), sl(), sl()));
+  sl.registerLazySingleton(() => PushService(sl(), sl(), sl(), sl()));
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
   sl.registerLazySingleton<BankAccountRepository>(() => BankAccountRepositoryImpl(sl()));
   sl.registerLazySingleton<PaymentLinkRepository>(
@@ -68,6 +72,9 @@ Future<void> configureDependencies() async {
   );
   sl.registerLazySingleton<NotificationRepository>(
     () => NotificationRepositoryImpl(sl(), sl()),
+  );
+  sl.registerLazySingleton<SupportRepository>(
+    () => SupportRepositoryImpl(sl(), sl()),
   );
   sl.registerLazySingleton<OnboardingRepository>(OnboardingRepositoryImpl.new);
   sl.registerLazySingleton(VerifyOtpUseCase.new);

@@ -13,6 +13,7 @@
     "test": "node --import tsx --test test/**/*.test.ts"
   },
   "dependencies": {
+    "@nestjs/bullmq": "^11.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.1",
@@ -24,6 +25,7 @@
     "@payspin/validators": "workspace:*",
     "@prisma/client": "^6.1.0",
     "bcrypt": "^5.1.1",
+    "bullmq": "^5.34.5",
     "helmet": "^8.2.0",
     "ioredis": "^5.4.2",
     "passport": "^0.7.0",

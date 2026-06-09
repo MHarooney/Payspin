@@ -605,6 +605,119 @@ class PayspinLocalizations {
         'de': 'Version',
         'ar': 'الإصدار',
       });
+
+  // —— Support ——
+  String get supportTitle => _pick({
+        'en': 'Help & support',
+        'nl': 'Help & ondersteuning',
+        'de': 'Hilfe & Support',
+        'ar': 'المساعدة والدعم',
+      });
+
+  String get supportNewRequest => _pick({
+        'en': 'New request',
+        'nl': 'Nieuw verzoek',
+        'de': 'Neue Anfrage',
+        'ar': 'طلب جديد',
+      });
+
+  String get supportContactSupport => _pick({
+        'en': 'Contact support',
+        'nl': 'Contact opnemen',
+        'de': 'Support kontaktieren',
+        'ar': 'تواصل مع الدعم',
+      });
+
+  String get supportEmptyTitle => _pick({
+        'en': 'How can we help?',
+        'nl': 'Hoe kunnen we helpen?',
+        'de': 'Wie können wir helfen?',
+        'ar': 'كيف يمكننا المساعدة؟',
+      });
+
+  String get supportEmptySubtitle => _pick({
+        'en': 'Start a conversation and our team will get back to you.',
+        'nl': 'Begin een gesprek en ons team neemt contact met je op.',
+        'de': 'Starte ein Gespräch und unser Team meldet sich bei dir.',
+        'ar': 'ابدأ محادثة وسيقوم فريقنا بالرد عليك.',
+      });
+
+  String get supportSlaHint => _pick({
+        'en': 'We typically reply within a few hours.',
+        'nl': 'We reageren meestal binnen een paar uur.',
+        'de': 'Wir antworten in der Regel innerhalb weniger Stunden.',
+        'ar': 'نرد عادةً خلال بضع ساعات.',
+      });
+
+  String get supportTopicQuestion => _pick({
+        'en': 'What do you need help with?',
+        'nl': 'Waar heb je hulp bij nodig?',
+        'de': 'Wobei brauchst du Hilfe?',
+        'ar': 'بماذا تحتاج المساعدة؟',
+      });
+
+  String get supportMessageHint => _pick({
+        'en': 'Describe your issue…',
+        'nl': 'Beschrijf je probleem…',
+        'de': 'Beschreibe dein Anliegen…',
+        'ar': 'صف مشكلتك…',
+      });
+
+  String get supportReplyHint => _pick({
+        'en': 'Type a message…',
+        'nl': 'Typ een bericht…',
+        'de': 'Nachricht schreiben…',
+        'ar': 'اكتب رسالة…',
+      });
+
+  String get supportSend => _pick({
+        'en': 'Send',
+        'nl': 'Versturen',
+        'de': 'Senden',
+        'ar': 'إرسال',
+      });
+
+  String get supportSendMessage => _pick({
+        'en': 'Send message',
+        'nl': 'Bericht versturen',
+        'de': 'Nachricht senden',
+        'ar': 'إرسال الرسالة',
+      });
+
+  String get supportResolvedBanner => _pick({
+        'en': 'This request was marked resolved.',
+        'nl': 'Dit verzoek is opgelost.',
+        'de': 'Diese Anfrage wurde als gelöst markiert.',
+        'ar': 'تم وضع علامة على هذا الطلب كمحلول.',
+      });
+
+  String get supportSendAnother => _pick({
+        'en': 'Send another message',
+        'nl': 'Nog een bericht sturen',
+        'de': 'Weitere Nachricht senden',
+        'ar': 'إرسال رسالة أخرى',
+      });
+
+  String get supportNeedHelp => _pick({
+        'en': 'Need help with this link?',
+        'nl': 'Hulp nodig met deze link?',
+        'de': 'Brauchst du Hilfe mit diesem Link?',
+        'ar': 'هل تحتاج مساعدة بخصوص هذا الرابط؟',
+      });
+
+  String get supportTeam => _pick({
+        'en': 'Support',
+        'nl': 'Support',
+        'de': 'Support',
+        'ar': 'الدعم',
+      });
+
+  String supportCategory(String category) => switch (category) {
+        'PAYMENT' => _pick({'en': 'Payment issue', 'nl': 'Betaalprobleem', 'de': 'Zahlungsproblem', 'ar': 'مشكلة دفع'}),
+        'ACCOUNT' => _pick({'en': 'Account', 'nl': 'Account', 'de': 'Konto', 'ar': 'الحساب'}),
+        'CIRCLE' => _pick({'en': 'Circle', 'nl': 'Circle', 'de': 'Circle', 'ar': 'الدائرة'}),
+        _ => _pick({'en': 'Other', 'nl': 'Overig', 'de': 'Sonstiges', 'ar': 'أخرى'}),
+      };
 }
 
 class _PayspinLocalizationsDelegate

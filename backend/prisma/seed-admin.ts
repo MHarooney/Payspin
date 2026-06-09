@@ -89,9 +89,14 @@ async function seedPhase2() {
   }
 
   if ((await prisma.supportThread.count()) === 0) {
+    // Attach the first demo thread to a real consumer user when one exists, so
+    // the mobile consumer API has something to show; the second stays a legacy
+    // ops-only row (userId: null) to exercise backward compatibility.
+    const seedUser = await prisma.user.findFirst({ where: { deletedAt: null }, orderBy: { createdAt: 'asc' } });
     const t1 = await prisma.supportThread.create({
       data: {
-        userRef: 'User #5012', subjectName: 'Karim Demir', meta: 'KYC2 pending · linked to tx_9a2eff', status: 'OPEN', unread: true,
+        userId: seedUser?.id ?? null,
+        userRef: seedUser?.email ?? 'User #5012', subjectName: 'Karim Demir', category: 'PAYMENT', meta: 'KYC2 pending · linked to tx_9a2eff', status: 'OPEN', unread: true,
         messages: {
           create: [
             { direction: 'IN', authorName: 'Karim', body: 'Hi, my payment of €1,240 to Sara is still pending after 20 minutes. Is something wrong?' },

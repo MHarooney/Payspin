@@ -27,14 +27,19 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    // A tapped push (background/killed) asks the shell to open a link detail.
+    // A tapped push (background/killed) asks the shell to open a link/support detail.
     _push.openLinkRequests.addListener(_onOpenLinkRequested);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _onOpenLinkRequested());
+    _push.openSupportThreadRequests.addListener(_onOpenSupportRequested);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _onOpenLinkRequested();
+      _onOpenSupportRequested();
+    });
   }
 
   @override
   void dispose() {
     _push.openLinkRequests.removeListener(_onOpenLinkRequested);
+    _push.openSupportThreadRequests.removeListener(_onOpenSupportRequested);
     super.dispose();
   }
 
@@ -43,6 +48,14 @@ class _MainShellState extends State<MainShell> {
     if (linkId != null && mounted) {
       _push.openLinkRequests.value = null;
       context.push('/links/$linkId');
+    }
+  }
+
+  void _onOpenSupportRequested() {
+    final threadId = _push.openSupportThreadRequests.value;
+    if (threadId != null && mounted) {
+      _push.openSupportThreadRequests.value = null;
+      context.push('/support/$threadId');
     }
   }
 

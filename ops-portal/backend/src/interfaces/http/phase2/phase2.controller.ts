@@ -3,8 +3,6 @@ import { AdminRole } from '@payspin/shared-types';
 import {
   patchComplianceAlertSchema,
   patchDisputeAdminSchema,
-  createSupportMessageSchema,
-  patchSupportThreadSchema,
 } from '@payspin/validators';
 import { GetAppControlsUseCase } from '../../../application/use-cases/app-controls/get-app-controls.use-case';
 import { ListComplianceAlertsUseCase } from '../../../application/use-cases/compliance/list-compliance-alerts.use-case';
@@ -12,6 +10,9 @@ import { ListDisputesUseCase } from '../../../application/use-cases/disputes/lis
 import { ListReconciliationExceptionsUseCase } from '../../../application/use-cases/finance/list-reconciliation-exceptions.use-case';
 import { GetSupportThreadUseCase } from '../../../application/use-cases/messages/get-support-thread.use-case';
 import { ListSupportThreadsUseCase } from '../../../application/use-cases/messages/list-support-threads.use-case';
+import { MarkSupportThreadReadUseCase } from '../../../application/use-cases/messages/mark-support-thread-read.use-case';
+import { PatchSupportThreadUseCase } from '../../../application/use-cases/messages/patch-support-thread.use-case';
+import { ReplyToSupportThreadUseCase } from '../../../application/use-cases/messages/reply-to-support-thread.use-case';
 import { GetReportSeriesUseCase } from '../../../application/use-cases/reports/get-report-series.use-case';
 import { PrismaService } from '../../../infrastructure/persistence/prisma.module';
 import { AuditService } from '../../../infrastructure/audit/audit.service';
@@ -30,6 +31,9 @@ export class Phase2Controller {
     private readonly listExceptions: ListReconciliationExceptionsUseCase,
     private readonly listThreads: ListSupportThreadsUseCase,
     private readonly getThread: GetSupportThreadUseCase,
+    private readonly replyThread: ReplyToSupportThreadUseCase,
+    private readonly patchThreadUseCase: PatchSupportThreadUseCase,
+    private readonly markThreadRead: MarkSupportThreadReadUseCase,
     private readonly getReports: GetReportSeriesUseCase,
     private readonly getAppControls: GetAppControlsUseCase,
     private readonly prisma: PrismaService,
@@ -92,8 +96,13 @@ export class Phase2Controller {
   }
 
   @Get('messages')
-  messages() {
-    return this.listThreads.execute();
+  messages(@Query('status') status?: string, @Query('userId') userId?: string) {
+    return this.listThreads.execute({ status, userId });
+  }
+
+  @Get('users/:userId/support-threads')
+  userThreads(@Param('userId') userId: string) {
+    return this.listThreads.execute({ userId });
   }
 
   @Get('messages/:id')
@@ -103,50 +112,38 @@ export class Phase2Controller {
 
   @Post('messages/threads/:id/reply')
   @Roles(AdminRole.SUPER_ADMIN, AdminRole.OPS, AdminRole.SUPPORT)
-  async replyToThread(
+  replyToThread(
     @Param('id') id: string,
     @Body() body: unknown,
     @CurrentAdmin() admin: AdminRequestContext,
   ) {
-    const input = createSupportMessageSchema.parse(body);
-    const thread = await this.prisma.supportThread.findUnique({ where: { id } });
-    if (!thread) throw new Error('Thread not found');
-    const message = await this.prisma.supportMessage.create({
-      data: {
-        threadId: id,
-        direction: 'OUT',
-        body: input.body,
-        authorName: admin.email,
-      },
+    return this.replyThread.execute(id, body, {
+      adminUserId: admin.adminUserId,
+      adminEmail: admin.email,
+      ip: admin.ip,
+      userAgent: admin.userAgent,
     });
-    await this.prisma.supportThread.update({
-      where: { id },
-      data: { lastMessageAt: new Date(), unread: false },
-    });
-    await this.audit.record(
-      { adminUserId: admin.adminUserId, adminEmail: admin.email, ip: admin.ip, userAgent: admin.userAgent },
-      { action: AuditAction.SUPPORT_REPLY, targetType: 'support_thread', targetId: id },
-    );
-    return message;
+  }
+
+  @Patch('messages/threads/:id/read')
+  @Roles(AdminRole.SUPER_ADMIN, AdminRole.OPS, AdminRole.SUPPORT)
+  markRead(@Param('id') id: string) {
+    return this.markThreadRead.execute(id);
   }
 
   @Patch('messages/threads/:id')
   @Roles(AdminRole.SUPER_ADMIN, AdminRole.OPS, AdminRole.SUPPORT)
-  async patchThread(
+  patchThread(
     @Param('id') id: string,
     @Body() body: unknown,
     @CurrentAdmin() admin: AdminRequestContext,
   ) {
-    const input = patchSupportThreadSchema.parse(body);
-    const updated = await this.prisma.supportThread.update({
-      where: { id },
-      data: { status: input.status },
+    return this.patchThreadUseCase.execute(id, body, {
+      adminUserId: admin.adminUserId,
+      adminEmail: admin.email,
+      ip: admin.ip,
+      userAgent: admin.userAgent,
     });
-    await this.audit.record(
-      { adminUserId: admin.adminUserId, adminEmail: admin.email, ip: admin.ip, userAgent: admin.userAgent },
-      { action: AuditAction.SUPPORT_THREAD_UPDATE, targetType: 'support_thread', targetId: id, after: { status: input.status } },
-    );
-    return updated;
   }
 
   @Get('reports')

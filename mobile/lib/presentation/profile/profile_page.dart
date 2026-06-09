@@ -483,7 +483,7 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                     detail: _localeController.languageLabel,
                     onTap: _chooseLanguage,
                   ),
-                  PayspinSettingsRow(icon: Icons.help_outline, label: context.l10n.helpSupport, onTap: () {}),
+                  PayspinSettingsRow(icon: Icons.help_outline, label: context.l10n.helpSupport, onTap: () => context.push('/support')),
                   PayspinSettingsRow(icon: Icons.info_outline, label: context.l10n.version, detail: AppVersion.serial, onTap: null),
                 ],
               ),
