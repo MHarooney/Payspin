@@ -29,4 +29,18 @@ class User {
     if (phone != null && phone.isNotEmpty) return phone;
     return isPhoneAccount ? '' : email;
   }
+
+  /// First token of [displayName], or the email local-part for email accounts.
+  /// Returns null for phone-only accounts with no display name set.
+  String? get greetingFirstName {
+    final dn = displayName?.trim();
+    if (dn != null && dn.isNotEmpty) {
+      return dn.split(RegExp(r'\s+')).first;
+    }
+    if (!isPhoneAccount) {
+      final local = email.split('@').first.trim();
+      if (local.isNotEmpty) return local;
+    }
+    return null;
+  }
 }

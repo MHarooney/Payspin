@@ -13,4 +13,7 @@ abstract class AuthRepository {
   Future<AuthSession> phoneSignIn({required String idToken, String? displayName});
   Future<void> signOut();
   Future<User> updateDisplayName(String name);
+
+  /// Confirms the caller still controls their verified phone (for passcode reset).
+  Future<bool> reauthenticateViaPhone(String idToken);
 }

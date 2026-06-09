@@ -7,23 +7,34 @@ import '../../app/di/injection.dart';
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
 import '../../core/design_system/widgets/payspin_accent_circle_button.dart';
+import '../../core/design_system/widgets/payspin_emblem_loader.dart';
 import '../../core/design_system/widgets/payspin_flow_header.dart';
+import '../../core/design_system/widgets/payspin_glass_surface.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
 import '../../core/design_system/widgets/payspin_iban_tile.dart';
+import '../../core/design_system/widgets/payspin_share_sheet.dart';
 import '../../core/design_system/widgets/payspin_snackbar.dart';
+import '../../core/design_system/widgets/payspin_staggered_entrance.dart';
 import '../../core/design_system/widgets/payspin_underline_field.dart';
 import '../../core/errors/api_exception.dart';
 import '../../core/l10n/payspin_localizations.dart';
 import '../../data/services/share_service.dart';
 import '../../domain/entities/bank_account.dart';
+import '../../domain/entities/payment_link.dart';
 import '../../domain/repositories/bank_account_repository.dart';
 import '../../domain/repositories/payment_link_repository.dart';
 
 class SendNamePage extends StatefulWidget {
-  const SendNamePage({super.key, required this.amountCents, required this.amountLabel});
+  const SendNamePage({
+    super.key,
+    required this.amountCents,
+    required this.amountLabel,
+    this.initialDescription = '',
+  });
 
   final int? amountCents;
   final String amountLabel;
+  final String initialDescription;
 
   @override
   State<SendNamePage> createState() => _SendNamePageState();
@@ -38,6 +49,10 @@ class _SendNamePageState extends State<SendNamePage> {
   @override
   void initState() {
     super.initState();
+    final initial = widget.initialDescription.trim();
+    if (initial.isNotEmpty) {
+      _label.text = initial;
+    }
     _loadAccounts();
   }
 
@@ -62,6 +77,11 @@ class _SendNamePageState extends State<SendNamePage> {
       (a) => a.id == _selectedAccountId,
       orElse: () => _accounts.first,
     );
+  }
+
+  String? get _description {
+    final trimmed = _label.text.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
   @override
@@ -106,63 +126,98 @@ class _SendNamePageState extends State<SendNamePage> {
     if (chosen != null) setState(() => _selectedAccountId = chosen);
   }
 
-  Future<void> _send() async {
+  void _stopLoading() {
+    if (mounted) setState(() => _loading = false);
+  }
+
+  Future<PaymentLink?> _createLink() async {
+    if (_loading) return null;
     setState(() => _loading = true);
     try {
-      final link = await sl<PaymentLinkRepository>().createLink(
+      return await sl<PaymentLinkRepository>().createLink(
         amountCents: widget.amountCents,
-        description: _label.text.trim().isEmpty ? null : _label.text.trim(),
+        description: _description,
         bankAccountId: _accounts.length > 1 ? _selectedAccountId : null,
       );
-      final share = ShareService();
-      final msg = share.buildMessage(
-        amountLabel: widget.amountLabel,
-        description: _label.text,
-        payUrl: link.payUrl,
-      );
-      try {
-        await share.shareWhatsApp(msg);
-      } catch (_) {
-        if (mounted) {
-          showPayspinSnackBar(
-            context,
-            'Link created. WhatsApp is not on this device — open Home to copy or share the link.',
-          );
-        }
-      }
-      HapticFeedback.mediumImpact();
-      if (mounted) {
-        context.pop();
-        context.pop();
-      }
     } catch (e) {
       if (mounted) showPayspinSnackBar(context, apiErrorMessage(e));
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      return null;
     }
   }
 
-  /// Creates the link, then shows the in-person QR screen instead of sharing
-  /// via WhatsApp — for face-to-face payments.
-  Future<void> _createAndShowQr() async {
-    setState(() => _loading = true);
-    try {
-      final link = await sl<PaymentLinkRepository>().createLink(
-        amountCents: widget.amountCents,
-        description: _label.text.trim().isEmpty ? null : _label.text.trim(),
-        bankAccountId: _accounts.length > 1 ? _selectedAccountId : null,
+  ShareLinkPayload _payloadFor(PaymentLink link) => ShareLinkPayload.fromLink(
+        linkId: link.id,
+        amountLabel: widget.amountLabel,
+        description: _description,
+        payUrl: link.payUrl,
+        isPayable: link.isPayable,
       );
-      HapticFeedback.mediumImpact();
+
+  Future<void> _shareWhatsApp() async {
+    final link = await _createLink();
+    if (!mounted) return;
+    if (link == null) {
+      _stopLoading();
+      return;
+    }
+    final share = ShareService();
+    final msg = share.buildMessage(
+      amountLabel: widget.amountLabel,
+      description: _label.text,
+      payUrl: link.payUrl,
+    );
+    try {
+      await share.shareWhatsApp(msg, context: context);
+    } catch (_) {
       if (mounted) {
-        // Replace the send flow with the link's QR screen.
-        context.pop();
-        context.pop();
-        context.push('/links/${link.id}/qr');
+        showPayspinSnackBar(
+          context,
+          'Link created. WhatsApp is not on this device — open Home to copy or share the link.',
+        );
       }
-    } catch (e) {
-      if (mounted) showPayspinSnackBar(context, apiErrorMessage(e));
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    }
+    HapticFeedback.mediumImpact();
+    if (mounted) {
+      _stopLoading();
+      context.go('/links/${link.id}');
+    }
+  }
+
+  Future<void> _saveLink() async {
+    final link = await _createLink();
+    if (!mounted) return;
+    if (link == null) {
+      _stopLoading();
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    showPayspinSnackBar(context, context.l10n.linkSaved, success: true);
+    context.go('/links/${link.id}');
+  }
+
+  Future<void> _createAndShowQr() async {
+    final link = await _createLink();
+    if (!mounted) return;
+    if (link == null) {
+      _stopLoading();
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    context.go('/links/${link.id}/qr');
+  }
+
+  Future<void> _openMoreSharing() async {
+    final link = await _createLink();
+    if (!mounted) return;
+    if (link == null) {
+      _stopLoading();
+      return;
+    }
+    HapticFeedback.mediumImpact();
+    await showPayspinShareSheet(context, payload: _payloadFor(link));
+    if (mounted) {
+      _stopLoading();
+      context.go('/links/${link.id}');
     }
   }
 
@@ -170,38 +225,42 @@ class _SendNamePageState extends State<SendNamePage> {
     final account = _selectedAccount;
     if (account == null) return const SizedBox.shrink();
     final colors = context.psColors;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
-      child: Material(
-        color: colors.surfaceRaised,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-          side: BorderSide(color: colors.border),
-        ),
-        child: InkWell(
-          onTap: _loading ? null : _pickAccount,
-          borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-            child: Row(
-              children: [
-                Icon(Icons.credit_card_outlined, size: 18, color: colors.textMuted),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(context.l10n.payInto, style: GoogleFonts.inter(fontSize: 11, color: colors.textMuted)),
-                      const SizedBox(height: 2),
-                      Text(
-                        '•••• ${account.ibanLast4}',
-                        style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 15, color: colors.textPrimary),
-                      ),
-                    ],
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+        child: Material(
+          color: colors.surfaceRaised,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+            side: BorderSide(color: colors.border),
+          ),
+          child: InkWell(
+            onTap: _loading ? null : _pickAccount,
+            borderRadius: BorderRadius.circular(PayspinTokens.radiusCard),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+              child: Row(
+                children: [
+                  Icon(Icons.credit_card_outlined, size: 18, color: colors.textMuted),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(context.l10n.payInto, style: GoogleFonts.inter(fontSize: 11, color: colors.textMuted)),
+                        const SizedBox(height: 2),
+                        Text(
+                          '•••• ${account.ibanLast4}',
+                          style: GoogleFonts.raleway(fontWeight: FontWeight.w700, fontSize: 15, color: colors.textPrimary),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Text(context.l10n.change, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: PayspinTokens.mint)),
-              ],
+                  Text(context.l10n.change, style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: PayspinTokens.mint)),
+                ],
+              ),
             ),
           ),
         ),
@@ -209,12 +268,35 @@ class _SendNamePageState extends State<SendNamePage> {
     );
   }
 
+  Widget _saveLinkButton() {
+    final colors = context.psColors;
+    final l10n = context.l10n;
+    return PayspinGlassSurface(
+      tier: PayspinGlassTier.flat,
+      borderRadius: PayspinTokens.radiusPill,
+      onTap: _loading ? null : _saveLink,
+      child: SizedBox(
+        height: PayspinTokens.btnHeightLg,
+        child: Center(
+          child: _loading
+              ? const PayspinEmblemLoader(size: 22)
+              : Text(
+                  l10n.saveLink,
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 15, color: colors.textPrimary),
+                ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final filled = _label.text.trim().isNotEmpty;
     final left = 35 - _label.text.length;
     final colors = context.psColors;
     final l10n = context.l10n;
+    final counterColor = left <= 5 ? PayspinTokens.pink : colors.textMuted;
+    final actionsEnabled = !_loading;
+
     return Scaffold(
       backgroundColor: colors.bg,
       body: SafeArea(
@@ -261,28 +343,60 @@ class _SendNamePageState extends State<SendNamePage> {
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
-                    color: colors.textMuted,
+                    color: counterColor,
                   ),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
+                  PayspinStaggeredEntrance(
+                    index: 0,
                     child: PayspinGradientPillButton(
                       label: l10n.sendViaWhatsApp,
                       loading: _loading,
-                      onPressed: filled && !_loading ? _send : null,
+                      onPressed: actionsEnabled ? _shareWhatsApp : null,
                       icon: const Icon(Icons.send, color: PayspinTokens.onBrand, size: 18),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  PayspinAccentCircleButton(
-                    icon: Icons.qr_code_2,
-                    active: filled,
-                    onPressed: filled && !_loading ? _createAndShowQr : null,
+                  const SizedBox(height: 10),
+                  PayspinStaggeredEntrance(
+                    index: 1,
+                    child: Row(
+                      children: [
+                        Expanded(child: _saveLinkButton()),
+                        const SizedBox(width: 10),
+                        PayspinAccentCircleButton(
+                          icon: Icons.qr_code_2,
+                          active: actionsEnabled,
+                          loading: _loading,
+                          onPressed: actionsEnabled ? _createAndShowQr : null,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  PayspinStaggeredEntrance(
+                    index: 2,
+                    child: Center(
+                      child: TextButton.icon(
+                        onPressed: actionsEnabled ? _openMoreSharing : null,
+                        icon: Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: PayspinTokens.mint),
+                        label: Text(
+                          l10n.moreSharingOptions,
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: PayspinTokens.mint,
+                            decoration: TextDecoration.underline,
+                            decorationColor: PayspinTokens.mint.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

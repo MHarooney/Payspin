@@ -45,6 +45,14 @@ class OnboardingDraft extends Equatable {
 
   String get phoneDisplay => '$countryCode $phone'.trim();
 
+  /// Privacy-safe subtitle for OTP (e.g. `+31 ••••••8902`).
+  String get phoneMasked {
+    final digits = phone.replaceAll(RegExp(r'\D'), '');
+    if (digits.length < 4) return phoneDisplay;
+    final last4 = digits.substring(digits.length - 4);
+    return '$countryCode ••••••$last4';
+  }
+
   String get ibanDisplay {
     final n = iban.replaceAll(' ', '').toUpperCase();
     if (n.length < 8) return n.isEmpty ? '—' : n;

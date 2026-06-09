@@ -33,11 +33,11 @@ void main() {
     await tester.pump();
     for (var i = 0; i < 30; i++) {
       await tester.pump(const Duration(milliseconds: 100));
-      if (find.textContaining('1060908902').evaluate().isNotEmpty) break;
+      if (find.textContaining('8902').evaluate().isNotEmpty) break;
     }
 
     expect(find.text('Enter the code'), findsOneWidget);
-    expect(find.textContaining('1060908902'), findsWidgets);
+    expect(find.textContaining('••••••8902'), findsWidgets);
   });
 
   testWidgets('OTP restore with active verification does not auto-trigger reCAPTCHA',
@@ -65,6 +65,6 @@ void main() {
 
     // OTP must never auto-start Firebase (the old "Verifying your device…" state).
     expect(find.textContaining('Verifying your device'), findsNothing);
-    expect(find.textContaining('1060908902'), findsWidgets);
+    expect(find.textContaining('••••••8902'), findsWidgets);
   });
 }

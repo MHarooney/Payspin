@@ -6,20 +6,23 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/design_system/theme/payspin_motion.dart';
 import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/tokens/payspin_tokens.dart';
-import '../../core/design_system/widgets/payspin_finance_particles.dart';
+import '../../core/design_system/widgets/payspin_emblem_assemble.dart';
 import '../../core/design_system/widgets/payspin_gradient_pill_button.dart';
-import '../../core/design_system/widgets/payspin_radial_glow.dart';
+import '../../core/design_system/widgets/payspin_quick_settings.dart';
 import '../../core/l10n/payspin_localizations.dart';
 import '../../core/onboarding/intro_store.dart';
+import 'intro_page_transformer.dart';
+import 'intro_scene_choreography.dart';
+import 'intro_scene_scope.dart';
+import 'payspin_intro_progress_rail.dart';
+import 'payspin_intro_shell.dart';
 import 'scenes/intro_scene_1_bill_to_links.dart';
 import 'scenes/intro_scene_2_europe_map.dart';
 import 'scenes/intro_scene_3_one_tap_pay.dart';
 import 'scenes/intro_scene_4_value_loop.dart';
 import 'scenes/intro_scene_5_use_cases.dart';
 
-/// Wise-style 5-scene pre-onboarding storyboard. Skippable, localized, and
-/// shown once (first launch) before [WelcomePage]. Each scene has a short
-/// looping motion illustration plus a localized headline + body.
+/// Aurora Prelude — 5-scene cinematic intro before [WelcomePage].
 class PayspinIntroFlow extends StatefulWidget {
   const PayspinIntroFlow({super.key});
 
@@ -31,37 +34,73 @@ class PayspinIntroFlow extends StatefulWidget {
 
 class _PayspinIntroFlowState extends State<PayspinIntroFlow> {
   final PageController _controller = PageController();
+  final ValueNotifier<double> _offsetNotifier = ValueNotifier(0);
   int _page = 0;
+  double _pageOffset = 0;
+  bool _exitingIllustration = false;
+  bool _finaleFlash = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    final offset = _controller.page ?? _page.toDouble();
+    _offsetNotifier.value = offset;
+    if ((offset - _pageOffset).abs() > 0.001) {
+      setState(() => _pageOffset = offset);
+    }
+  }
 
   @override
   void dispose() {
+    _controller.removeListener(_onScroll);
+    _offsetNotifier.dispose();
     _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _finish() async {
+  Future<void> _finish({bool withFlash = false}) async {
+    if (withFlash) {
+      setState(() => _finaleFlash = true);
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    }
     await IntroStore.markSeen();
     if (mounted) context.go('/welcome');
   }
 
-  void _next() {
+  Future<void> _next() async {
     if (_page >= PayspinIntroFlow.sceneCount - 1) {
-      _finish();
+      HapticFeedback.mediumImpact();
+      await _finish(withFlash: true);
       return;
     }
-    HapticFeedback.selectionClick();
-    _controller.nextPage(
+
+    HapticFeedback.lightImpact();
+    setState(() => _exitingIllustration = true);
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    if (!mounted) return;
+
+    await _controller.nextPage(
       duration: PayspinMotion.medium,
       curve: PayspinMotion.easeEnter,
     );
+    if (mounted) setState(() => _exitingIllustration = false);
+  }
+
+  void _onPageChanged(int i) {
+    HapticFeedback.selectionClick();
+    setState(() => _page = i);
   }
 
   Widget _sceneFor(int i) => switch (i) {
-        0 => const IntroScene1(),
-        1 => const IntroScene2(),
-        2 => const IntroScene3(),
-        3 => const IntroScene4(),
-        _ => const IntroScene5(),
+        0 => const IntroScene1(sceneIndex: 0),
+        1 => const IntroScene2(sceneIndex: 1),
+        2 => const IntroScene3(sceneIndex: 2),
+        3 => const IntroScene4(sceneIndex: 3),
+        _ => const IntroScene5(sceneIndex: 4),
       };
 
   @override
@@ -69,64 +108,103 @@ class _PayspinIntroFlowState extends State<PayspinIntroFlow> {
     final colors = context.psColors;
     final l10n = context.l10n;
     final isLast = _page == PayspinIntroFlow.sceneCount - 1;
-    final isLight = Theme.of(context).brightness == Brightness.light;
 
     return Scaffold(
       backgroundColor: colors.bg,
       body: Stack(
         children: [
-          const Positioned.fill(child: PayspinRadialGlow(size: 420, animate: false)),
-          Positioned.fill(child: PayspinFinanceParticles(intensity: isLight ? 0.75 : 0.5)),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                  child: Row(
-                    children: [
-                      const Spacer(),
-                      TextButton(
-                        onPressed: _finish,
-                        child: Text(
-                          l10n.introSkip,
-                          style: GoogleFonts.inter(
-                            color: colors.textMuted,
-                            fontWeight: FontWeight.w600,
+          PayspinIntroBackdrop(
+            sceneIndex: _page,
+            child: IntroSceneScope(
+              pageOffset: _pageOffset,
+              offsetListenable: _offsetNotifier,
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+                      child: Row(
+                        children: [
+                          const PayspinQuickSettings(),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () => _finish(),
+                            child: Text(
+                              l10n.introSkip,
+                              style: GoogleFonts.inter(
+                                color: colors.textMuted,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: PageView.builder(
+                        controller: _controller,
+                        itemCount: PayspinIntroFlow.sceneCount,
+                        onPageChanged: _onPageChanged,
+                        itemBuilder: (context, i) => IntroPageTransformer(
+                          pageOffset: _pageOffset,
+                          index: i,
+                          child: _IntroPage(
+                            scene: IntroIllustrationTransition(
+                              exiting: _exitingIllustration && i == _page,
+                              child: _sceneFor(i),
+                            ),
+                            title: l10n.introSceneTitle(i + 1),
+                            body: l10n.introSceneBody(i + 1),
+                            sceneKey: i,
+                            colors: colors,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: PageView.builder(
-                    controller: _controller,
-                    itemCount: PayspinIntroFlow.sceneCount,
-                    onPageChanged: (i) => setState(() => _page = i),
-                    itemBuilder: (context, i) => _IntroPage(
-                      scene: _sceneFor(i),
-                      title: l10n.introSceneTitle(i + 1),
-                      body: l10n.introSceneBody(i + 1),
                     ),
-                  ),
-                ),
-                _Dots(count: PayspinIntroFlow.sceneCount, active: _page),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
-                  child: PayspinGradientPillButton(
-                    label: isLast ? l10n.introGetStarted : l10n.introNext,
-                    shimmer: isLast,
-                    onPressed: _next,
-                    icon: Icon(
-                      isLast ? Icons.arrow_forward_rounded : Icons.chevron_right_rounded,
-                      color: PayspinTokens.onBrand,
-                      size: 20,
+                    PayspinIntroProgressRail(
+                      count: PayspinIntroFlow.sceneCount,
+                      active: _page,
+                      pageOffset: _pageOffset,
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+                      child: AnimatedScale(
+                        scale: _exitingIllustration ? 0.97 : 1,
+                        duration: PayspinMotion.fast,
+                        child: PayspinGradientPillButton(
+                          key: const Key('intro_next'),
+                          label: isLast ? l10n.introGetStarted : l10n.introNext,
+                          shimmer: isLast,
+                          onPressed: _next,
+                          icon: Icon(
+                            isLast ? Icons.arrow_forward_rounded : Icons.chevron_right_rounded,
+                            color: PayspinTokens.onBrand,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
+          if (_finaleFlash)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: ColoredBox(
+                  color: PayspinTokens.pink.withValues(alpha: 0.12),
+                  child: Center(
+                    child: PayspinEmblemAssemble(
+                      size: 72,
+                      progress: 1,
+                      style: PayspinEmblemStyle.gradient,
+                      glow: true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -134,15 +212,22 @@ class _PayspinIntroFlowState extends State<PayspinIntroFlow> {
 }
 
 class _IntroPage extends StatelessWidget {
-  const _IntroPage({required this.scene, required this.title, required this.body});
+  const _IntroPage({
+    required this.scene,
+    required this.title,
+    required this.body,
+    required this.sceneKey,
+    required this.colors,
+  });
 
   final Widget scene;
   final String title;
   final String body;
+  final int sceneKey;
+  final PayspinSemanticColors colors;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.psColors;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 28),
       child: Column(
@@ -150,62 +235,25 @@ class _IntroPage extends StatelessWidget {
           Expanded(flex: 5, child: scene),
           Expanded(
             flex: 3,
-            child: Column(
-              children: [
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.raleway(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
-                    color: colors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  body,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    height: 1.55,
-                    color: colors.textBody,
-                  ),
-                ),
-              ],
+            child: IntroSceneCopy(
+              title: title,
+              body: body,
+              sceneKey: sceneKey,
+              titleStyle: GoogleFonts.raleway(
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                height: 1.2,
+                color: colors.textPrimary,
+              ),
+              bodyStyle: GoogleFonts.inter(
+                fontSize: 15,
+                height: 1.55,
+                color: colors.textBody,
+              ),
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _Dots extends StatelessWidget {
-  const _Dots({required this.count, required this.active});
-
-  final int count;
-  final int active;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.psColors;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (var i = 0; i < count; i++)
-          AnimatedContainer(
-            duration: PayspinMotion.fast,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: i == active ? 22 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              gradient: i == active ? PayspinTokens.gradientPink : null,
-              color: i == active ? null : colors.glassBorder,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-      ],
     );
   }
 }

@@ -3,6 +3,7 @@ import { Throttle } from '@nestjs/throttler';
 import { LoginUserUseCase } from '../../../application/use-cases/auth/login-user.use-case';
 import { PhoneSignInUseCase } from '../../../application/use-cases/auth/phone-sign-in.use-case';
 import { RegisterUserUseCase } from '../../../application/use-cases/auth/register-user.use-case';
+import { ReauthenticatePhoneUseCase } from '../../../application/use-cases/auth/reauthenticate-phone.use-case';
 import { VerifyPhoneUseCase } from '../../../application/use-cases/auth/verify-phone.use-case';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -16,6 +17,7 @@ export class AuthController {
     private readonly registerUser: RegisterUserUseCase,
     private readonly loginUser: LoginUserUseCase,
     private readonly verifyPhone: VerifyPhoneUseCase,
+    private readonly reauthenticatePhone: ReauthenticatePhoneUseCase,
     private readonly phoneSignIn: PhoneSignInUseCase,
   ) {}
 
@@ -44,5 +46,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   verifyPhoneNumber(@CurrentUser() user: AuthenticatedUser, @Body() body: unknown) {
     return this.verifyPhone.execute(user.userId, body);
+  }
+
+  @Post('reauthenticate-phone')
+  @UseGuards(JwtAuthGuard)
+  reauthenticatePhoneNumber(@CurrentUser() user: AuthenticatedUser, @Body() body: unknown) {
+    return this.reauthenticatePhone.execute(user.userId, body);
   }
 }

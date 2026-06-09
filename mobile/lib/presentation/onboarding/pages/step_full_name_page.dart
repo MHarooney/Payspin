@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/design_system/theme/payspin_semantic_colors.dart';
+import '../../../core/design_system/widgets/payspin_onboarding_journey.dart';
 import '../../../core/design_system/widgets/payspin_onboarding_shell.dart';
 import '../../../core/design_system/widgets/payspin_underline_field.dart';
 import '../onboarding_cubit.dart';
@@ -36,26 +37,21 @@ class _StepFullNamePageState extends State<StepFullNamePage> {
     final cubit = context.read<OnboardingCubit>();
     final iban = cubit.state.ibanDisplay;
     final filled = _name.text.trim().contains(' ');
+    final existing = GoRouterState.of(context).uri.queryParameters['existing'] == '1';
+
     return PayspinOnboardingShell(
-      step: 5,
-      totalSteps: 5,
+      journey: OnboardingJourneySpec.fullName,
       title: const Text('What\'s your first and\nlast name?'),
-      onBack: () {
-        final existing = GoRouterState.of(context).uri.queryParameters['existing'] == '1';
-        context.go(existing ? '/onboarding/iban?existing=1' : '/onboarding/iban');
-      },
+      onBack: () => context.go(existing ? '/onboarding/iban?existing=1' : '/onboarding/iban'),
       nextIcon: Icons.check_rounded,
       nextLoading: cubit.isLoading,
       onNext: !filled || cubit.isLoading
           ? null
           : () async {
               cubit.updateFullName(_name.text);
-              final existing = GoRouterState.of(context).uri.queryParameters['existing'] == '1';
               final ok = await cubit.complete(alreadyRegistered: existing);
               if (!context.mounted) return;
               if (ok) {
-                // Existing users are only adding another IBAN — skip the
-                // celebration + app-lock setup and return to the bank list.
                 if (existing) {
                   context.go('/bank-accounts');
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -89,7 +85,10 @@ class _StepFullNamePageState extends State<StepFullNamePage> {
               style: GoogleFonts.inter(fontSize: 13, color: colors.textBody, height: 1.6),
               children: [
                 const TextSpan(text: 'We will use this to check whether '),
-                TextSpan(text: iban, style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w700)),
+                TextSpan(
+                  text: iban,
+                  style: TextStyle(color: colors.textPrimary, fontWeight: FontWeight.w700),
+                ),
                 const TextSpan(text: ' is in your name, so we can keep Payspin safe.'),
               ],
             ),

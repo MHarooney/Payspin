@@ -15,6 +15,7 @@ import '../presentation/links/link_detail_page.dart';
 import '../presentation/links/link_qr_page.dart';
 import '../presentation/notifications/notifications_page.dart';
 import '../presentation/onboarding/onboarding_cubit.dart';
+import '../presentation/onboarding/onboarding_page_transition.dart';
 import '../presentation/onboarding/pages/step_connect_bank_page.dart';
 import '../presentation/onboarding/pages/step_full_name_page.dart';
 import '../presentation/onboarding/pages/step_iban_page.dart';
@@ -53,13 +54,34 @@ GoRouter createRouter({String initialLocation = '/splash'}) {
           child: child,
         ),
         routes: [
-          GoRoute(path: '/onboarding/name', builder: (_, __) => const StepNamePage()),
-          GoRoute(path: '/onboarding/phone', builder: (_, __) => const StepPhonePage()),
-          GoRoute(path: '/onboarding/otp', builder: (_, __) => const StepOtpPage()),
-          GoRoute(path: '/onboarding/connect', builder: (_, __) => const StepConnectBankPage()),
-          GoRoute(path: '/onboarding/iban', builder: (_, __) => const StepIbanPage()),
-          GoRoute(path: '/onboarding/full-name', builder: (_, __) => const StepFullNamePage()),
-          GoRoute(path: '/onboarding/success', builder: (_, __) => const SuccessPage()),
+          GoRoute(
+            path: '/onboarding/name',
+            pageBuilder: (_, s) => onboardingTransitionPage(key: s.pageKey, child: const StepNamePage()),
+          ),
+          GoRoute(
+            path: '/onboarding/phone',
+            pageBuilder: (_, s) => onboardingTransitionPage(key: s.pageKey, child: const StepPhonePage()),
+          ),
+          GoRoute(
+            path: '/onboarding/otp',
+            pageBuilder: (_, s) => onboardingTransitionPage(key: s.pageKey, child: const StepOtpPage()),
+          ),
+          GoRoute(
+            path: '/onboarding/connect',
+            pageBuilder: (_, s) => onboardingTransitionPage(key: s.pageKey, child: const StepConnectBankPage()),
+          ),
+          GoRoute(
+            path: '/onboarding/iban',
+            pageBuilder: (_, s) => onboardingTransitionPage(key: s.pageKey, child: const StepIbanPage()),
+          ),
+          GoRoute(
+            path: '/onboarding/full-name',
+            pageBuilder: (_, s) => onboardingTransitionPage(key: s.pageKey, child: const StepFullNamePage()),
+          ),
+          GoRoute(
+            path: '/onboarding/success',
+            pageBuilder: (_, s) => onboardingTransitionPage(key: s.pageKey, child: const SuccessPage()),
+          ),
         ],
       ),
       ShellRoute(
@@ -78,6 +100,7 @@ GoRouter createRouter({String initialLocation = '/splash'}) {
           return SendNamePage(
             amountCents: extra['cents'] as int?,
             amountLabel: extra['amountLabel'] as String? ?? '—',
+            initialDescription: extra['initialDescription'] as String? ?? '',
           );
         },
       ),

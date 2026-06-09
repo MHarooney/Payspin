@@ -39,7 +39,7 @@ class HomeDashboard {
   /// Most-recent payable link, used by "Share last" + share recommendation.
   final PaymentLink? shareTarget;
 
-  /// Newest SETTLED link with a description — drives "Request again".
+  /// Newest closed link (cancelled/settled/expired) — drives "Request again".
   final PaymentLink? requestAgainSource;
 
   static const int maxFavoritesShown = 8;
@@ -60,7 +60,13 @@ class HomeDashboard {
     return copy;
   }
 
-  factory HomeDashboard.from(List<PaymentLink> links, Set<String> favoriteIds, {DateTime? now}) {
+  factory HomeDashboard.from(
+    List<PaymentLink> links,
+    Set<String> favoriteIds, {
+    Set<String> archivedIds = const {},
+    Set<HomeRecommendation> dismissedRecommendations = const {},
+    DateTime? now,
+  }) {
     final today = now ?? DateTime.now();
     final sorted = _sortByCreatedDesc(links);
 
@@ -101,18 +107,34 @@ class HomeDashboard {
     // 3) Share + request-again sources.
     final shareTarget = sorted.where((l) => l.isPayable).firstOrNull;
     final requestAgainSource = sorted
-        .where((l) => l.status == 'SETTLED' && (l.description?.trim().isNotEmpty ?? false))
+        .where(
+          (l) =>
+              l.canRequestAgain &&
+              ((l.description?.trim().isNotEmpty ?? false) || l.amountCents != null),
+        )
         .firstOrNull;
 
-    // 4) Recommended cards (≤2, deduped by type).
+    // 4) Recommended cards (≤2, deduped by type, minus locally dismissed).
     final recommended = <HomeRecommendation>[];
-    if (requestAgainSource != null) recommended.add(HomeRecommendation.requestAgain);
-    if (links.isNotEmpty) recommended.add(HomeRecommendation.groepies);
-    if (links.length >= 2 && _hasFoodLink(links)) recommended.add(HomeRecommendation.dinner);
+    if (requestAgainSource != null && !dismissedRecommendations.contains(HomeRecommendation.requestAgain)) {
+      recommended.add(HomeRecommendation.requestAgain);
+    }
+    if (links.isNotEmpty && !dismissedRecommendations.contains(HomeRecommendation.groepies)) {
+      recommended.add(HomeRecommendation.groepies);
+    }
+    if (links.length >= 2 &&
+        _hasFoodLink(links) &&
+        !dismissedRecommendations.contains(HomeRecommendation.dinner)) {
+      recommended.add(HomeRecommendation.dinner);
+    }
     final trimmedRecommended = recommended.take(maxRecommended).toList();
 
-    // 5) Recent — exclude hero + favorites so cards never repeat.
-    final excluded = <String>{if (hero != null) hero.id, ...favorites.map((f) => f.id)};
+    // 5) Recent — exclude hero, favorites, and locally archived links.
+    final excluded = <String>{
+      if (hero != null) hero.id,
+      ...favorites.map((f) => f.id),
+      ...archivedIds,
+    };
     final recent = sorted.where((l) => !excluded.contains(l.id)).toList();
 
     return HomeDashboard(

@@ -45,6 +45,11 @@ export const verifyPhoneSchema = z.object({
   idToken: z.string().min(10).max(8192),
 });
 
+/** Firebase Phone Auth proof for an already-authenticated user (read-only match). */
+export const reauthenticatePhoneSchema = z.object({
+  idToken: z.string().min(10).max(8192),
+});
+
 /**
  * Sign in (or auto-register) using a Firebase Phone Auth ID token. The verified
  * E.164 number inside the token is the account identity, so the same phone
@@ -134,6 +139,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterDeviceTokenInput = z.infer<typeof registerDeviceTokenSchema>;
 export type ListNotificationsInput = z.infer<typeof listNotificationsSchema>;
 export type VerifyPhoneInput = z.infer<typeof verifyPhoneSchema>;
+export type ReauthenticatePhoneInput = z.infer<typeof reauthenticatePhoneSchema>;
 export type PhoneSignInInput = z.infer<typeof phoneSignInSchema>;
 export type CreateBankAccountInput = z.infer<typeof createBankAccountSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;

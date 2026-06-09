@@ -3,9 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:payspin_mobile/core/design_system/widgets/payspin_phone_input_row.dart';
 
 void main() {
-  // Regression guard: the country dropdown used to render as a Positioned child
-  // overflowing a Stack, which paints but is NOT hit-tested, so taps on list
-  // items were silently dropped. It now renders via OverlayPortal.
   Future<void> pumpRow(
     WidgetTester tester, {
     required ValueChanged<String> onDialCodeChanged,
@@ -39,36 +36,31 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('opens the dropdown and selects a country by tap', (tester) async {
+  testWidgets('opens the country sheet and selects a country by tap', (tester) async {
     String? picked;
     await pumpRow(tester, onDialCodeChanged: (v) => picked = v);
 
-    // Dropdown closed initially.
     expect(find.text('Germany'), findsNothing);
 
-    // Open it.
-    await tester.tap(find.text('+31'));
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
     await tester.pumpAndSettle();
     expect(find.text('Germany'), findsOneWidget);
 
-    // Tap a country — this is the interaction that was broken before.
     await tester.tap(find.text('Germany'));
     await tester.pumpAndSettle();
 
     expect(picked, '+49');
-    // Dropdown closes after selection.
     expect(find.text('Germany'), findsNothing);
   });
 
-  testWidgets('tapping the outside barrier dismisses the dropdown', (tester) async {
+  testWidgets('tapping the outside barrier dismisses the sheet', (tester) async {
     await pumpRow(tester, onDialCodeChanged: (_) {});
 
-    await tester.tap(find.text('+31'));
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
     await tester.pumpAndSettle();
     expect(find.text('Belgium'), findsOneWidget);
 
-    // Tap far away (the full-screen barrier).
-    await tester.tapAt(const Offset(20, 760));
+    await tester.tapAt(const Offset(20, 40));
     await tester.pumpAndSettle();
     expect(find.text('Belgium'), findsNothing);
   });
@@ -81,7 +73,7 @@ void main() {
   testWidgets('search filters the country list by name', (tester) async {
     await pumpRow(tester, onDialCodeChanged: (_) {});
 
-    await tester.tap(find.text('+31'));
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
     await tester.pumpAndSettle();
     expect(find.text('Germany'), findsOneWidget);
 
@@ -96,7 +88,7 @@ void main() {
     String? picked;
     await pumpRow(tester, onDialCodeChanged: (v) => picked = v);
 
-    await tester.tap(find.text('+31'));
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
     await tester.pumpAndSettle();
 
     await tester.enterText(searchField(), '+20');
@@ -111,12 +103,18 @@ void main() {
   testWidgets('shows an empty state when nothing matches', (tester) async {
     await pumpRow(tester, onDialCodeChanged: (_) {});
 
-    await tester.tap(find.text('+31'));
+    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
     await tester.pumpAndSettle();
 
     await tester.enterText(searchField(), 'zzzzz');
     await tester.pumpAndSettle();
 
     expect(find.text('No countries found'), findsOneWidget);
+  });
+
+  test('E.164 preview formatting', () {
+    expect(formatPhoneE164Preview('+31', '612345678'), '+31 612 345 678');
+    expect(isPhoneDigitsValid('+31', '612345678'), isTrue);
+    expect(isPhoneDigitsValid('+31', '612'), isFalse);
   });
 }

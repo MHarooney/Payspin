@@ -48,6 +48,11 @@ class PaymentLink {
   /// Whether a cancel action should be offered (only meaningful while open).
   bool get canCancel => status == 'ACTIVE' || status == 'COLLECTING';
 
+  /// Closed links that can spawn a new request with the same amount/description.
+  bool get canRequestAgain =>
+      !isPayable &&
+      (status == 'CANCELLED' || status == 'SETTLED' || status == 'EXPIRED');
+
   String get amountLabel {
     if (amountCents == null) return 'Open amount';
     return '€${(amountCents! / 100).toStringAsFixed(2)}';

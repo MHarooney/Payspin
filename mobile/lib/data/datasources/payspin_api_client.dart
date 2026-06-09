@@ -220,6 +220,17 @@ class PayspinApiClient {
     _ensureOk(res);
   }
 
+  Future<bool> reauthenticatePhone({required String idToken}) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/reauthenticate-phone'),
+      headers: await _headers(),
+      body: jsonEncode({'idToken': idToken}),
+    ));
+    _ensureOk(res);
+    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    return json['reauthenticated'] == true;
+  }
+
   Future<Map<String, dynamic>> getMe() async {
     final res = await _send(_client.get(Uri.parse('${ApiConfig.baseUrl}/users/me'), headers: await _headers()));
     _ensureOk(res);

@@ -51,6 +51,8 @@ void main() {
       expect(l10n.homeGreeting(8), 'Good morning');
       expect(l10n.homeGreeting(14), 'Good afternoon');
       expect(l10n.homeGreeting(22), 'Good evening');
+      expect(l10n.homeGreeting(14, name: 'Karim'), 'Good afternoon, Karim');
+      expect(l10n.homeGreeting(14, name: '  '), 'Good afternoon');
     });
   });
 

@@ -135,6 +135,10 @@ export interface VerifyPhoneResponse {
   phoneVerifiedAt: string | null;
 }
 
+export interface ReauthenticatePhoneResponse {
+  reauthenticated: true;
+}
+
 export enum CircleStatus {
   DRAFT = 'DRAFT',
   ACTIVE = 'ACTIVE',

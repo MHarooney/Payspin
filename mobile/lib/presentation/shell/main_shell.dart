@@ -6,6 +6,7 @@ import '../../core/design_system/theme/payspin_semantic_colors.dart';
 import '../../core/design_system/widgets/payspin_ambient_background.dart';
 import '../../core/design_system/widgets/payspin_bottom_nav.dart';
 import '../../core/design_system/widgets/payspin_draggable_fab.dart';
+import '../../core/design_system/widgets/payspin_shell_chrome.dart';
 import '../../core/notifications/push_service.dart';
 import '../home/groepies_page.dart';
 import '../home/home_page.dart';
@@ -20,9 +21,13 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends State<MainShell> with ShellChromeRouteMixin {
   int _index = 0;
   final PushService _push = sl<PushService>();
+  final ShellChromeController _chrome = ShellChromeController();
+
+  @override
+  ShellChromeController get shellChromeController => _chrome;
 
   @override
   void initState() {
@@ -40,6 +45,7 @@ class _MainShellState extends State<MainShell> {
   void dispose() {
     _push.openLinkRequests.removeListener(_onOpenLinkRequested);
     _push.openSupportThreadRequests.removeListener(_onOpenSupportRequested);
+    _chrome.dispose();
     super.dispose();
   }
 
@@ -60,6 +66,7 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _onTap(int i) {
+    _chrome.reset();
     setState(() => _index = i);
     // 0 = Home, 1 = Payspin (Groepies / community — "coming soon").
     context.go(i == 1 ? '/home/groepies' : '/home');
@@ -68,6 +75,8 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
+    syncShellChromeRoute(location);
+
     final isGroepies = location.contains('groepies');
     final isProfile = location.contains('profile');
     _index = isGroepies ? 1 : 0;
@@ -84,23 +93,35 @@ class _MainShellState extends State<MainShell> {
     // The create-link FAB only belongs on the Home (tikkies) screen.
     final showFab = location == '/home' || location == '/home/';
 
+    // Profile is a settings sub-screen — back returns home; no tab bar.
+    final showBottomNav = !isProfile;
+
     return Scaffold(
       backgroundColor: context.psColors.bg,
       extendBody: true,
       body: Stack(
         children: [
-          PayspinAmbientBackground(child: body),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: PayspinBottomNav(currentIndex: _index, onTap: _onTap),
+          PayspinShellScrollListener(
+            controller: _chrome,
+            child: PayspinAmbientBackground(child: body),
           ),
-          // FAB last so it stays above the bottom bar when dragged there.
+          if (showBottomNav)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: PayspinShellChromeSlide(
+                controller: _chrome,
+                child: PayspinBottomNav(currentIndex: _index, onTap: _onTap),
+              ),
+            ),
           if (showFab)
             Positioned.fill(
-              child: PayspinDraggableFab(
-                child: PayspinGradientFab(onPressed: () => context.push('/send/amount')),
+              child: PayspinShellChromeSlide(
+                controller: _chrome,
+                child: PayspinDraggableFab(
+                  child: PayspinGradientFab(onPressed: () => context.push('/send/amount')),
+                ),
               ),
             ),
         ],
