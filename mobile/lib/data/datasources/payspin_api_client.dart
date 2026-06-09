@@ -142,6 +142,75 @@ class PayspinApiClient {
     _ensureOk(res);
   }
 
+  Future<List<dynamic>> listSupportThreads() async {
+    final res = await _send(_client.get(
+      Uri.parse('${ApiConfig.baseUrl}/support/threads'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createSupportThread({
+    String? subject,
+    String? category,
+    required String body,
+    String? contextRef,
+  }) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/support/threads'),
+      headers: await _headers(),
+      body: jsonEncode({
+        if (subject != null && subject.isNotEmpty) 'subject': subject,
+        if (category != null) 'category': category,
+        'body': body,
+        if (contextRef != null && contextRef.isNotEmpty) 'contextRef': contextRef,
+      }),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getSupportThread(String id) async {
+    final res = await _send(_client.get(
+      Uri.parse('${ApiConfig.baseUrl}/support/threads/$id'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> sendSupportMessage({
+    required String threadId,
+    required String body,
+  }) async {
+    final res = await _send(_client.post(
+      Uri.parse('${ApiConfig.baseUrl}/support/threads/$threadId/messages'),
+      headers: await _headers(),
+      body: jsonEncode({'body': body}),
+    ));
+    _ensureOk(res);
+    return jsonDecode(res.body) as Map<String, dynamic>;
+  }
+
+  Future<void> markSupportThreadRead(String threadId) async {
+    final res = await _send(_client.patch(
+      Uri.parse('${ApiConfig.baseUrl}/support/threads/$threadId/read'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
+  }
+
+  Future<int> supportUnreadCount() async {
+    final res = await _send(_client.get(
+      Uri.parse('${ApiConfig.baseUrl}/support/unread-count'),
+      headers: await _headers(),
+    ));
+    _ensureOk(res);
+    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    return (json['count'] as num?)?.toInt() ?? 0;
+  }
+
   Future<void> verifyPhone({required String idToken}) async {
     final res = await _send(_client.post(
       Uri.parse('${ApiConfig.baseUrl}/auth/verify-phone'),

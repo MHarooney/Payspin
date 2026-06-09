@@ -251,11 +251,15 @@ export interface SupportMessageDto {
 
 export interface SupportThreadDto {
   id: string;
+  userId: string | null;
   userRef: string;
   subjectName: string;
+  category: string | null;
+  contextRef: string | null;
   meta: string | null;
   status: string;
   unread: boolean;
+  userUnread: boolean;
   preview: string;
   lastMessageAt: string;
 }

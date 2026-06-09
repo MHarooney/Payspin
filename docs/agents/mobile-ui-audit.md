@@ -139,6 +139,37 @@ These exceed the static JSX and are intentionally added for a premium feel:
 
 ---
 
+## Home premium redesign (2026-06-09)
+
+Upgraded the Home tab from a flat `PayspinTikkieRow` list into a sectioned premium dark dashboard, on Payspin tokens, no backend changes. Plan: [mobile-home-redesign-plan.md](mobile-home-redesign-plan.md).
+
+**New sliver sections** (`home_page.dart`): time-based greeting → quick actions → active-request hero → favorites strip → recommended cards → recent links. Search active or 0 links collapse back to filtered list / empty state.
+
+**Quick actions decision:** included a **4-tile** row (New link, Scan, Share last, Groepies) — *not* 6. *Request payment* and *Copy link* were excluded as redundant (folded into New link + the row long-press sheet). *Share last* is disabled with an honest hint when no payable link exists. Rationale in the plan doc.
+
+**Data logic (client-side only):**
+- Favorites: `FavoriteLinksStore` (`SharedPreferences`, max 8, `ChangeNotifier`).
+- Active hero: derived — MULTI `COLLECTING`/`ACTIVE` with capped progress first, else fresh SINGLE `ACTIVE` (< 7 days).
+- Recommended: heuristic cards (request again / Groepies / dinner split), ≤2, deduped.
+- Recent: all links minus hero + favorites (no duplicate cards).
+
+**New shared widgets:**
+
+| Widget | File |
+|--------|------|
+| `PayspinHomeSectionHeader` | `widgets/payspin_home_section_header.dart` |
+| `PayspinLinkIconAvatar` | `widgets/payspin_link_icon_avatar.dart` |
+| `PayspinQuickActionTile` / `PayspinQuickActionsRow` | `widgets/payspin_quick_action_tile.dart`, `payspin_quick_actions_row.dart` |
+| `PayspinFavoriteLinkCard` | `widgets/payspin_favorite_link_card.dart` |
+| `PayspinPromoGradientCard` | `widgets/payspin_promo_gradient_card.dart` |
+| `PayspinActiveRequestHero` | `widgets/payspin_active_request_hero.dart` |
+
+**Creative picks shipped:** long-press row → Copy/Share/Favorite sheet; open-amount links get a mint accent (avatar ring + amount color); per-section skeleton loaders; time-based greeting.
+
+**Tests:** `favorite_links_store_test.dart`, `home_dashboard_test.dart`, extended `l10n_test.dart`, and a rich-dashboard render test in `widgets_test.dart`. EN+NL+de+ar copy for all new strings.
+
+---
+
 ## Runtime verification log
 
 Filled in during phases (simulator/MCP screenshots + notes).

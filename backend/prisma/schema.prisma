@@ -23,6 +23,7 @@ model User {
   paymentLinks    PaymentLink[]
   deviceTokens    DeviceToken[]
   notifications   Notification[]
+  supportThreads  SupportThread[]
 
   @@map("users")
 }
@@ -313,16 +314,22 @@ model Dispute {
 
 model SupportThread {
   id            String           @id @default(uuid())
+  userId        String?          @map("user_id")
   userRef       String           @map("user_ref")
   subjectName   String           @map("subject_name")
+  category      String?
+  contextRef    String?          @map("context_ref")
   meta          String?
   status        String           @default("OPEN")
   unread        Boolean          @default(true)
+  userUnread    Boolean          @default(false) @map("user_unread")
   lastMessageAt DateTime         @default(now()) @map("last_message_at")
   createdAt     DateTime         @default(now()) @map("created_at")
+  user          User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   messages      SupportMessage[]
 
   @@index([status, lastMessageAt])
+  @@index([userId, lastMessageAt])
   @@map("support_threads")
 }
 

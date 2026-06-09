@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import '../firebase/firebase_bootstrap.dart';
 import '../state/links_refresh_notifier.dart';
 import '../state/notifications_refresh_notifier.dart';
+import '../state/support_refresh_notifier.dart';
 import '../../data/datasources/payspin_api_client.dart';
 
 /// Background isolate handler. Must be a top-level function. The OS renders the
@@ -20,14 +21,18 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 /// the inbox/home on foreground pushes, and surfaces "open link" requests for the
 /// shell to navigate. All operations no-op when Firebase is not configured.
 class PushService {
-  PushService(this._api, this._notificationsRefresh, this._linksRefresh);
+  PushService(this._api, this._notificationsRefresh, this._linksRefresh, this._supportRefresh);
 
   final PayspinApiClient _api;
   final NotificationsRefreshNotifier _notificationsRefresh;
   final LinksRefreshNotifier _linksRefresh;
+  final SupportRefreshNotifier _supportRefresh;
 
   /// Emits a payment-link id when a push should open that link's detail screen.
   final ValueNotifier<String?> openLinkRequests = ValueNotifier<String?>(null);
+
+  /// Emits a support thread id when a `support.reply` push should open a thread.
+  final ValueNotifier<String?> openSupportThreadRequests = ValueNotifier<String?>(null);
 
   bool _initialized = false;
   bool _permissionPrompted = false;
@@ -49,6 +54,7 @@ class PushService {
         // and home update without the user doing anything (React-Query-on-push).
         _notificationsRefresh.bump();
         _linksRefresh.bump();
+        if (message.data['type'] == 'support.reply') _supportRefresh.bump();
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen(_handleOpen);
@@ -122,9 +128,18 @@ class PushService {
   }
 
   void _handleOpen(RemoteMessage message) {
-    final linkId = message.data['linkId'] as String?;
-    if (linkId != null && linkId.isNotEmpty) {
-      openLinkRequests.value = linkId;
+    final type = message.data['type'] as String?;
+    if (type == 'support.reply') {
+      final threadId = message.data['threadId'] as String?;
+      if (threadId != null && threadId.isNotEmpty) {
+        openSupportThreadRequests.value = threadId;
+      }
+      _supportRefresh.bump();
+    } else {
+      final linkId = message.data['linkId'] as String?;
+      if (linkId != null && linkId.isNotEmpty) {
+        openLinkRequests.value = linkId;
+      }
     }
     _notificationsRefresh.bump();
     _linksRefresh.bump();

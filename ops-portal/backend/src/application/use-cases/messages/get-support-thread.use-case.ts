@@ -16,11 +16,15 @@ export class GetSupportThreadUseCase {
     }
     return {
       id: thread.id,
+      userId: thread.userId,
       userRef: thread.userRef,
       subjectName: thread.subjectName,
+      category: thread.category,
+      contextRef: thread.contextRef,
       meta: thread.meta,
       status: thread.status,
       unread: thread.unread,
+      userUnread: thread.userUnread,
       preview: thread.messages[thread.messages.length - 1]?.body ?? '',
       lastMessageAt: thread.lastMessageAt.toISOString(),
       messages: thread.messages.map((m) => ({

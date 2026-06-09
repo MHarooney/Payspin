@@ -1,4 +1,5 @@
 export * from './admin';
+export * from './support';
 
 export enum PaymentLinkStatus {
   ACTIVE = 'ACTIVE',
@@ -106,6 +107,7 @@ export enum NotificationType {
   PAYMENT_RECEIVED = 'payment.received',
   PAYMENT_FAILED = 'payment.failed',
   LINK_EXPIRED = 'link.expired',
+  SUPPORT_REPLY = 'support.reply',
 }
 
 export interface NotificationSummary {

@@ -29,6 +29,10 @@ import '../presentation/send/send_amount_page.dart';
 import '../presentation/send/send_name_page.dart';
 import '../presentation/shell/main_shell.dart';
 import '../presentation/splash/splash_page.dart';
+import '../presentation/support/new_support_request_page.dart';
+import '../presentation/support/support_inbox_page.dart';
+import '../presentation/support/support_thread_page.dart';
+import '../domain/entities/support_thread.dart';
 import '../presentation/welcome/welcome_page.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
@@ -84,6 +88,18 @@ GoRouter createRouter({String initialLocation = '/splash'}) {
       GoRoute(path: '/scan', builder: (_, __) => const ScanQrPage()),
       GoRoute(path: '/bank-accounts', builder: (_, __) => const BankAccountsPage()),
       GoRoute(path: '/notifications', builder: (_, __) => const NotificationsPage()),
+      GoRoute(path: '/support', builder: (_, __) => const SupportInboxPage()),
+      GoRoute(
+        path: '/support/new',
+        builder: (_, state) => NewSupportRequestPage(
+          contextRef: state.uri.queryParameters['contextRef'],
+          initialCategory: SupportCategoryX.fromWire(state.uri.queryParameters['category']),
+        ),
+      ),
+      GoRoute(
+        path: '/support/:threadId',
+        builder: (_, state) => SupportThreadPage(threadId: state.pathParameters['threadId']!),
+      ),
       GoRoute(
         path: '/links/:id',
         builder: (_, state) => LinkDetailPage(linkId: state.pathParameters['id']!),
@@ -120,7 +136,8 @@ Future<String?> _redirect(BuildContext context, GoRouterState state) async {
       loc.startsWith('/links') ||
       loc.startsWith('/circles') ||
       loc.startsWith('/bank-accounts') ||
-      loc.startsWith('/notifications')) {
+      loc.startsWith('/notifications') ||
+      loc.startsWith('/support')) {
     return null;
   }
 

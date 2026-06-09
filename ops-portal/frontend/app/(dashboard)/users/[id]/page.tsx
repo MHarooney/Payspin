@@ -8,6 +8,7 @@ import {
   AdminUserBankAccount,
   AdminUserCircleSummary,
   AdminPaymentLinkListItem,
+  SupportThreadDto,
 } from '@payspin/shared-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
@@ -28,7 +29,7 @@ import { apiRequest } from '@/lib/admin-api';
 import { useAuth } from '@/lib/auth';
 import { eur, relativeTime, statusPill } from '@/lib/format';
 
-type Tab = 'overview' | 'payments' | 'links' | 'bank' | 'circles' | 'audit' | 'devices' | 'test';
+type Tab = 'overview' | 'payments' | 'links' | 'bank' | 'circles' | 'support' | 'audit' | 'devices' | 'test';
 
 const PRESENCE_LABEL: Record<AdminUserPresence, string> = {
   online: '● Online',
@@ -256,6 +257,48 @@ function CirclesTab({ circles }: { circles: AdminUserCircleSummary[] }) {
   );
 }
 
+function SupportTab({ userId }: { userId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['user-support', userId],
+    queryFn: () => apiRequest<SupportThreadDto[]>(`/users/${userId}/support-threads`),
+  });
+  if (isLoading) return <div className="empty">Loading support threads…</div>;
+  if (!data || data.length === 0) return <div className="empty">No support threads for this user.</div>;
+  return (
+    <OpsCard title={undefined} count={undefined}>
+      <table>
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Last message</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((t) => (
+            <tr key={t.id}>
+              <td>{t.subjectName}</td>
+              <td className="hint">{t.category ?? '—'}</td>
+              <td>
+                <OpsPill tone={t.status === 'RESOLVED' ? 'ok' : 'pend'}>{t.status}</OpsPill>
+                {t.unread && <OpsPill tone="accent">unread</OpsPill>}
+              </td>
+              <td className="hint">{relativeTime(t.lastMessageAt)}</td>
+              <td>
+                <Link href={`/messages?thread=${t.id}`} className="mini-btn">
+                  Open
+                </Link>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </OpsCard>
+  );
+}
+
 function AuditTab({ events }: { events: AuditEventDto[] }) {
   if (!events.length) return <div className="empty">No audit events for this user.</div>;
   return (
@@ -336,6 +379,7 @@ export default function UserDetailPage({
     { key: 'links', label: `Links (${user.recentPaymentLinks.length})` },
     { key: 'bank', label: `Bank (${user.bankAccounts.length})` },
     { key: 'circles', label: `Circles (${user.circles.length})` },
+    { key: 'support', label: 'Support' },
     { key: 'audit', label: `Audit (${user.auditEvents.length})` },
     { key: 'devices', label: `Devices (${user.registeredDeviceCount})` },
   ];
@@ -454,6 +498,7 @@ export default function UserDetailPage({
       {tab === 'links' && <LinksTab links={user.recentPaymentLinks} />}
       {tab === 'bank' && <BankTab accounts={user.bankAccounts} />}
       {tab === 'circles' && <CirclesTab circles={user.circles} />}
+      {tab === 'support' && <SupportTab userId={id} />}
       {tab === 'audit' && <AuditTab events={user.auditEvents} />}
       {tab === 'devices' && (
         <OpsCard title="Registered devices" count={undefined}>
