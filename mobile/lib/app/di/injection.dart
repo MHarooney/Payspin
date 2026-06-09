@@ -9,6 +9,7 @@ import '../../core/notifications/push_service.dart';
 import '../../core/onboarding/onboarding_progress_store.dart';
 import '../../core/security/app_lock_controller.dart';
 import '../../core/security/app_lock_service.dart';
+import '../../core/storage/favorite_links_store.dart';
 import '../../core/state/circles_refresh_notifier.dart';
 import '../../core/state/links_refresh_notifier.dart';
 import '../../core/state/notifications_refresh_notifier.dart';
@@ -50,6 +51,8 @@ Future<void> configureDependencies() async {
   final localeController = LocaleController(prefs);
   await localeController.load();
   sl.registerSingleton<LocaleController>(localeController);
+
+  sl.registerSingleton<FavoriteLinksStore>(FavoriteLinksStore(prefs));
 
   sl.registerLazySingleton(PayspinApiClient.new);
   sl.registerLazySingleton(LinksRefreshNotifier.new);

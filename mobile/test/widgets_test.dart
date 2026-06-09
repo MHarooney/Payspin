@@ -10,6 +10,8 @@ import 'package:payspin_mobile/core/design_system/widgets/payspin_skeleton.dart'
 import 'package:payspin_mobile/core/errors/api_exception.dart';
 import 'package:payspin_mobile/core/state/links_refresh_notifier.dart';
 import 'package:payspin_mobile/core/state/notifications_refresh_notifier.dart';
+import 'package:payspin_mobile/core/storage/favorite_links_store.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:payspin_mobile/domain/entities/institution.dart';
 import 'package:payspin_mobile/domain/entities/payment_link.dart';
 import 'package:payspin_mobile/domain/repositories/auth_repository.dart';
@@ -91,6 +93,9 @@ void main() {
       _sl.registerSingleton<LinksRefreshNotifier>(notifier);
       _sl.registerSingleton<NotificationsRefreshNotifier>(NotificationsRefreshNotifier());
       _sl.registerSingleton<NotificationRepository>(FakeNotificationRepository());
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      _sl.registerSingleton<FavoriteLinksStore>(FavoriteLinksStore(prefs));
       await tester.pumpWidget(wrap(const Scaffold(body: HomePage())));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
@@ -113,6 +118,54 @@ void main() {
         LinksRefreshNotifier(),
       );
       expect(find.textContaining('on our end'), findsOneWidget);
+    });
+
+    testWidgets('renders premium dashboard sections for a rich link set', (tester) async {
+      // Tall surface so every lazily-built sliver section lays out.
+      tester.view.physicalSize = const Size(800, 2200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final links = [
+        PaymentLink(
+          id: 'multi',
+          shortCode: 'multi',
+          amountCents: 3000,
+          currency: 'EUR',
+          description: 'Group trip',
+          status: 'COLLECTING',
+          createdAt: '2026-06-08T10:00:00.000Z',
+          payUrl: 'https://pay/multi',
+          completedPaymentCount: 2,
+          totalReceivedCents: 2000,
+          linkType: 'MULTI',
+          maxUses: 3,
+          useCount: 2,
+        ),
+        _link(id: 'settled', description: 'Pizza night', status: 'SETTLED'),
+        _link(id: 'open', description: 'Coffee', amountCents: null),
+      ];
+      // Pin one link so the Favorites strip renders.
+      _sl.registerSingleton<PaymentLinkRepository>(FakePaymentLinkRepository(links: links));
+      _sl.registerSingleton<LinksRefreshNotifier>(LinksRefreshNotifier());
+      _sl.registerSingleton<NotificationsRefreshNotifier>(NotificationsRefreshNotifier());
+      _sl.registerSingleton<NotificationRepository>(FakeNotificationRepository());
+      SharedPreferences.setMockInitialValues({'payspin_favorite_link_ids': <String>['settled']});
+      final prefs = await SharedPreferences.getInstance();
+      _sl.registerSingleton<FavoriteLinksStore>(FavoriteLinksStore(prefs));
+      await tester.pumpWidget(wrap(const Scaffold(body: HomePage())));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(find.text('Active request'), findsOneWidget);
+      expect(find.text('Favorites'), findsOneWidget);
+      expect(find.text('Recommended for you'), findsOneWidget);
+      expect(find.text('Recent links'), findsOneWidget);
+      // Capped MULTI progress label.
+      expect(find.text('2 of 3 paid'), findsOneWidget);
+      // Quick actions row.
+      expect(find.text('New link'), findsOneWidget);
+      expect(find.text('Scan'), findsOneWidget);
     });
 
     testWidgets('reloads when the refresh notifier bumps', (tester) async {
