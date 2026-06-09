@@ -82,7 +82,7 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
     super.initState();
     _obscured = widget.obscureText;
     widget.controller.addListener(_onControllerChanged);
-    _focus.addListener(_onControllerChanged);
+    _focus.addListener(_onFocusChanged);
   }
 
   @override
@@ -105,6 +105,20 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
   }
 
   void _onControllerChanged() => setState(() {});
+
+  void _onFocusChanged() {
+    setState(() {});
+    if (!_focus.hasFocus) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_focus.hasFocus) return;
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.25,
+        duration: PayspinMotion.fast,
+        curve: PayspinMotion.easeEnter,
+      );
+    });
+  }
 
   bool get _isObscured => widget.showVisibilityToggle ? _obscured : widget.obscureText;
 
@@ -152,9 +166,8 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
-                child: AnimatedDefaultTextStyle(
-                  duration: reduced ? Duration.zero : const Duration(milliseconds: 200),
-                  style: fieldStyle,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 36),
                   child: TextField(
                     controller: widget.controller,
                     focusNode: _focus,
@@ -168,9 +181,14 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
                     onChanged: widget.onChanged,
                     style: fieldStyle,
                     cursorColor: accent,
+                    textAlignVertical: TextAlignVertical.bottom,
                     decoration: _fieldDecoration.copyWith(
                       hintText: widget.hintText,
-                      hintStyle: _fieldStyle(hasValue: false, hintColor: colors.textHint, valueColor: accent),
+                      hintStyle: _fieldStyle(
+                        hasValue: false,
+                        hintColor: colors.textHint,
+                        valueColor: accent,
+                      ),
                     ),
                   ),
                 ),

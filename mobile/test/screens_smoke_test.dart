@@ -79,6 +79,20 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('onboarding name field stays visible when keyboard opens', (tester) async {
+      await pumpRoute(tester, router, '/onboarding/name');
+      addTearDown(tester.view.reset);
+
+      tester.view.viewInsets = const FakeViewPadding(bottom: 336);
+      await tester.pump();
+
+      final fieldBox = tester.renderObject(find.byType(TextField)) as RenderBox;
+      expect(fieldBox.size.height, greaterThan(0));
+      expect(fieldBox.size.width, greaterThan(0));
+      expect(find.text('Enter your name'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('onboarding phone', (tester) async {
       await pumpRoute(tester, router, '/onboarding/phone');
       expect(find.byType(TextField), findsWidgets);

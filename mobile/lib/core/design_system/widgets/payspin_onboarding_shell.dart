@@ -55,8 +55,10 @@ class PayspinOnboardingShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.psColors;
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final safeBottom = MediaQuery.paddingOf(context).bottom;
     final canProceed = onNext != null && !nextDisabled;
+    final footerWidget = footer ?? _buildFooter(canProceed);
 
     return Scaffold(
       backgroundColor: colors.bg,
@@ -67,91 +69,116 @@ class PayspinOnboardingShell extends StatelessWidget {
           children: [
             const PayspinFinanceParticles(intensity: 0.25),
             SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+              child: Stack(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
-                    child: Row(
-                      children: [
-                        PayspinGlassIconButton(
-                          icon: Icons.arrow_back,
-                          bordered: false,
-                          onPressed: onBack,
-                        ),
-                        const Spacer(),
-                        PayspinOnboardingSubProgress(journey: journey),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: PayspinOnboardingChapterRail(journey: journey),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: PayspinOnboardingChapterProgress(journey: journey),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: PayspinStaggeredEntrance(
-                      index: 0,
-                      child: DefaultTextStyle(
-                        style: GoogleFonts.raleway(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          color: colors.textPrimary,
-                          height: 1.15,
-                        ),
-                        child: title,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: PayspinStaggeredEntrance(
-                        index: 1,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 14, 24, 8),
+                        child: Row(
                           children: [
-                            child,
-                            if (subtitle != null && subtitleBelowChild) ...[
-                              const SizedBox(height: 16),
-                              Text(
-                                subtitle!,
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  color: colors.textBody,
-                                  height: 1.6,
-                                ),
-                              ),
-                            ],
+                            PayspinGlassIconButton(
+                              icon: Icons.arrow_back,
+                              bordered: false,
+                              onPressed: onBack,
+                            ),
+                            const Spacer(),
+                            PayspinOnboardingSubProgress(journey: journey),
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                  if (subtitle != null && !subtitleBelowChild) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-                      child: Text(
-                        subtitle!,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: colors.textBody,
-                          height: 1.6,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: PayspinOnboardingChapterRail(journey: journey),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: PayspinOnboardingChapterProgress(journey: journey),
+                      ),
+                      const SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: PayspinStaggeredEntrance(
+                          index: 0,
+                          child: DefaultTextStyle(
+                            style: GoogleFonts.raleway(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w800,
+                              color: colors.textPrimary,
+                              height: 1.15,
+                            ),
+                            child: title,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(24, 16, 24, 28 + bottomInset),
-                    child: footer ?? _buildFooter(canProceed),
+                      const SizedBox(height: 24),
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return SingleChildScrollView(
+                              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                              padding: EdgeInsets.fromLTRB(
+                                24,
+                                0,
+                                24,
+                                keyboardOpen ? 88 : 24,
+                              ),
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                                child: PayspinStaggeredEntrance(
+                                  index: 1,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      child,
+                                      if (subtitle != null && subtitleBelowChild) ...[
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          subtitle!,
+                                          style: GoogleFonts.inter(
+                                            fontSize: 13,
+                                            color: colors.textBody,
+                                            height: 1.6,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      if (subtitle != null && !subtitleBelowChild) ...[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                          child: Text(
+                            subtitle!,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: colors.textBody,
+                              height: 1.6,
+                            ),
+                          ),
+                        ),
+                      ],
+                      if (!keyboardOpen)
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(24, 16, 24, 28 + safeBottom),
+                          child: footerWidget,
+                        ),
+                    ],
                   ),
+                  if (keyboardOpen)
+                    Positioned(
+                      right: 24,
+                      bottom: 16,
+                      child: footerWidget,
+                    ),
                 ],
               ),
             ),

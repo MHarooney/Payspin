@@ -13,10 +13,14 @@ import '../../../core/constants/phone_country_codes.dart';
 import '../../../core/design_system/theme/payspin_motion.dart';
 import '../../../core/design_system/tokens/payspin_tokens.dart';
 import '../intro_scene_scope.dart';
+import 'intro_globe_performance.dart';
 
 /// Scene 2 — a live 3D Earth with a Germany hub sending cross-border payment
-/// arcs to NL/FR/ES. Rotation pauses while the scene is off-screen and freezes
-/// to a static frame under reduced motion.
+/// arcs to NL/FR/ES.
+///
+/// Performance: the globe mounts lazily when the scene is on screen, uses a
+/// downscaled texture + lite shaders on device, stops rotating after the entry
+/// zoom, and tears down when the user swipes away.
 class IntroScene2 extends StatefulWidget {
   const IntroScene2({super.key, this.sceneIndex = 1});
 
@@ -39,7 +43,6 @@ class _IntroScene2State extends State<IntroScene2>
     (iso: 'ES', coords: GlobeCoordinates(40.0, -3.7)),
   ];
 
-  // Brand-blended arc colour (pink → mint) for the cross-border flows.
   static final Color _arcColor = Color.lerp(
     PayspinTokens.pink,
     PayspinTokens.mint,
@@ -51,7 +54,7 @@ class _IntroScene2State extends State<IntroScene2>
   Listenable? _offsetListenable;
   VoidCallback? _offsetListener;
   bool _reduced = false;
-  bool _rotating = false;
+  bool _lite = true;
   bool _entryPlayed = false;
   bool _connectionsAdded = false;
 
@@ -59,34 +62,40 @@ class _IntroScene2State extends State<IntroScene2>
   void didChangeDependencies() {
     super.didChangeDependencies();
     final reduced = PayspinMotion.reduced(context);
-    if (_controller == null || reduced != _reduced) {
+    final lite = IntroGlobePerformance.liteMode(context);
+    if (reduced != _reduced || lite != _lite) {
       _reduced = reduced;
-      _entryPlayed = false;
-      _connectionsAdded = false;
-      _setupGlobe();
+      _lite = lite;
+      _teardownGlobe();
     }
     _attachOffsetListener();
+    _syncScene();
   }
 
   void _setupGlobe() {
+    if (_controller != null) return;
+
+    final lite = _lite && !_reduced;
     final controller = FlutterEarthGlobeController(
       surface: const AssetImage('assets/textures/earth_day.jpg'),
-      rotationSpeed: 0.015,
+      surfaceConfiguration: IntroGlobePerformance.surfaceConfiguration,
+      rotationSpeed: lite ? 0.008 : 0.015,
       isRotating: false,
       isZoomEnabled: false,
       zoom: _zoomWide,
-      showAtmosphere: true,
+      showAtmosphere: !lite,
       atmosphereColor: PayspinTokens.mint,
-      atmosphereOpacity: 0.38,
-      atmosphereBlur: 20,
-      atmosphereThickness: 0.05,
-      surfaceLightingEnabled: true,
+      atmosphereOpacity: lite ? 0 : 0.38,
+      atmosphereBlur: lite ? 0 : 20,
+      atmosphereThickness: lite ? 0 : 0.05,
+      surfaceLightingEnabled: !lite,
       lightAngle: -35,
-      lightIntensity: 0.42,
-      ambientLight: 0.78,
+      lightIntensity: lite ? 0 : 0.42,
+      ambientLight: lite ? 1 : 0.78,
       sphereStyle: SphereStyle(
-        shadowColor: PayspinTokens.mint.withValues(alpha: 0.22),
-        shadowBlurSigma: 14,
+        shadowColor: PayspinTokens.mint.withValues(alpha: lite ? 0.12 : 0.22),
+        shadowBlurSigma: lite ? 6 : 14,
+        showGradientOverlay: !lite,
         gradientOverlay: const RadialGradient(
           colors: [
             Colors.transparent,
@@ -106,9 +115,9 @@ class _IntroScene2State extends State<IntroScene2>
         isLabelVisible: true,
         labelBuilder: (context, point, isHovering, isVisible) =>
             _visiblePill(isVisible, point.label ?? '', PayspinTokens.pink, hub: true),
-        style: const PointStyle(
+        style: PointStyle(
           color: PayspinTokens.pink,
-          size: 7,
+          size: lite ? 6 : 7,
           altitude: 0.02,
         ),
       ),
@@ -123,9 +132,9 @@ class _IntroScene2State extends State<IntroScene2>
           isLabelVisible: true,
           labelBuilder: (context, point, isHovering, isVisible) =>
               _visiblePill(isVisible, point.label ?? '', PayspinTokens.mint),
-          style: const PointStyle(
+          style: PointStyle(
             color: PayspinTokens.mint,
-            size: 5,
+            size: lite ? 4 : 5,
             altitude: 0.01,
           ),
         ),
@@ -140,12 +149,48 @@ class _IntroScene2State extends State<IntroScene2>
     setState(() => _controller = controller);
   }
 
+  void _teardownGlobe() {
+    _zoomAnim?.dispose();
+    _zoomAnim = null;
+    _controller = null;
+    _entryPlayed = false;
+    _connectionsAdded = false;
+    if (mounted) setState(() {});
+  }
+
   void _attachOffsetListener() {
     final scope = IntroSceneScope.maybeOf(context);
     if (scope == null || _offsetListener != null) return;
-    _offsetListener = _syncRotation;
+    _offsetListener = _syncScene;
     _offsetListenable = scope.offsetListenable;
     _offsetListenable!.addListener(_offsetListener!);
+  }
+
+  void _syncScene() {
+    if (!mounted) return;
+    final visibility = IntroSceneScope.visibility(context, widget.sceneIndex);
+
+    if (IntroGlobePerformance.shouldTeardown(visibility)) {
+      if (_controller != null) _teardownGlobe();
+      return;
+    }
+
+    if (_controller == null && IntroGlobePerformance.shouldMount(visibility)) {
+      _setupGlobe();
+    }
+
+    final controller = _controller;
+    if (controller == null || !controller.isReady) return;
+
+    if (visibility < 0.15) {
+      controller.stopRotation();
+      _zoomAnim?.stop();
+      return;
+    }
+
+    if (!_entryPlayed) {
+      _maybePlayEntry();
+    }
   }
 
   void _maybePlayEntry() {
@@ -165,7 +210,7 @@ class _IntroScene2State extends State<IntroScene2>
     controller.setZoom(_zoomEurope);
     controller.focusOnCoordinates(_europeFocus, animate: false);
     _addConnections(controller, animateDraw: false);
-    _syncRotation();
+    controller.stopRotation();
   }
 
   void _runEntryAnimation(FlutterEarthGlobeController controller) {
@@ -181,7 +226,7 @@ class _IntroScene2State extends State<IntroScene2>
     _zoomAnim?.dispose();
     _zoomAnim = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
+      duration: Duration(milliseconds: _lite ? 1200 : 1500),
     );
     final zoomTween = Tween<double>(begin: _zoomWide, end: _zoomEurope)
         .chain(CurveTween(curve: Curves.easeInOutCubic));
@@ -190,12 +235,12 @@ class _IntroScene2State extends State<IntroScene2>
       controller.setZoom(zoomTween.evaluate(_zoomAnim!));
     });
 
-    Future<void>.delayed(const Duration(milliseconds: 400), () async {
+    Future<void>.delayed(Duration(milliseconds: _lite ? 300 : 400), () async {
       if (!mounted || _zoomAnim == null) return;
       await _zoomAnim!.forward();
       if (!mounted) return;
-      _addConnections(controller, animateDraw: true);
-      _syncRotation();
+      _addConnections(controller, animateDraw: !_lite);
+      controller.stopRotation();
     });
   }
 
@@ -205,54 +250,27 @@ class _IntroScene2State extends State<IntroScene2>
   }) {
     if (_connectionsAdded) return;
     _connectionsAdded = true;
+    final animateArcs = animateDraw && !_reduced && !_lite;
     for (final destination in _destinations) {
       controller.addPointConnection(
         PointConnection(
           id: 'DE-${destination.iso}',
           start: _hub,
           end: destination.coords,
-          isMoving: !_reduced,
+          isMoving: animateArcs,
           curveScale: 1.25,
           style: PointConnectionStyle(
             type: PointConnectionType.dotted,
             color: _arcColor,
-            dotSize: 2.4,
-            spacing: 9,
-            dashAnimateTime: _reduced ? 0 : 1400,
-            growthAnimationDuration: 900,
+            dotSize: _lite ? 2 : 2.4,
+            spacing: _lite ? 11 : 9,
+            dashAnimateTime: animateArcs ? 1400 : 0,
+            growthAnimationDuration: animateArcs ? 900 : 0,
           ),
         ),
-        animateDraw: animateDraw,
+        animateDraw: animateArcs,
       );
     }
-  }
-
-  void _syncRotation() {
-    final controller = _controller;
-    if (controller == null || !controller.isReady || _reduced) return;
-
-    final visible =
-        IntroSceneScope.visibility(context, widget.sceneIndex) > 0.15;
-    if (!visible) {
-      if (_rotating) {
-        _rotating = false;
-        controller.stopRotation();
-      }
-      _zoomAnim?.stop();
-      return;
-    }
-
-    if (!_entryPlayed) {
-      _maybePlayEntry();
-      return;
-    }
-
-    final entrySettled = _zoomAnim == null || _zoomAnim!.isCompleted;
-    if (!entrySettled) return;
-
-    if (_rotating) return;
-    _rotating = true;
-    controller.startRotation();
   }
 
   @override
@@ -261,21 +279,21 @@ class _IntroScene2State extends State<IntroScene2>
     if (_offsetListener != null && _offsetListenable != null) {
       _offsetListenable!.removeListener(_offsetListener!);
     }
-    // The globe's own AnimationController is disposed by the FlutterEarthGlobe
-    // widget; disposing the controller here would double-dispose it.
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final controller = _controller;
+    final visibility = IntroSceneScope.visibility(context, widget.sceneIndex);
+    final globeActive =
+        visibility >= IntroGlobePerformance.mountThreshold && controller != null;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        // flutter_earth_globe sizes itself from MediaQuery — override it to the
-        // illustration slot so the sphere centres instead of clipping to a band.
         final side = math.min(
           math.min(constraints.maxWidth, constraints.maxHeight),
-          320.0,
+          IntroGlobePerformance.maxGlobeSide,
         );
         final radius = side * 0.34;
         final mq = MediaQuery.of(context);
@@ -286,16 +304,19 @@ class _IntroScene2State extends State<IntroScene2>
             child: SizedBox(
               width: side,
               height: side,
-              // Decorative only — IgnorePointer lets the intro PageView keep
-              // horizontal swipes instead of the globe stealing the drag.
-              child: controller == null
-                  ? const SizedBox.shrink()
-                  : IgnorePointer(
-                      child: FlutterEarthGlobe(
-                        controller: controller,
-                        radius: radius,
+              child: globeActive
+                  ? IgnorePointer(
+                      child: TickerMode(
+                        enabled: visibility > 0.2,
+                        child: RepaintBoundary(
+                          child: FlutterEarthGlobe(
+                            controller: controller,
+                            radius: radius,
+                          ),
+                        ),
                       ),
-                    ),
+                    )
+                  : IntroGlobePlaceholder(side: side),
             ),
           ),
         );
