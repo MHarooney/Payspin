@@ -46,3 +46,24 @@ android {
 flutter {
     source = "../.."
 }
+
+// integration_test is dev-only; Flutter still writes it into GeneratedPluginRegistrant
+// after widget tests, which breaks release APK builds.
+tasks.register("stripIntegrationTestPlugin") {
+    doLast {
+        val registrant = file("src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java")
+        if (!registrant.exists()) return@doLast
+        val text = registrant.readText()
+        val cleaned = text.replace(
+            Regex(
+                """\n\s*try \{\s*flutterEngine\.getPlugins\(\)\.add\(new dev\.flutter\.plugins\.integration_test\.IntegrationTestPlugin\(\)\);\s*\} catch \(Exception e\) \{\s*Log\.e\(TAG, "Error registering plugin integration_test[^"]*", e\);\s*\}""",
+            ),
+            "",
+        )
+        if (cleaned != text) registrant.writeText(cleaned)
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn("stripIntegrationTestPlugin")
+}
