@@ -166,30 +166,28 @@ class _PayspinUnderlineFieldState extends State<PayspinUnderlineField> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
-                child: SizedBox(
-                  height: 36,
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: TextField(
-                      controller: widget.controller,
-                      focusNode: _focus,
-                      autofocus: widget.autofocus,
-                      maxLength: widget.maxLength,
-                      textCapitalization: widget.textCapitalization,
-                      keyboardType: widget.keyboardType,
-                      inputFormatters: widget.inputFormatters,
-                      obscureText: _isObscured,
-                      textInputAction: widget.textInputAction,
-                      onChanged: widget.onChanged,
-                      style: fieldStyle,
-                      cursorColor: accent,
-                      decoration: _fieldDecoration.copyWith(
-                        hintText: widget.hintText,
-                        hintStyle: _fieldStyle(
-                          hasValue: false,
-                          hintColor: colors.textHint,
-                          valueColor: accent,
-                        ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 36),
+                  child: TextField(
+                    controller: widget.controller,
+                    focusNode: _focus,
+                    autofocus: widget.autofocus,
+                    maxLength: widget.maxLength,
+                    textCapitalization: widget.textCapitalization,
+                    keyboardType: widget.keyboardType,
+                    inputFormatters: widget.inputFormatters,
+                    obscureText: _isObscured,
+                    textInputAction: widget.textInputAction,
+                    onChanged: widget.onChanged,
+                    style: fieldStyle,
+                    cursorColor: accent,
+                    textAlignVertical: TextAlignVertical.bottom,
+                    decoration: _fieldDecoration.copyWith(
+                      hintText: widget.hintText,
+                      hintStyle: _fieldStyle(
+                        hasValue: false,
+                        hintColor: colors.textHint,
+                        valueColor: accent,
                       ),
                     ),
                   ),
